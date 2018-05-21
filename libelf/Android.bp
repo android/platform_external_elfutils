@@ -15,6 +15,7 @@
 cc_library_static {
     name: "libelf",
     host_supported: true,
+    vendor_available: true,
 
     srcs:  [
         "elf32_checksum.c",
