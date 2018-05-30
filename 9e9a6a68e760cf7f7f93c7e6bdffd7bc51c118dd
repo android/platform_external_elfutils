@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a653c7c9_3a5656c0",
+        "filename": "libelf/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1074628
+      },
+      "writtenOn": "2018-05-30T22:12:25Z",
+      "side": 1,
+      "message": "Add this to disable the shared library on device:\n\n  shared: {\n      enabled: false,\n  }",
+      "revId": "9e9a6a68e760cf7f7f93c7e6bdffd7bc51c118dd",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
+    }
+  ]
+}
