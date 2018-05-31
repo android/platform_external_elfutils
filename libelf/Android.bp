@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-cc_library_static {
+cc_library {
     name: "libelf",
     host_supported: true,
     vendor_available: true,
@@ -160,6 +160,9 @@ cc_library_static {
                 "-D_FILE_OFFSET_BITS=64",
                 "-include AndroidFixup.h",
             ],
+            shared: {
+                enabled: false,
+            },
         },
     },
 }
