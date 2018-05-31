@@ -1,0 +1,9 @@
+Verified+1: Alistair Strachan <astrachan@google.com>
+Code-Review+2: Alistair Strachan <astrachan@google.com>
+Code-Review+2: Dan Willemsen <dwillemsen@google.com>
+Presubmit-Verified+1: Treehugger Robot <treehugger-gerrit@google.com>
+Submitted-by: Alistair Strachan <astrachan@google.com>
+Submitted-at: Thu, 31 May 2018 16:51:46 +0000
+Reviewed-on: https://android-review.googlesource.com/696063
+Project: platform/external/elfutils
+Branch: refs/heads/master
