@@ -1,7 +1,6 @@
 /* Return address represented by attribute.
-   Copyright (C) 2003-2010 Red Hat, Inc.
+   Copyright (C) 2003-2010, 2018 Red Hat, Inc.
    This file is part of elfutils.
-   Written by Ulrich Drepper <drepper@redhat.com>, 2003.
 
    This file is free software; you can redistribute it and/or modify
    it under the terms of either
@@ -36,20 +35,112 @@
 
 
 int
+__libdw_addrx (Dwarf_CU *cu, Dwarf_Word idx, Dwarf_Addr *addr)
+{
+  Dwarf_Off addr_off = __libdw_cu_addr_base (cu);
+  if (addr_off == (Dwarf_Off) -1)
+    return -1;
+
+  Dwarf *dbg = cu->dbg;
+  if (dbg->sectiondata[IDX_debug_addr] == NULL)
+    {
+      __libdw_seterrno (DWARF_E_NO_DEBUG_ADDR);
+      return -1;
+    }
+
+  /* The section should at least contain room for one address.  */
+  int address_size = cu->address_size;
+  if (cu->address_size > dbg->sectiondata[IDX_debug_addr]->d_size)
+    {
+    invalid_offset:
+      __libdw_seterrno (DWARF_E_INVALID_OFFSET);
+      return -1;
+    }
+
+  if (addr_off > (dbg->sectiondata[IDX_debug_addr]->d_size
+		  - address_size))
+    goto invalid_offset;
+
+  idx *= address_size;
+  if (idx > (dbg->sectiondata[IDX_debug_addr]->d_size
+	     - address_size - addr_off))
+    goto invalid_offset;
+
+  const unsigned char *datap;
+  datap = dbg->sectiondata[IDX_debug_addr]->d_buf + addr_off + idx;
+  if (address_size == 4)
+    *addr = read_4ubyte_unaligned (dbg, datap);
+  else
+    *addr = read_8ubyte_unaligned (dbg, datap);
+
+  return 0;
+}
+
+int
 dwarf_formaddr (Dwarf_Attribute *attr, Dwarf_Addr *return_addr)
 {
   if (attr == NULL)
     return -1;
 
-  if (unlikely (attr->form != DW_FORM_addr))
+  Dwarf_Word idx;
+  Dwarf_CU *cu = attr->cu;
+  Dwarf *dbg = cu->dbg;
+  const unsigned char *datap = attr->valp;
+  const unsigned char *endp = attr->cu->endp;
+  switch (attr->form)
     {
-      __libdw_seterrno (DWARF_E_NO_ADDR);
-      return -1;
+      /* There is one form that just encodes the whole address.  */
+      case DW_FORM_addr:
+	if (__libdw_read_address (dbg, cu_sec_idx (cu), datap,
+				  cu->address_size, return_addr))
+	  return -1;
+	return 0;
+
+      /* All others encode an index into the .debug_addr section where
+	 the address can be found.  */
+      case DW_FORM_GNU_addr_index:
+      case DW_FORM_addrx:
+	if (datap >= endp)
+	  {
+	  invalid:
+	    __libdw_seterrno (DWARF_E_INVALID_DWARF);
+	    return -1;
+	  }
+	get_uleb128 (idx, datap, endp);
+	break;
+
+      case DW_FORM_addrx1:
+	if (datap >= endp - 1)
+	  goto invalid;
+	idx = *datap;
+	break;
+
+      case DW_FORM_addrx2:
+	if (datap >= endp - 2)
+	  goto invalid;
+	idx = read_2ubyte_unaligned (dbg, datap);
+	break;
+
+      case DW_FORM_addrx3:
+	if (datap >= endp - 3)
+	  goto invalid;
+	idx = read_3ubyte_unaligned (dbg, datap);
+	break;
+
+      case DW_FORM_addrx4:
+	if (datap >= endp - 4)
+	  goto invalid;
+	idx = read_4ubyte_unaligned (dbg, datap);
+	break;
+
+      default:
+	__libdw_seterrno (DWARF_E_NO_ADDR);
+	return -1;
     }
 
-  if (__libdw_read_address (attr->cu->dbg,
-			    cu_sec_idx (attr->cu), attr->valp,
-			    attr->cu->address_size, return_addr))
+  /* So we got an index.  Lets see if it is valid and we can get the actual
+     address.  */
+  if (__libdw_addrx (cu, idx, return_addr) != 0)
     return -1;
 
   return 0;

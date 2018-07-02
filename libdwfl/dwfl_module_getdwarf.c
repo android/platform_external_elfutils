@@ -26,6 +26,10 @@
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libdwflP.h"
 #include <inttypes.h>
 #include <fcntl.h>
@@ -33,6 +37,7 @@
 #include <unistd.h>
 #include "../libdw/libdwP.h"	/* DWARF_E_* values are here.  */
 #include "../libelf/libelfP.h"
+#include "system.h"
 
 static inline Dwfl_Error
 open_elf_file (Elf **elf, int *fd, char **name)
@@ -348,11 +353,13 @@ find_prelink_address_sync (Dwfl_Module *mod, struct dwfl_file *file)
 
   /* Since prelink does not store the zeroth section header in the undo
      section, it cannot support SHN_XINDEX encoding.  */
-  if (unlikely (shnum >= SHN_LORESERVE)
+  if (unlikely (shnum >= SHN_LORESERVE) || unlikely(shnum == 0)
       || unlikely (undodata->d_size != (src.d_size
 					+ phnum * phentsize
 					+ (shnum - 1) * shentsize)))
     return DWFL_E_BAD_PRELINK;
+
+  --shnum;
 
   /* We look at the allocated SHT_PROGBITS (or SHT_NOBITS) sections.  (Most
      every file will have some SHT_PROGBITS sections, but it's possible to
@@ -430,12 +437,12 @@ find_prelink_address_sync (Dwfl_Module *mod, struct dwfl_file *file)
 
   src.d_buf += src.d_size;
   src.d_type = ELF_T_SHDR;
-  src.d_size = gelf_fsize (mod->main.elf, ELF_T_SHDR, shnum - 1, EV_CURRENT);
+  src.d_size = gelf_fsize (mod->main.elf, ELF_T_SHDR, shnum, EV_CURRENT);
 
   size_t shdr_size = class32 ? sizeof (Elf32_Shdr) : sizeof (Elf64_Shdr);
-  if (unlikely (shnum - 1  > SIZE_MAX / shdr_size))
+  if (unlikely (shnum > SIZE_MAX / shdr_size))
     return DWFL_E_NOMEM;
-  const size_t shdrs_bytes = (shnum - 1) * shdr_size;
+  const size_t shdrs_bytes = shnum * shdr_size;
   void *shdrs = malloc (shdrs_bytes);
   if (unlikely (shdrs == NULL))
     return DWFL_E_NOMEM;
@@ -487,16 +494,16 @@ find_prelink_address_sync (Dwfl_Module *mod, struct dwfl_file *file)
       highest = 0;
       if (class32)
 	{
-	  Elf32_Shdr (*s32)[shnum - 1] = shdrs;
-	  for (size_t i = 0; i < shnum - 1; ++i)
+	  Elf32_Shdr (*s32)[shnum] = shdrs;
+	  for (size_t i = 0; i < shnum; ++i)
 	    consider_shdr (undo_interp, (*s32)[i].sh_type,
 			   (*s32)[i].sh_flags, (*s32)[i].sh_addr,
 			   (*s32)[i].sh_size, &highest);
 	}
       else
 	{
-	  Elf64_Shdr (*s64)[shnum - 1] = shdrs;
-	  for (size_t i = 0; i < shnum - 1; ++i)
+	  Elf64_Shdr (*s64)[shnum] = shdrs;
+	  for (size_t i = 0; i < shnum; ++i)
 	    consider_shdr (undo_interp, (*s64)[i].sh_type,
 			   (*s64)[i].sh_flags, (*s64)[i].sh_addr,
 			   (*s64)[i].sh_size, &highest);
@@ -1328,7 +1335,18 @@ load_dw (Dwfl_Module *mod, struct dwfl_file *debugfile)
 	result = __libdwfl_relocate (mod, debugfile->elf, true);
       if (result != DWFL_E_NOERROR)
 	return result;
+    }
 
+  mod->dw = INTUSE(dwarf_begin_elf) (debugfile->elf, DWARF_C_READ, NULL);
+  if (mod->dw == NULL)
+    {
+      int err = INTUSE(dwarf_errno) ();
+      return err == DWARF_E_NO_DWARF ? DWFL_E_NO_DWARF : DWFL_E (LIBDW, err);
+    }
+
+  /* Do this after dwarf_begin_elf has a chance to process the fd.  */
+  if (mod->e_type == ET_REL && !debugfile->relocated)
+    {
       /* Don't keep the file descriptors around.  */
       if (mod->main.fd != -1 && elf_cntl (mod->main.elf, ELF_C_FDREAD) == 0)
 	{
@@ -1342,12 +1360,12 @@ load_dw (Dwfl_Module *mod, struct dwfl_file *debugfile)
 	}
     }
 
-  mod->dw = INTUSE(dwarf_begin_elf) (debugfile->elf, DWARF_C_READ, NULL);
-  if (mod->dw == NULL)
-    {
-      int err = INTUSE(dwarf_errno) ();
-      return err == DWARF_E_NO_DWARF ? DWFL_E_NO_DWARF : DWFL_E (LIBDW, err);
-    }
+  /* We might have already closed the fd when we asked dwarf_begin_elf to
+     create an Dwarf.  Help out a little in case we need to find an alt or
+     dwo file later.  */
+  if (mod->dw->debugdir == NULL && mod->elfdir != NULL
+      && debugfile == &mod->main)
+    mod->dw->debugdir = strdup (mod->elfdir);
 
   /* Until we have iterated through all CU's, we might do lazy lookups.  */
   mod->lazycu = 1;

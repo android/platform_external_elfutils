@@ -1,7 +1,6 @@
 /* Retrieve ELF descriptor used for DWARF access.
-   Copyright (C) 2002, 2003, 2004, 2005, 2009, 2014, 2015 Red Hat, Inc.
+   Copyright (C) 2002-2005, 2009, 2014, 2015, 2017, 2018 Red Hat, Inc.
    This file is part of elfutils.
-   Written by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    This file is free software; you can redistribute it and/or modify
    it under the terms of either
@@ -73,6 +72,9 @@ static const char *errmsgs[] =
     [DWARF_E_NO_ENTRY] = N_("no entries found"),
     [DWARF_E_INVALID_DWARF] = N_("invalid DWARF"),
     [DWARF_E_NO_STRING] = N_("no string data"),
+    [DWARF_E_NO_DEBUG_STR] = N_(".debug_str section missing"),
+    [DWARF_E_NO_DEBUG_LINE_STR] = N_(".debug_line_str section missing"),
+    [DWARF_E_NO_STR_OFFSETS] = N_(".debug_str_offsets section missing"),
     [DWARF_E_NO_ADDR] = N_("no address value"),
     [DWARF_E_NO_CONSTANT] = N_("no constant value"),
     [DWARF_E_NO_REFERENCE] = N_("no reference value"),
@@ -83,7 +85,9 @@ static const char *errmsgs[] =
     [DWARF_E_VERSION] = N_("invalid DWARF version"),
     [DWARF_E_INVALID_DIR_IDX] = N_("invalid directory index"),
     [DWARF_E_ADDR_OUTOFRANGE] = N_("address out of range"),
-    [DWARF_E_NO_LOCLIST] = N_("no location list value"),
+    [DWARF_E_NO_DEBUG_LOC] = N_(".debug_loc section missing"),
+    [DWARF_E_NO_DEBUG_LOCLISTS] = N_(".debug_loclists section missing"),
+    [DWARF_E_NO_LOC_VALUE] = N_("not a location list value"),
     [DWARF_E_NO_BLOCK] = N_("no block data"),
     [DWARF_E_INVALID_LINE_IDX] = N_("invalid line index"),
     [DWARF_E_INVALID_ARANGE_IDX] = N_("invalid address range index"),
@@ -91,10 +95,13 @@ static const char *errmsgs[] =
     [DWARF_E_NO_FLAG] = N_("no flag value"),
     [DWARF_E_INVALID_OFFSET] = N_("invalid offset"),
     [DWARF_E_NO_DEBUG_RANGES] = N_(".debug_ranges section missing"),
+    [DWARF_E_NO_DEBUG_RNGLISTS] = N_(".debug_rnglists section missing"),
     [DWARF_E_INVALID_CFI] = N_("invalid CFI section"),
     [DWARF_E_NO_ALT_DEBUGLINK] = N_("no alternative debug link found"),
     [DWARF_E_INVALID_OPCODE] = N_("invalid opcode"),
     [DWARF_E_NOT_CUDIE] = N_("not a CU (unit) DIE"),
+    [DWARF_E_UNKNOWN_LANGUAGE] = N_("unknown language code"),
+    [DWARF_E_NO_DEBUG_ADDR] = N_(".debug_addr section missing"),
   };
 #define nerrmsgs (sizeof (errmsgs) / sizeof (errmsgs[0]))
 

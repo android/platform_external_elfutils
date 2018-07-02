@@ -34,13 +34,13 @@ status=0
 cmp $stripped testfile.temp || status=$?
 
 # Check elflint and the expected result.
-testrun ${abs_top_builddir}/src/elflint -q testfile.temp || status=$?
+testrun ${abs_top_builddir}/src/elflint --gnu -q testfile.temp || status=$?
 
 test -z "$debugfile" || {
 cmp $debugfile testfile.debug.temp || status=$?
 
 # Check elflint and the expected result.
-testrun ${abs_top_builddir}/src/elflint -q -d testfile.debug.temp || status=$?
+testrun ${abs_top_builddir}/src/elflint --gnu -q -d testfile.debug.temp || status=$?
 
 # Now test unstrip recombining those files.
 testrun ${abs_top_builddir}/src/unstrip -o testfile.unstrip testfile.temp testfile.debug.temp
@@ -48,6 +48,14 @@ testrun ${abs_top_builddir}/src/unstrip -o testfile.unstrip testfile.temp testfi
 # Check that it came back whole.
 testrun ${abs_top_builddir}/src/elfcmp --hash-inexact $original testfile.unstrip
 }
+
+# test strip -g
+testrun ${abs_top_builddir}/src/strip -g -o testfile.temp $original
+
+# Buggy eu-strip created multiple .shstrtab sections
+shstrtab_SECS=$(testrun ${abs_top_builddir}/src/readelf -S testfile.temp | grep '.shstrtab' | wc --lines)
+test $shstrtab_SECS -eq 1 ||
+  { echo "*** failure not just one '.shstrtab' testfile.temp ($shstrtab_SECS)"; status=1; }
 
 # Now strip in-place and make sure it is smaller.
 SIZE_original=$(stat -c%s $original)

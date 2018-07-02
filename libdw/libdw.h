@@ -1,5 +1,5 @@
 /* Interfaces for libdw.
-   Copyright (C) 2002-2010, 2013, 2014 Red Hat, Inc.
+   Copyright (C) 2002-2010, 2013, 2014, 2016, 2018 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -33,23 +33,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3)
-# define __nonnull_attribute__(...) __attribute__ ((__nonnull__ (__VA_ARGS__)))
-# define __deprecated_attribute__ __attribute__ ((__deprecated__))
-#else
-# define __nonnull_attribute__(args...)
-# define __deprecated_attribute__
-#endif
-
-
-#ifdef __GNUC_STDC_INLINE__
-# define __libdw_extern_inline extern __inline __attribute__ ((__gnu_inline__))
-#else
-# define __libdw_extern_inline extern __inline
-#endif
-
 
 /* Mode for the session.  */
 typedef enum
@@ -228,7 +211,9 @@ typedef union
   Dwarf_FDE fde;
 } Dwarf_CFI_Entry;
 
-#define dwarf_cfi_cie_p(entry)	((entry)->cie.CIE_id == DW_CIE_ID_64)
+/* Same as DW_CIE_ID_64 from dwarf.h to keep libdw.h independent.  */
+#define LIBDW_CIE_ID 0xffffffffffffffffULL
+#define dwarf_cfi_cie_p(entry)	((entry)->cie.CIE_id == LIBDW_CIE_ID)
 
 /* Opaque type representing a frame state described by CFI.  */
 typedef struct Dwarf_Frame_s Dwarf_Frame;
@@ -242,11 +227,7 @@ typedef struct Dwarf Dwarf;
 
 
 /* Out-Of-Memory handler.  */
-#if __GNUC__ < 4
-typedef void (*Dwarf_OOM) (void);
-#else
-typedef void (*__attribute__ ((noreturn)) Dwarf_OOM) (void);
-#endif
+typedef void (*__noreturn_attribute__ Dwarf_OOM) (void);
 
 
 #ifdef __cplusplus
@@ -269,7 +250,9 @@ extern Elf *dwarf_getelf (Dwarf *dwarf);
 extern Dwarf *dwarf_cu_getdwarf (Dwarf_CU *cu);
 
 /* Retrieves the DWARF descriptor for debugaltlink data.  Returns NULL
-   if no alternate debug data has been supplied.  */
+   if no alternate debug data has been supplied yet.  libdw will try
+   to set the alt file on first use of an alt FORM if not yet explicitly
+   provided by dwarf_setalt.  */
 extern Dwarf *dwarf_getalt (Dwarf *main);
 
 /* Provides the data referenced by the .gnu_debugaltlink section.  The
@@ -277,15 +260,14 @@ extern Dwarf *dwarf_getalt (Dwarf *main);
    same build ID).  It is the responsibility of the caller to ensure
    that the data referenced by ALT stays valid while it is used by
    MAIN, until dwarf_setalt is called on MAIN with a different
-   descriptor, or dwarf_end.  */
+   descriptor, or dwarf_end.  Must be called before inspecting DIEs
+   that might have alt FORMs.  Otherwise libdw will try to set the
+   alt file itself on first use.  */
 extern void dwarf_setalt (Dwarf *main, Dwarf *alt);
 
 /* Release debugging handling context.  */
 extern int dwarf_end (Dwarf *dwarf);
 
-
-/* Get the data block for the .debug_info section.  */
-extern Elf_Data *dwarf_getscn_info (Dwarf *dwarf);
 
 /* Read the header for the DWARF CU.  */
 extern int dwarf_nextcu (Dwarf *dwarf, Dwarf_Off off, Dwarf_Off *next_off,
@@ -303,6 +285,33 @@ extern int dwarf_next_unit (Dwarf *dwarf, Dwarf_Off off, Dwarf_Off *next_off,
 			    uint64_t *type_signaturep, Dwarf_Off *type_offsetp)
      __nonnull_attribute__ (3);
 
+
+/* Gets the next Dwarf_CU (unit), version, unit type and if available
+   the CU DIE and sub (type) DIE of the unit.  Returns 0 on success,
+   -1 on error or 1 if there are no more units.  To start iterating
+   provide NULL for CU.  If version < 5 the unit type is set from the
+   CU DIE if available (DW_UT_compile for DW_TAG_compile_unit,
+   DW_UT_type for DW_TAG_type_unit or DW_UT_partial for
+   DW_TAG_partial_unit), otherwise it is set to zero.  If unavailable
+   (the version or unit type is unknown) the CU DIE is cleared.
+   Likewise if the sub DIE isn't isn't available (the unit type is not
+   DW_UT_type or DW_UT_split_type) the sub DIE tag is cleared.  */
+extern int dwarf_get_units (Dwarf *dwarf, Dwarf_CU *cu, Dwarf_CU **next_cu,
+			    Dwarf_Half *version, uint8_t *unit_type,
+			    Dwarf_Die *cudie, Dwarf_Die *subdie)
+     __nonnull_attribute__ (3);
+
+/* Provides information and DIEs associated with the given Dwarf_CU
+   unit.  Returns -1 on error, zero on success. Arguments not needed
+   may be NULL.  If they are NULL and aren't known yet, they won't be
+   looked up.  If the subdie doesn't exist for this unit_type it will
+   be cleared.  If there is no unit_id for this unit type it will be
+   set to zero.  */
+extern int dwarf_cu_info (Dwarf_CU *cu,
+			  Dwarf_Half *version, uint8_t *unit_type,
+			  Dwarf_Die *cudie, Dwarf_Die *subdie,
+			  uint64_t *unit_id,
+			  uint8_t *address_size, uint8_t *offset_size);
 
 /* Decode one DWARF CFI entry (CIE or FDE) from the raw section data.
    The E_IDENT from the originating ELF file indicates the address
@@ -365,6 +374,18 @@ extern Dwarf_Die *dwarf_diecu (Dwarf_Die *die, Dwarf_Die *result,
 			       uint8_t *address_sizep, uint8_t *offset_sizep)
      __nonnull_attribute__ (2);
 
+/* Given a Dwarf_Die addr returns a (reconstructed) Dwarf_Die, or NULL
+   if the given addr didn't come from a valid Dwarf_Die.  In particular
+   it will make sure that the correct Dwarf_CU pointer is set for the
+   Dwarf_Die, the Dwarf_Abbrev pointer will not be set up yet (it will
+   only be once the Dwarf_Die is used to read attributes, children or
+   siblings).  This functions can be used to keep a reference to a
+   Dwarf_Die which you want to refer to later.  The addr, and the result
+   of this function, is only valid while the associated Dwarf is valid.  */
+extern Dwarf_Die *dwarf_die_addr_die (Dwarf *dbg, void *addr,
+				      Dwarf_Die *result)
+     __nonnull_attribute__ (3);
+
 /* Return the CU DIE and the header info associated with a Dwarf_Die
    or Dwarf_Attribute.  A Dwarf_Die or a Dwarf_Attribute is associated
    with a particular Dwarf_CU handle.  This function returns the CU or
@@ -399,8 +420,11 @@ extern int dwarf_child (Dwarf_Die *die, Dwarf_Die *result)
 extern int dwarf_siblingof (Dwarf_Die *die, Dwarf_Die *result)
      __nonnull_attribute__ (2);
 
-/* For type aliases and qualifier type DIEs follow the DW_AT_type
-   attribute (recursively) and return the underlying type Dwarf_Die.
+/* For type aliases and qualifier type DIEs, which don't modify or
+   change the structural layout of the underlying type, follow the
+   DW_AT_type attribute (recursively) and return the underlying type
+   Dwarf_Die.
+
    Returns 0 when RESULT contains a Dwarf_Die (possibly equal to the
    given DIE) that isn't a type alias or qualifier type.  Returns 1
    when RESULT contains a type alias or qualifier Dwarf_Die that
@@ -408,13 +432,18 @@ extern int dwarf_siblingof (Dwarf_Die *die, Dwarf_Die *result)
    attribute).  Returns -1 when an error occured.
 
    The current DWARF specification defines one type alias tag
-   (DW_TAG_typedef) and three qualifier type tags (DW_TAG_const_type,
-   DW_TAG_volatile_type, DW_TAG_restrict_type).  DWARF5 defines one
-   other qualifier type tag (DW_TAG_atomic_type).  A future version of
-   this function might peel other alias or qualifier type tags if a
-   future DWARF version or GNU extension defines other type aliases or
-   qualifier type tags that don't modify or change the structural
-   layout of the underlying type.  */
+   (DW_TAG_typedef) and seven modifier/qualifier type tags
+   (DW_TAG_const_type, DW_TAG_volatile_type, DW_TAG_restrict_type,
+   DW_TAG_atomic_type, DW_TAG_immutable_type, DW_TAG_packed_type and
+   DW_TAG_shared_type).  This function won't peel modifier type
+   tags that change the way the underlying type is accessed such
+   as the pointer or reference type tags (DW_TAG_pointer_type,
+   DW_TAG_reference_type or DW_TAG_rvalue_reference_type).
+
+   A future version of this function might peel other alias or
+   qualifier type tags if a future DWARF version or GNU extension
+   defines other type aliases or qualifier type tags that don't modify,
+   change the structural layout or the way to access the underlying type.  */
 extern int dwarf_peel_type (Dwarf_Die *die, Dwarf_Die *result)
     __nonnull_attribute__ (2);
 
@@ -574,6 +603,12 @@ extern int dwarf_getabbrevattr (Dwarf_Abbrev *abbrev, size_t idx,
 				unsigned int *namep, unsigned int *formp,
 				Dwarf_Off *offset);
 
+/* Get specific attribute of abbreviation and any data encoded with it.
+   Specifically for DW_FORM_implicit_const data will be set to the
+   constant value associated.  */
+extern int dwarf_getabbrevattr_data (Dwarf_Abbrev *abbrev, size_t idx,
+				     unsigned int *namep, unsigned int *formp,
+				     Dwarf_Sword *datap, Dwarf_Off *offset);
 
 /* Get string from-debug_str section.  */
 extern const char *dwarf_getstring (Dwarf *dbg, Dwarf_Off offset,
@@ -653,13 +688,22 @@ extern int dwarf_linediscriminator (Dwarf_Line *line, unsigned int *discp)
      __nonnull_attribute__ (2);
 
 
-/* Find line information for address.  */
+/* Find line information for address.  The returned string is NULL when
+   an error occured, or the file path.  The file path is either absolute
+   or relative to the compilation directory.  See dwarf_decl_file.  */
 extern const char *dwarf_linesrc (Dwarf_Line *line,
 				  Dwarf_Word *mtime, Dwarf_Word *length);
 
-/* Return file information.  */
+/* Return file information.  The returned string is NULL when
+   an error occured, or the file path.  The file path is either absolute
+   or relative to the compilation directory.  See dwarf_decl_file.  */
 extern const char *dwarf_filesrc (Dwarf_Files *file, size_t idx,
 				  Dwarf_Word *mtime, Dwarf_Word *length);
+
+/* Return the Dwarf_Files and index associated with the given Dwarf_Line.  */
+extern int dwarf_line_file (Dwarf_Line *line,
+			    Dwarf_Files **files, size_t *idx)
+    __nonnull_attribute__ (2, 3);
 
 /* Return the directory list used in the file information extracted.
    (*RESULT)[0] is the CU's DW_AT_comp_dir value, and may be null.
@@ -669,6 +713,24 @@ extern int dwarf_getsrcdirs (Dwarf_Files *files,
 			     const char *const **result, size_t *ndirs)
   __nonnull_attribute__ (2, 3);
 
+/* Iterates through the debug line units.  Returns 0 on success, -1 on
+   error or 1 if there are no more units.  To start iterating use zero
+   for OFF and set *CU to NULL.  On success NEXT_OFF will be set to
+   the next offset to use.  The *CU will be set if this line table
+   needed a specific CU and needs to be given when calling
+   dwarf_next_lines again (to help dwarf_next_lines quickly find the
+   next CU).  *CU might be set to NULL when it couldn't be found (the
+   compilation directory entry will be the empty string in that case)
+   or for DWARF 5 or later tables, which are self contained.  SRCFILES
+   and SRCLINES may be NULL if the caller is not interested in the
+   actual line or file table.  On success and when not NULL, NFILES
+   and NLINES will be set to the number of files in the file table and
+   number of lines in the line table.  */
+extern int dwarf_next_lines (Dwarf *dwarf, Dwarf_Off off,
+			     Dwarf_Off *next_off, Dwarf_CU **cu,
+			     Dwarf_Files **srcfiles, size_t *nfiles,
+			     Dwarf_Lines **srclines, size_t *nlines)
+  __nonnull_attribute__ (3,4);
 
 /* Return location expression, decoded as a list of operations.  */
 extern int dwarf_getlocation (Dwarf_Attribute *attr, Dwarf_Op **expr,
@@ -749,6 +811,12 @@ extern int dwarf_getlocation_attr (Dwarf_Attribute *attr,
    For DW_TAG_array_type it can apply much more complex rules.  */
 extern int dwarf_aggregate_size (Dwarf_Die *die, Dwarf_Word *size);
 
+/* Given a language code, as returned by dwarf_srclan, get the default
+   lower bound for a subrange type without a lower bound attribute.
+   Returns zero on success or -1 on failure when the given language
+   wasn't recognized.  */
+extern int dwarf_default_lower_bound (int lang, Dwarf_Sword *result)
+  __nonnull_attribute__ (2);
 
 /* Return scope DIEs containing PC address.
    Sets *SCOPES to a malloc'd array of Dwarf_Die structures,
@@ -818,7 +886,14 @@ extern ptrdiff_t dwarf_getfuncs (Dwarf_Die *cudie,
 				 void *arg, ptrdiff_t offset);
 
 
-/* Return file name containing definition of the given declaration.  */
+/* Return file name containing definition of the given declaration.
+   Of the DECL has an (indirect, see dwarf_attr_integrate) decl_file
+   attribute.  The returned file path is either absolute, or relative
+   to the compilation directory.  Given the decl DIE, the compilation
+   directory can be retrieved through:
+   dwarf_formstring (dwarf_attr (dwarf_diecu (decl, &cudie, NULL, NULL),
+                                 DW_AT_comp_dir, &attr));
+   Returns NULL if no decl_file could be found or an error occured.  */
 extern const char *dwarf_decl_file (Dwarf_Die *decl);
 
 /* Get line number of beginning of given declaration.  */

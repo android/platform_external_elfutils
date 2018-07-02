@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2005-2015 Red Hat, Inc.
+# Copyright (C) 2005-2015, 2017 Red Hat, Inc.
 # This file is part of elfutils.
 #
 # This file is free software; you can redistribute it and/or modify
@@ -115,15 +115,20 @@ program_transform()
   echo "$*" | sed "${program_transform_name}"
 }
 
-self_test_files=`echo ${abs_top_builddir}/src/addr2line \
-${abs_top_builddir}/src/elfcmp ${abs_top_builddir}/src/elflint \
-${abs_top_builddir}/src/nm ${abs_top_builddir}/src/objdump \
-${abs_top_builddir}/src/readelf \
-${abs_top_builddir}/src/size.o ${abs_top_builddir}/src/strip.o \
-${abs_top_builddir}/libelf/libelf.so \
+self_test_files_exe=`echo ${abs_top_builddir}/src/addr2line \
+${abs_top_builddir}/src/elfcmp \
+${abs_top_builddir}/src/objdump \
+${abs_top_builddir}/src/readelf`
+
+self_test_files_lib=`echo ${abs_top_builddir}/libelf/libelf.so \
 ${abs_top_builddir}/libdw/libdw.so \
 ${abs_top_builddir}/backends/libebl_i386.so \
 ${abs_top_builddir}/backends/libebl_x86_64.so`
+
+self_test_files_obj=`echo ${abs_top_builddir}/src/size.o \
+${abs_top_builddir}/src/strip.o`
+
+self_test_files="$self_test_files_exe $self_test_files_lib $self_test_files_obj"
 
 # Provide a command to run on all self-test files with testrun.
 testrun_on_self()
@@ -133,6 +138,50 @@ testrun_on_self()
   for file in $self_test_files; do
       testrun $* $file \
 	  || { echo "*** failure in $* $file"; exit_status=1; }
+  done
+
+  # Only exit if something failed
+  if test $exit_status != 0; then exit $exit_status; fi
+}
+
+testrun_on_self_exe()
+{
+  exit_status=0
+
+  for file in $self_test_files_exe; do
+      testrun $* $file \
+	  || { echo "*** failure in $* $file"; exit_status=1; }
+  done
+
+  # Only exit if something failed
+  if test $exit_status != 0; then exit $exit_status; fi
+}
+
+testrun_on_self_lib()
+{
+  exit_status=0
+
+  for file in $self_test_files_lib; do
+      testrun $* $file \
+	  || { echo "*** failure in $* $file"; exit_status=1; }
+  done
+
+  # Only exit if something failed
+  if test $exit_status != 0; then exit $exit_status; fi
+}
+
+# Compress the files first. Compress both debug sections and symtab.
+testrun_on_self_compressed()
+{
+  exit_status=0
+
+  for file in $self_test_files; do
+      tempfiles ${file}z
+      testrun ${abs_top_builddir}/src/elfcompress -f -q -o ${file}z ${file}
+      testrun ${abs_top_builddir}/src/elfcompress -f -q --name='.s??tab' ${file}z
+
+      testrun $* ${file}z \
+	  || { echo "*** failure in $* ${file}z"; exit_status=1; }
   done
 
   # Only exit if something failed

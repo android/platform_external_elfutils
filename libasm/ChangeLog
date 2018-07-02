@@ -1,3 +1,60 @@
+2017-02-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use dso_LDFLAGS.
+
+2017-02-17  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Add libasm_so_DEPS to specify external libraries
+	that have to be linked in, and libasm_so_LIBS to specify the
+	archives libasm consists of. The dependencies include libeu.a.
+	(libasm_so_LDLIBS): Add $(libasm_so_DEPS).
+	(libasm_so$(EXEEXT): Use $(libasm_so_LIBS),
+	add --no-undefined,-z,defs,-z,relro,
+	drop the manual enumeration of dependencies,
+	specify the correct path for libasm.map.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* asm_end.c (binary_end): Fix nesting of braces.
+
+2017-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* asm_newsym.c (asm_newsym): Increase TEMPSYMLEN to 13.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* disasm_str.c: Include system.h.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* asm_align.c: Remove sys/param.h include.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (AM_CPPFLAGS): Add libdwelf.
+	(libasm.so): Add libdw.
+	* asm_begin.c (prepare_binary_output): Use dwelf_strtab instead of
+	ebl_strtab.
+	* asm_end.c (binary_end): Likewise.
+	(__libasm_finictx): Likewise.
+	* asm_newabssym.c (asm_newabssym):  Likewise.
+	* asm_newcomsym.c (asm_newcomsym): Likewise.
+	* asm_newscn.c (binary_newscn): Likewise.
+	* asm_newscngrp.c (asm_newscngrp): Likewise.
+	* asm_newsym.c (asm_newsym): Likewise.
+	* libasmP.h: Likewise.
+	* symbolhash.c (COMPARE): Likewise.
+	* symbolhash.h (COMPARE): Likewise.
+
+2016-06-28  Richard Henderson <rth@redhat.com>
+
+	* disasm_cb.c (disasm_cb): Pass ebl to disasm hook.
+
+2016-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* asm_begin.c (prepare_text_output): Only call __fsetlocking when
+	result isn't NULL.
+
 2015-10-05  Josh Stone  <jistone@redhat.com>
 
 	* Makefile.am (libasm.so): Add AM_V_CCLD and AM_V_at silencers.

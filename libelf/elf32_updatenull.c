@@ -1,5 +1,5 @@
 /* Update data structures for changes.
-   Copyright (C) 2000-2010, 2015 Red Hat, Inc.
+   Copyright (C) 2000-2010, 2015, 2016 Red Hat, Inc.
    This file is part of elfutils.
    Written by Ulrich Drepper <drepper@redhat.com>, 2000.
 
@@ -36,8 +36,8 @@
 #include <libelf.h>
 #include <stdbool.h>
 #include <string.h>
-#include <sys/param.h>
 
+#include <system.h>
 #include "libelfP.h"
 #include "elf-knowledge.h"
 
@@ -140,21 +140,10 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
   off_t size = elf_typesize (LIBELFBITS, ELF_T_EHDR, 1);
 
   /* Set the program header position.  */
-  if (elf->state.ELFW(elf,LIBELFBITS).phdr == NULL
-      && (ehdr->e_type == ET_EXEC || ehdr->e_type == ET_DYN
-	  || ehdr->e_type == ET_CORE))
+  if (elf->state.ELFW(elf,LIBELFBITS).phdr == NULL)
     (void) __elfw2(LIBELFBITS,getphdr_wrlock) (elf);
   if (elf->state.ELFW(elf,LIBELFBITS).phdr != NULL)
     {
-      /* Only executables, shared objects, and core files have a program
-	 header.  */
-      if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN
-	  && unlikely (ehdr->e_type != ET_CORE))
-	{
-	  __libelf_seterrno (ELF_E_INVALID_PHDR);
-	  return -1;
-	}
-
       size_t phnum;
       if (unlikely (__elf_getphdrnum_rdlock (elf, &phnum) != 0))
 	return -1;
@@ -180,6 +169,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 
   if (shnum > 0)
     {
+      struct Elf_Scn *scn1 = NULL;
       Elf_ScnList *list;
       bool first = true;
 
@@ -198,10 +188,16 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
       /* Go over all sections and find out how large they are.  */
       list = &elf->state.ELFW(elf,LIBELFBITS).scns;
 
+      /* Find the first section. */
+      if (list->cnt > 1)
+	scn1 = &list->data[1];
+      else if (list->next != NULL)
+	scn1 = &list->next->data[0];
+
       /* Load the section headers if necessary.  This loads the
 	 headers for all sections.  */
-      if (list->data[1].shdr.ELFW(e,LIBELFBITS) == NULL)
-	(void) __elfw2(LIBELFBITS,getshdr_wrlock) (&list->data[1]);
+      if (scn1 != NULL && scn1->shdr.ELFW(e,LIBELFBITS) == NULL)
+	(void) __elfw2(LIBELFBITS,getshdr_wrlock) (scn1);
 
       do
 	{
@@ -236,7 +232,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 		      __libelf_seterrno (ELF_E_GROUP_NOT_REL);
 		      return -1;
 		    }
-		  /* FALLTHROUGH */
+		  FALLTHROUGH;
 		case SHT_SYMTAB_SHNDX:
 		  sh_entsize = elf_typesize (32, ELF_T_WORD, 1);
 		  break;
