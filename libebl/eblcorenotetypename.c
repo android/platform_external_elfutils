@@ -75,6 +75,7 @@ ebl_core_note_type_name (Ebl *ebl, uint32_t type, char *buf, size_t len)
 	    KNOWNSTYPE (PPC_VMX);
 	    KNOWNSTYPE (PPC_SPE);
 	    KNOWNSTYPE (PPC_VSX);
+	    KNOWNSTYPE (PPC_TM_SPR);
 	    KNOWNSTYPE (386_TLS);
 	    KNOWNSTYPE (386_IOPERM);
 	    KNOWNSTYPE (X86_XSTATE);
@@ -90,6 +91,7 @@ ebl_core_note_type_name (Ebl *ebl, uint32_t type, char *buf, size_t len)
 	    KNOWNSTYPE (ARM_TLS);
 	    KNOWNSTYPE (ARM_HW_BREAK);
 	    KNOWNSTYPE (ARM_HW_WATCH);
+	    KNOWNSTYPE (ARM_SYSTEM_CALL);
 	    KNOWNSTYPE (SIGINFO);
 	    KNOWNSTYPE (FILE);
 #undef KNOWNSTYPE

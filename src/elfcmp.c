@@ -33,7 +33,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <system.h>
+#include <printversion.h>
 #include "../libelf/elf-knowledge.h"
 #include "../libebl/libeblP.h"
 
@@ -45,7 +45,6 @@ static  int regioncompare (const void *p1, const void *p2);
 
 
 /* Name and version of program.  */
-static void print_version (FILE *stream, struct argp_state *state);
 ARGP_PROGRAM_VERSION_HOOK_DEF = print_version;
 
 /* Bug report address.  */
@@ -368,7 +367,7 @@ main (int argc, char *argv[])
 				&& sym1->st_shndx != SHN_UNDEF)
 			    || sym1->st_info != sym2->st_info
 			    || sym1->st_other != sym2->st_other
-			    || sym1->st_shndx != sym1->st_shndx))
+			    || sym1->st_shndx != sym2->st_shndx))
 		{
 		  // XXX Do we want to allow reordered symbol tables?
 		symtab_mismatch:
@@ -420,7 +419,8 @@ main (int argc, char *argv[])
 		   && (off1 = gelf_getnote (data1, off1, &note1,
 					    &name_offset, &desc_offset)) > 0)
 	      {
-		const char *name1 = data1->d_buf + name_offset;
+		const char *name1 = (note1.n_namesz == 0
+				     ? "" : data1->d_buf + name_offset);
 		const void *desc1 = data1->d_buf + desc_offset;
 		if (off2 >= data2->d_size)
 		  {
@@ -436,7 +436,8 @@ main (int argc, char *argv[])
 		  error (2, 0, gettext ("\
 cannot read note section [%zu] '%s' in '%s': %s"),
 			 elf_ndxscn (scn2), sname2, fname2, elf_errmsg (-1));
-		const char *name2 = data2->d_buf + name_offset;
+		const char *name2 = (note2.n_namesz == 0
+				     ? "" : data2->d_buf + name_offset);
 		const void *desc2 = data2->d_buf + desc_offset;
 
 		if (note1.n_namesz != note2.n_namesz
@@ -661,20 +662,6 @@ cannot read note section [%zu] '%s' in '%s': %s"),
   close (fd2);
 
   return result;
-}
-
-
-/* Print the version information.  */
-static void
-print_version (FILE *stream, struct argp_state *state __attribute__ ((unused)))
-{
-  fprintf (stream, "elfcmp (%s) %s\n", PACKAGE_NAME, PACKAGE_VERSION);
-  fprintf (stream, gettext ("\
-Copyright (C) %s Red Hat, Inc.\n\
-This is free software; see the source for copying conditions.  There is NO\n\
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2012");
-  fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
 }
 
 

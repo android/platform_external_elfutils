@@ -1,7 +1,6 @@
 /* Create descriptor from ELF descriptor for processing file.
-   Copyright (C) 2002-2011, 2014, 2015 Red Hat, Inc.
+   Copyright (C) 2002-2011, 2014, 2015, 2017, 2018 Red Hat, Inc.
    This file is part of elfutils.
-   Written by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    This file is free software; you can redistribute it and/or modify
    it under the terms of either
@@ -41,25 +40,32 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <endian.h>
 
+#include "libelfP.h"
 #include "libdwP.h"
 
 
-/* Section names.  */
-static const char dwarf_scnnames[IDX_last][18] =
+/* Section names.  (Note .debug_str_offsets is the largest 19 chars.)  */
+static const char dwarf_scnnames[IDX_last][19] =
 {
   [IDX_debug_info] = ".debug_info",
   [IDX_debug_types] = ".debug_types",
   [IDX_debug_abbrev] = ".debug_abbrev",
+  [IDX_debug_addr] = ".debug_addr",
   [IDX_debug_aranges] = ".debug_aranges",
   [IDX_debug_line] = ".debug_line",
+  [IDX_debug_line_str] = ".debug_line_str",
   [IDX_debug_frame] = ".debug_frame",
   [IDX_debug_loc] = ".debug_loc",
+  [IDX_debug_loclists] = ".debug_loclists",
   [IDX_debug_pubnames] = ".debug_pubnames",
   [IDX_debug_str] = ".debug_str",
+  [IDX_debug_str_offsets] = ".debug_str_offsets",
   [IDX_debug_macinfo] = ".debug_macinfo",
   [IDX_debug_macro] = ".debug_macro",
   [IDX_debug_ranges] = ".debug_ranges",
+  [IDX_debug_rnglists] = ".debug_rnglists",
   [IDX_gnu_debugaltlink] = ".gnu_debugaltlink"
 };
 #define ndwarf_scnnames (sizeof (dwarf_scnnames) / sizeof (dwarf_scnnames[0]))
@@ -112,14 +118,26 @@ check_section (Dwarf *result, GElf_Ehdr *ehdr, Elf_Scn *scn, bool inscngrp)
   size_t cnt;
   bool gnu_compressed = false;
   for (cnt = 0; cnt < ndwarf_scnnames; ++cnt)
-    if (strcmp (scnname, dwarf_scnnames[cnt]) == 0)
-      break;
-    else if (scnname[0] == '.' && scnname[1] == 'z'
-	     && strcmp (&scnname[2], &dwarf_scnnames[cnt][1]) == 0)
-      {
-        gnu_compressed = true;
-        break;
-      }
+    {
+      size_t dbglen = strlen (dwarf_scnnames[cnt]);
+      size_t scnlen = strlen (scnname);
+      if (strncmp (scnname, dwarf_scnnames[cnt], dbglen) == 0
+	  && (dbglen == scnlen
+	      || (scnlen == dbglen + 4
+		  && strstr (scnname, ".dwo") == scnname + dbglen)))
+	break;
+      else if (scnname[0] == '.' && scnname[1] == 'z'
+	       && (strncmp (&scnname[2], &dwarf_scnnames[cnt][1],
+			    dbglen - 1) == 0
+		   && (scnlen == dbglen + 1
+		       || (scnlen == dbglen + 5
+			   && strstr (scnname,
+				      ".dwo") == scnname + dbglen + 1))))
+	{
+	  gnu_compressed = true;
+	  break;
+	}
+    }
 
   if (cnt >= ndwarf_scnnames)
     /* Not a debug section; ignore it. */
@@ -138,17 +156,9 @@ check_section (Dwarf *result, GElf_Ehdr *ehdr, Elf_Scn *scn, bool inscngrp)
     {
       if (elf_compress (scn, 0, 0) < 0)
 	{
-	  /* If we failed to decompress the section and it's the
-	     debug_info section, then fail with specific error rather
-	     than the generic NO_DWARF. Without debug_info we can't do
-	     anything (see also valid_p()). */
-	  if (cnt == IDX_debug_info)
-	    {
-	      Dwarf_Sig8_Hash_free (&result->sig8_hash);
-	      __libdw_seterrno (DWARF_E_COMPRESSED_ERROR);
-	      free (result);
-	      return NULL;
-	    }
+	  /* It would be nice if we could fail with a specific error.
+	     But we don't know if this was an essential section or not.
+	     So just continue for now. See also valid_p().  */
 	  return result;
 	}
     }
@@ -169,6 +179,26 @@ check_section (Dwarf *result, GElf_Ehdr *ehdr, Elf_Scn *scn, bool inscngrp)
 }
 
 
+/* Helper function to set debugdir field.  We want to cache the dir
+   where we found this Dwarf ELF file to locate alt and dwo files.  */
+char *
+__libdw_debugdir (int fd)
+{
+  /* strlen ("/proc/self/fd/") = 14 + strlen (<MAXINT>) = 10 + 1 = 25.  */
+  char devfdpath[25];
+  sprintf (devfdpath, "/proc/self/fd/%u", fd);
+  char *fdpath = realpath (devfdpath, NULL);
+  char *fddir;
+  if (fdpath != NULL && fdpath[0] == '/'
+      && (fddir = strrchr (fdpath, '/')) != NULL)
+    {
+      *++fddir = '\0';
+      return fdpath;
+    }
+  return NULL;
+}
+
+
 /* Check whether all the necessary DWARF information is available.  */
 static Dwarf *
 valid_p (Dwarf *result)
@@ -176,11 +206,11 @@ valid_p (Dwarf *result)
   /* We looked at all the sections.  Now determine whether all the
      sections with debugging information we need are there.
 
-     XXX Which sections are absolutely necessary?  Add tests if
-     necessary.  For now we require only .debug_info.  Hopefully this
-     is correct.  */
+     Require at least one section that can be read "standalone".  */
   if (likely (result != NULL)
-      && unlikely (result->sectiondata[IDX_debug_info] == NULL))
+      && unlikely (result->sectiondata[IDX_debug_info] == NULL
+		   && result->sectiondata[IDX_debug_line] == NULL
+		   && result->sectiondata[IDX_debug_frame] == NULL))
     {
       Dwarf_Sig8_Hash_free (&result->sig8_hash);
       __libdw_seterrno (DWARF_E_NO_DWARF);
@@ -188,6 +218,9 @@ valid_p (Dwarf *result)
       result = NULL;
     }
 
+  /* For dwarf_location_attr () we need a "fake" CU to indicate
+     where the "fake" attribute data comes from.  This is a block
+     inside the .debug_loc or .debug_loclists section.  */
   if (result != NULL && result->sectiondata[IDX_debug_loc] != NULL)
     {
       result->fake_loc_cu = (Dwarf_CU *) calloc (1, sizeof (Dwarf_CU));
@@ -200,6 +233,7 @@ valid_p (Dwarf *result)
 	}
       else
 	{
+	  result->fake_loc_cu->sec_idx = IDX_debug_loc;
 	  result->fake_loc_cu->dbg = result;
 	  result->fake_loc_cu->startp
 	    = result->sectiondata[IDX_debug_loc]->d_buf;
@@ -208,6 +242,60 @@ valid_p (Dwarf *result)
 	       + result->sectiondata[IDX_debug_loc]->d_size);
 	}
     }
+
+  if (result != NULL && result->sectiondata[IDX_debug_loclists] != NULL)
+    {
+      result->fake_loclists_cu = (Dwarf_CU *) calloc (1, sizeof (Dwarf_CU));
+      if (unlikely (result->fake_loclists_cu == NULL))
+	{
+	  Dwarf_Sig8_Hash_free (&result->sig8_hash);
+	  __libdw_seterrno (DWARF_E_NOMEM);
+	  free (result->fake_loc_cu);
+	  free (result);
+	  result = NULL;
+	}
+      else
+	{
+	  result->fake_loclists_cu->sec_idx = IDX_debug_loclists;
+	  result->fake_loclists_cu->dbg = result;
+	  result->fake_loclists_cu->startp
+	    = result->sectiondata[IDX_debug_loclists]->d_buf;
+	  result->fake_loclists_cu->endp
+	    = (result->sectiondata[IDX_debug_loclists]->d_buf
+	       + result->sectiondata[IDX_debug_loclists]->d_size);
+	}
+    }
+
+  /* For DW_OP_constx/GNU_const_index and DW_OP_addrx/GNU_addr_index
+     the dwarf_location_attr () will need a "fake" address CU to
+     indicate where the attribute data comes from.  This is a just
+     inside the .debug_addr section, if it exists.  */
+  if (result != NULL && result->sectiondata[IDX_debug_addr] != NULL)
+    {
+      result->fake_addr_cu = (Dwarf_CU *) calloc (1, sizeof (Dwarf_CU));
+      if (unlikely (result->fake_addr_cu == NULL))
+	{
+	  Dwarf_Sig8_Hash_free (&result->sig8_hash);
+	  __libdw_seterrno (DWARF_E_NOMEM);
+	  free (result->fake_loc_cu);
+	  free (result->fake_loclists_cu);
+	  free (result);
+	  result = NULL;
+	}
+      else
+	{
+	  result->fake_addr_cu->sec_idx = IDX_debug_addr;
+	  result->fake_addr_cu->dbg = result;
+	  result->fake_addr_cu->startp
+	    = result->sectiondata[IDX_debug_addr]->d_buf;
+	  result->fake_addr_cu->endp
+	    = (result->sectiondata[IDX_debug_addr]->d_buf
+	       + result->sectiondata[IDX_debug_addr]->d_size);
+	}
+    }
+
+  if (result != NULL)
+    result->debugdir = __libdw_debugdir (result->elf->fildes);
 
   return result;
 }
@@ -324,6 +412,7 @@ dwarf_begin_elf (Elf *elf, Dwarf_Cmd cmd, Elf_Scn *scngrp)
     result->other_byte_order = true;
 
   result->elf = elf;
+  result->alt_fd = -1;
 
   /* Initialize the memory handling.  */
   result->mem_default_size = mem_default_size;

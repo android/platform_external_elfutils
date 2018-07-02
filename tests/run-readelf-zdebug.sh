@@ -46,12 +46,17 @@ tempfiles loc.out aranges.out ranges.out macro.out line.out frame.out
 cat > loc.out << \EOF
 
 DWARF section [30] '.debug_loc' at offset 0xa17:
- [     0]  0x00000000004003c0..0x00000000004003c3 [   0] reg5
-           0x00000000004003c3..0x00000000004003d6 [   0] breg5 -42
-                                                  [   2] stack_value
-           0x00000000004003d6..0x00000000004003d9 [   0] GNU_entry_value:
-       [   0] reg5
-                                                  [   3] stack_value
+
+ CU [     b] base: 000000000000000000
+ [     0] range 4003c0, 4003c3
+           [ 0] reg5
+          range 4003c3, 4003d6
+           [ 0] breg5 -42
+           [ 2] stack_value
+          range 4003d6, 4003d9
+           [ 0] GNU_entry_value:
+                [ 0] reg5
+           [ 3] stack_value
 EOF
 
 cat loc.out | testrun_compare ${abs_top_builddir}/src/readelf -U --debug-dump=loc testfile-debug
@@ -80,7 +85,9 @@ cat aranges.out | sed -e "s/.debug_aranges' at offset 0xa65/.zdebug_aranges' at 
 cat > ranges.out << \EOF
 
 DWARF section [32] '.debug_ranges' at offset 0xa95:
- [     0]  0x00000000004003c0..0x00000000004003d9
+
+ CU [     b] base: 000000000000000000
+ [     0] range 4003c0, 4003d9
 EOF
 
 cat ranges.out | testrun_compare ${abs_top_builddir}/src/readelf -U --debug-dump=ranges testfile-debug
@@ -354,15 +361,17 @@ DWARF section [34] '.debug_line' at offset 0x104c:
 
 Table at offset 0:
 
- Length:                     70
- DWARF version:              2
- Prologue length:            40
- Minimum instruction length: 1
- Maximum operations per instruction: 1
- Initial value if 'is_stmt': 1
- Line base:                  -5
- Line range:                 14
- Opcode base:                13
+ Length:                         70
+ DWARF version:                  2
+ Prologue length:                40
+ Address size:                   8
+ Segment selector size:          0
+ Min instruction length:         1
+ Max operations per instruction: 1
+ Initial value if 'is_stmt':     1
+ Line base:                      -5
+ Line range:                     14
+ Opcode base:                    13
 
 Opcodes:
   [ 1]  0 arguments
@@ -476,15 +485,15 @@ Call frame information section [16] '.eh_frame' at offset 0x5b8:
      def_cfa_offset 24
      advance_loc 10 to 0x3b0
      def_cfa_expression 11
-          [   0] breg7 8
-          [   2] breg16 0
-          [   4] lit15
-          [   5] and
-          [   6] lit11
-          [   7] ge
-          [   8] lit3
-          [   9] shl
-          [  10] plus
+          [ 0] breg7 8
+          [ 2] breg16 0
+          [ 4] lit15
+          [ 5] and
+          [ 6] lit11
+          [ 7] ge
+          [ 8] lit3
+          [ 9] shl
+          [10] plus
      nop
      nop
      nop

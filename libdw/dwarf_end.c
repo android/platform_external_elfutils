@@ -1,5 +1,5 @@
 /* Release debugging handling context.
-   Copyright (C) 2002-2011, 2014 Red Hat, Inc.
+   Copyright (C) 2002-2011, 2014, 2018 Red Hat, Inc.
    This file is part of elfutils.
    Written by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "libdwP.h"
 #include "cfi.h"
@@ -54,6 +55,16 @@ cu_free (void *arg)
   Dwarf_Abbrev_Hash_free (&p->abbrev_hash);
 
   tdestroy (p->locs, noop_free);
+
+  /* Free split dwarf one way (from skeleton to split).  */
+  if (p->unit_type == DW_UT_skeleton
+      && p->split != NULL && p->split != (void *)-1)
+    {
+      /* The fake_addr_cu might be shared, only release one.  */
+      if (p->dbg->fake_addr_cu == p->split->dbg->fake_addr_cu)
+	p->split->dbg->fake_addr_cu = NULL;
+      INTUSE(dwarf_end) (p->split->dbg);
+    }
 }
 
 
@@ -80,6 +91,9 @@ dwarf_end (Dwarf *dwarf)
       /* Search tree for decoded .debug_lines units.  */
       tdestroy (dwarf->files_lines, noop_free);
 
+      /* And the split Dwarf.  */
+      tdestroy (dwarf->split_tree, noop_free);
+
       struct libdw_memblock *memp = dwarf->mem_tail;
       /* The first block is allocated together with the Dwarf object.  */
       while (memp->prev != NULL)
@@ -102,6 +116,26 @@ dwarf_end (Dwarf *dwarf)
 	  cu_free (dwarf->fake_loc_cu);
 	  free (dwarf->fake_loc_cu);
 	}
+      if (dwarf->fake_loclists_cu != NULL)
+	{
+	  cu_free (dwarf->fake_loclists_cu);
+	  free (dwarf->fake_loclists_cu);
+	}
+      if (dwarf->fake_addr_cu != NULL)
+	{
+	  cu_free (dwarf->fake_addr_cu);
+	  free (dwarf->fake_addr_cu);
+	}
+
+      /* Did we find and allocate the alt Dwarf ourselves?  */
+      if (dwarf->alt_fd != -1)
+	{
+	  INTUSE(dwarf_end) (dwarf->alt_dwarf);
+	  close (dwarf->alt_fd);
+	}
+
+      /* The cached dir we found the Dwarf ELF file in.  */
+      free (dwarf->debugdir);
 
       /* Free the context descriptor.  */
       free (dwarf);

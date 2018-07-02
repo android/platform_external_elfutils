@@ -30,7 +30,7 @@
 include $(top_srcdir)/config/eu.am
 AM_CPPFLAGS += -I$(srcdir)/../libelf -I$(srcdir)/../libebl \
 	    -I$(srcdir)/../libdw -I$(srcdir)/../libasm
-AM_CFLAGS += -fPIC -fdollars-in-identifiers
+AM_CFLAGS += $(fpic_CFLAGS) -fdollars-in-identifiers
 LEXCOMPILE = $(LEX) $(LFLAGS) $(AM_LFLAGS) -P$(<F:lex.l=)
 LEX_OUTPUT_ROOT = lex.$(<F:lex.l=)
 AM_YFLAGS = -p$(<F:parse.y=)
@@ -45,6 +45,10 @@ i386_gendis_SOURCES = i386_gendis.c i386_lex.l i386_parse.y
 i386_disasm.o: i386.mnemonics $(srcdir)/i386_dis.h
 x86_64_disasm.o: x86_64.mnemonics $(srcdir)/x86_64_dis.h
 
+noinst_LIBRARIES += libcpu_bpf.a
+libcpu_bpf_a_SOURCES = bpf_disasm.c
+libcpu_bpf_a_CFLAGS = $(AM_CFLAGS) -Wno-format-nonliteral
+
 %_defs: $(srcdir)/defs/i386
 	$(AM_V_GEN)m4 -D$* -DDISASSEMBLER $< > $@T
 	$(AM_V_at)mv -f $@T $@
@@ -52,10 +56,10 @@ x86_64_disasm.o: x86_64.mnemonics $(srcdir)/x86_64_dis.h
 if MAINTAINER_MODE
 noinst_HEADERS = memory-access.h i386_parse.h i386_data.h
 
-noinst_PROGRAMS = i386_gendis
+noinst_PROGRAMS = i386_gendis$(EXEEXT)
 
-$(srcdir)/%_dis.h: %_defs i386_gendis
-	$(AM_V_GEN)./i386_gendis $< > $@T
+$(srcdir)/%_dis.h: %_defs i386_gendis$(EXEEXT)
+	$(AM_V_GEN)./i386_gendis$(EXEEXT) $< > $@T
 	$(AM_V_at)mv -f $@T $@
 
 else

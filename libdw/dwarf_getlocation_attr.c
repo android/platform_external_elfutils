@@ -1,5 +1,5 @@
 /* Return DWARF attribute associated with a location expression op.
-   Copyright (C) 2013, 2014 Red Hat, Inc.
+   Copyright (C) 2013, 2014, 2017, 2018 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ attr_form_cu (Dwarf_Attribute *attr)
 {
   /* If the attribute has block/expr form the data comes from the
      .debug_info from the same cu as the attr.  Otherwise it comes from
-     the .debug_loc data section.  */
+     the .debug_loc or .debug_loclists data section.  */
   switch (attr->form)
     {
     case DW_FORM_block1:
@@ -48,8 +48,24 @@ attr_form_cu (Dwarf_Attribute *attr)
     case DW_FORM_exprloc:
       return attr->cu;
     default:
-      return attr->cu->dbg->fake_loc_cu;
+      return (attr->cu->version < 5
+	      ? attr->cu->dbg->fake_loc_cu
+	      : attr->cu->dbg->fake_loclists_cu);
     }
+}
+
+static unsigned char *
+addr_valp (Dwarf_CU *cu, Dwarf_Word index)
+{
+  Elf_Data *debug_addr = cu->dbg->sectiondata[IDX_debug_addr];
+  if (debug_addr == NULL)
+    {
+      __libdw_seterrno (DWARF_E_NO_DEBUG_ADDR);
+      return NULL;
+    }
+
+  Dwarf_Word offset = __libdw_cu_addr_base (cu) + (index * cu->address_size);
+  return (unsigned char *) debug_addr->d_buf + offset;
 }
 
 int
@@ -67,6 +83,7 @@ dwarf_getlocation_attr (Dwarf_Attribute *attr, const Dwarf_Op *op, Dwarf_Attribu
 	result->cu = attr_form_cu (attr);
 	break;
 
+      case DW_OP_entry_value:
       case DW_OP_GNU_entry_value:
 	result->code = DW_AT_location;
 	result->form = DW_FORM_exprloc;
@@ -74,11 +91,35 @@ dwarf_getlocation_attr (Dwarf_Attribute *attr, const Dwarf_Op *op, Dwarf_Attribu
 	result->cu = attr_form_cu (attr);
 	break;
 
+      case DW_OP_const_type:
       case DW_OP_GNU_const_type:
 	result->code = DW_AT_const_value;
 	result->form = DW_FORM_block1;
 	result->valp = (unsigned char *) (uintptr_t) op->number2;
 	result->cu = attr_form_cu (attr);
+	break;
+
+      case DW_OP_GNU_const_index:
+      case DW_OP_constx:
+	result->code = DW_AT_const_value;
+	if (attr->cu->address_size == 4)
+	  result->form = DW_FORM_data4;
+	else
+	  result->form = DW_FORM_data8;
+	result->valp = addr_valp (attr->cu, op->number);
+	if (result->valp == NULL)
+	  return -1;
+	result->cu = attr->cu->dbg->fake_addr_cu;
+	break;
+
+      case DW_OP_GNU_addr_index:
+      case DW_OP_addrx:
+	result->code = DW_AT_low_pc;
+	result->form = DW_FORM_addr;
+	result->valp = addr_valp (attr->cu, op->number);
+	if (result->valp == NULL)
+	  return -1;
+	result->cu = attr->cu->dbg->fake_addr_cu;
 	break;
 
       case DW_OP_call2:
@@ -96,7 +137,9 @@ dwarf_getlocation_attr (Dwarf_Attribute *attr, const Dwarf_Op *op, Dwarf_Attribu
 	}
 	break;
 
+      case DW_OP_implicit_pointer:
       case DW_OP_GNU_implicit_pointer:
+      case DW_OP_GNU_variable_value:
 	{
 	  Dwarf_Die die;
 	  if (INTUSE(dwarf_getlocation_die) (attr, op, &die) != 0)

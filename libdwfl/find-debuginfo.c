@@ -26,6 +26,10 @@
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libdwflP.h"
 #include <stdio.h>
 #include <fcntl.h>
@@ -163,7 +167,11 @@ find_debuginfo_in_path (Dwfl_Module *mod, const char *file_name,
 
   const char *file_basename = file_name == NULL ? NULL : basename (file_name);
   char *localname = NULL;
-  if (debuglink_file == NULL)
+
+  /* We invent a debuglink .debug name if NULL, but then want to try the
+     basename too.  */
+  bool debuglink_null = debuglink_file == NULL;
+  if (debuglink_null)
     {
       /* For a alt debug multi file we need a name, for a separate debug
 	 name we may be able to fall back on file_basename.debug.  */
@@ -231,6 +239,10 @@ find_debuginfo_in_path (Dwfl_Module *mod, const char *file_name,
 	check = *p++ == '+';
       check = check && cancheck;
 
+      /* Try the basename too, if we made up the debuglink name and this
+	 is not the main directory.  */
+      bool try_file_basename;
+
       const char *dir, *subdir, *file;
       switch (p[0])
 	{
@@ -239,6 +251,7 @@ find_debuginfo_in_path (Dwfl_Module *mod, const char *file_name,
 	  dir = file_dirname;
 	  subdir = NULL;
 	  file = debuglink_file;
+	  try_file_basename = false;
 	  break;
 	case '/':
 	  /* An absolute path says to look there for a subdirectory
@@ -268,6 +281,7 @@ find_debuginfo_in_path (Dwfl_Module *mod, const char *file_name,
 	      subdir = NULL;
 	      file = basename (debuglink_file);
 	    }
+	  try_file_basename = debuglink_null;
 	  break;
 	default:
 	  /* A relative path says to try a subdirectory of that name
@@ -275,11 +289,14 @@ find_debuginfo_in_path (Dwfl_Module *mod, const char *file_name,
 	  dir = file_dirname;
 	  subdir = p;
 	  file = debuglink_file;
+	  try_file_basename = debuglink_null;
 	  break;
 	}
 
       char *fname = NULL;
       int fd = try_open (&main_stat, dir, subdir, file, &fname);
+      if (fd < 0 && try_file_basename)
+	fd = try_open (&main_stat, dir, subdir, file_basename, &fname);
       if (fd < 0)
 	switch (errno)
 	  {
@@ -372,7 +389,7 @@ dwfl_standard_find_debuginfo (Dwfl_Module *mod,
       /* If FILE_NAME is a symlink, the debug file might be associated
 	 with the symlink target name instead.  */
 
-      char *canon = canonicalize_file_name (file_name);
+      char *canon = realpath (file_name, NULL);
       if (canon != NULL && strcmp (file_name, canon))
 	fd = find_debuginfo_in_path (mod, canon,
 				     debuglink_file, debuglink_crc,
