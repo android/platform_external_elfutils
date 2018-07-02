@@ -41,15 +41,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/param.h>
 
+#include <libeu.h>
 #include <system.h>
+#include <color.h>
+#include <printversion.h>
 #include "../libebl/libeblP.h"
 #include "../libdwfl/libdwflP.h"
 
 
 /* Name and version of program.  */
-static void print_version (FILE *stream, struct argp_state *state);
 ARGP_PROGRAM_VERSION_HOOK_DEF = print_version;
 
 /* Bug report address.  */
@@ -251,20 +252,6 @@ main (int argc, char *argv[])
     }
 
   return result;
-}
-
-
-/* Print the version information.  */
-static void
-print_version (FILE *stream, struct argp_state *state __attribute__ ((unused)))
-{
-  fprintf (stream, "nm (%s) %s\n", PACKAGE_NAME, PACKAGE_VERSION);
-  fprintf (stream, gettext ("\
-Copyright (C) %s Red Hat, Inc.\n\
-This is free software; see the source for copying conditions.  There is NO\n\
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2012");
-  fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
 }
 
 
@@ -1311,6 +1298,11 @@ show_symbols (int fd, Ebl *ebl, GElf_Ehdr *ehdr,
      XXX We can use a dirty trick here.  Since GElf_Sym == Elf64_Sym we
      can use the data memory instead of copying again if what we read
      is a 64 bit file.  */
+  if (nentries > SIZE_MAX / sizeof (GElf_SymX))
+    error (EXIT_FAILURE, 0,
+          gettext ("%s: entries (%zd) in section %zd `%s' is too large"),
+          fullname, nentries, elf_ndxscn (scn),
+          elf_strptr (ebl->elf, shstrndx, shdr->sh_name));
   GElf_SymX *sym_mem;
   if (nentries * sizeof (GElf_SymX) < MAX_STACK_ALLOC)
     sym_mem = (GElf_SymX *) alloca (nentries * sizeof (GElf_SymX));

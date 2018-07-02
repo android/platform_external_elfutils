@@ -1,5 +1,5 @@
 /* Return the next data element from the section after possibly converting it.
-   Copyright (C) 1998-2005, 2006, 2007, 2015 Red Hat, Inc.
+   Copyright (C) 1998-2005, 2006, 2007, 2015, 2016 Red Hat, Inc.
    This file is part of elfutils.
    Written by Ulrich Drepper <drepper@redhat.com>, 1998.
 
@@ -76,7 +76,6 @@ static const Elf_Type shtype_map[EV_NUM - 1][TYPEIDX (SHT_HISUNW) + 1] =
     }
   };
 
-#if !ALLOW_UNALIGNED
 /* Associate libelf types with their internal alignment requirements.  */
 const uint_fast8_t __libelf_type_aligns[EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] =
   {
@@ -115,7 +114,6 @@ const uint_fast8_t __libelf_type_aligns[EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] 
     }
 # undef TYPE_ALIGNS
   };
-#endif
 
 
 Elf_Type
@@ -173,8 +171,7 @@ convert_data (Elf_Scn *scn, int version __attribute__ ((unused)), int eclass,
       /* Make sure the source is correctly aligned for the conversion
 	 function to directly access the data elements.  */
       char *rawdata_source;
-      if (ALLOW_UNALIGNED ||
-	  ((((size_t) (char *) scn->rawdata_base)) & (align - 1)) == 0)
+      if (((((size_t) (char *) scn->rawdata_base)) & (align - 1)) == 0)
 	rawdata_source = scn->rawdata_base;
       else
 	{
@@ -312,6 +309,17 @@ __libelf_set_rawdata_wrlock (Elf_Scn *scn)
 	}
       else if (likely (elf->fildes != -1))
 	{
+	  /* First see whether the information in the section header is
+	     valid and it does not ask for too much.  Check for unsigned
+	     overflow.  */
+	  if (unlikely (offset > elf->maximum_size
+			|| elf->maximum_size - offset < size))
+	    {
+	      /* Something is wrong.  */
+	      __libelf_seterrno (ELF_E_INVALID_SECTION_HEADER);
+	      return 1;
+	    }
+
 	  /* We have to read the data from the file.  Allocate the needed
 	     memory.  */
 	  scn->rawdata_base = scn->rawdata.d.d_buf
@@ -363,7 +371,7 @@ __libelf_set_rawdata_wrlock (Elf_Scn *scn)
      at least an ehdr this will only trigger for alignment values > 64
      which should be uncommon.  */
   align = align ?: 1;
-  if (align > offset)
+  if (type != SHT_NOBITS && align > offset)
     align = offset;
   scn->rawdata.d.d_align = align;
   if (elf->class == ELFCLASS32

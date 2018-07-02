@@ -26,6 +26,10 @@
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libdwflP.h"
 #include <fcntl.h>
 #include <unistd.h>
@@ -170,7 +174,7 @@ __libdwfl_elf_address_range (Elf *elf, GElf_Addr base, bool add_p_vaddr,
       /* An assigned base address is meaningless for these.  */
       base = 0;
       add_p_vaddr = true;
-
+      FALLTHROUGH;
     case ET_DYN:
     default:;
       size_t phnum;

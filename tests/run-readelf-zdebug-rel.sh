@@ -51,7 +51,7 @@ DWARF section [ 4] '.debug_info' at offset 0x58:
  [Offset]
  Compilation unit at offset 0:
  Version: 4, Abbreviation section offset: 0, Address size: 8, Offset size: 4
- [     b]  compile_unit
+ [     b]  compile_unit         abbrev: 1
            producer             (strp) "GNU C11 5.3.1 20151207 (Red Hat 5.3.1-2) -mtune=generic -march=x86-64 -g -Og"
            language             (data1) C99 (12)
            name                 (strp) "testfile-zdebug-rel.c"
@@ -59,60 +59,60 @@ DWARF section [ 4] '.debug_info' at offset 0x58:
            low_pc               (addr) 000000000000000000
            high_pc              (data8) 24 (0x0000000000000018)
            stmt_list            (sec_offset) 0
- [    2d]    subprogram
-             external             (flag_present) 
+ [    2d]    subprogram           abbrev: 2
+             external             (flag_present) yes
              name                 (strp) "main"
-             decl_file            (data1) 1
+             decl_file            (data1) testfile-zdebug-rel.c (1)
              decl_line            (data1) 4
-             prototyped           (flag_present) 
+             prototyped           (flag_present) yes
              type                 (ref4) [    80]
              low_pc               (addr) 000000000000000000
              high_pc              (data8) 24 (0x0000000000000018)
              frame_base           (exprloc) 
-              [   0] call_frame_cfa
-             GNU_all_call_sites   (flag_present) 
+              [ 0] call_frame_cfa
+             GNU_all_call_sites   (flag_present) yes
              sibling              (ref4) [    80]
- [    4e]      formal_parameter
+ [    4e]      formal_parameter     abbrev: 3
                name                 (strp) "argc"
-               decl_file            (data1) 1
+               decl_file            (data1) testfile-zdebug-rel.c (1)
                decl_line            (data1) 4
                type                 (ref4) [    80]
                location             (sec_offset) location list [     0]
- [    5d]      formal_parameter
+ [    5d]      formal_parameter     abbrev: 4
                name                 (strp) "argv"
-               decl_file            (data1) 1
+               decl_file            (data1) testfile-zdebug-rel.c (1)
                decl_line            (data1) 4
                type                 (ref4) [    87]
                location             (exprloc) 
-                [   0] reg4
- [    6a]      variable
+                [ 0] reg4
+ [    6a]      variable             abbrev: 5
                name                 (string) "a"
-               decl_file            (data1) 1
+               decl_file            (data1) testfile-zdebug-rel.c (1)
                decl_line            (data1) 6
                type                 (ref4) [    9a]
-               const_value          (sdata) -9
- [    74]      variable
+               const_value          (sdata) 18446744073709551607 (-9)
+ [    74]      variable             abbrev: 6
                name                 (string) "b"
-               decl_file            (data1) 1
+               decl_file            (data1) testfile-zdebug-rel.c (1)
                decl_line            (data1) 7
                type                 (ref4) [    9a]
                location             (exprloc) 
-                [   0] reg5
- [    80]    base_type
+                [ 0] reg5
+ [    80]    base_type            abbrev: 7
              byte_size            (data1) 4
              encoding             (data1) signed (5)
              name                 (string) "int"
- [    87]    pointer_type
+ [    87]    pointer_type         abbrev: 8
              byte_size            (data1) 8
              type                 (ref4) [    8d]
- [    8d]    pointer_type
+ [    8d]    pointer_type         abbrev: 8
              byte_size            (data1) 8
              type                 (ref4) [    93]
- [    93]    base_type
+ [    93]    base_type            abbrev: 9
              byte_size            (data1) 1
              encoding             (data1) signed_char (6)
              name                 (strp) "char"
- [    9a]    base_type
+ [    9a]    base_type            abbrev: 9
              byte_size            (data1) 8
              encoding             (data1) unsigned (7)
              name                 (strp) "long unsigned int"
@@ -127,12 +127,17 @@ cat info.out | testrun_compare ${abs_top_builddir}/src/readelf -U --debug-dump=i
 cat > loc.out << \EOF
 
 DWARF section [ 7] '.debug_loc' at offset 0x185:
- [     0]  000000000000000000..0x0000000000000003 [   0] reg5
-           0x0000000000000003..0x0000000000000010 [   0] breg5 -42
-                                                  [   2] stack_value
-           0x0000000000000010..0x0000000000000018 [   0] GNU_entry_value:
-       [   0] reg5
-                                                  [   3] stack_value
+
+ CU [     b] base: 000000000000000000
+ [     0] range 0, 3
+           [ 0] reg5
+          range 3, 10
+           [ 0] breg5 -42
+           [ 2] stack_value
+          range 10, 18
+           [ 0] GNU_entry_value:
+                [ 0] reg5
+           [ 3] stack_value
 EOF
 
 cat loc.out | testrun_compare ${abs_top_builddir}/src/readelf -U --debug-dump=loc testfile-debug-rel.o

@@ -1,6 +1,6 @@
 ## Common automake fragments for elfutils subdirectory makefiles.
 ##
-## Copyright (C) 2010, 2014 Red Hat, Inc.
+## Copyright (C) 2010, 2014, 2016 Red Hat, Inc.
 ##
 ## This file is part of elfutils.
 ##
@@ -42,11 +42,41 @@ STACK_USAGE_WARNING=-Wstack-usage=262144
 else
 STACK_USAGE_WARNING=
 endif
+
+if SANE_LOGICAL_OP_WARNING
+LOGICAL_OP_WARNING=-Wlogical-op
+else
+LOGICAL_OP_WARNING=
+endif
+
+if HAVE_DUPLICATED_COND_WARNING
+DUPLICATED_COND_WARNING=-Wduplicated-cond
+else
+DUPLICATED_COND_WARNING=
+endif
+
+if HAVE_NULL_DEREFERENCE_WARNING
+NULL_DEREFERENCE_WARNING=-Wnull-dereference
+else
+NULL_DEREFERENCE_WARNING=
+endif
+
+if HAVE_IMPLICIT_FALLTHROUGH_WARNING
+# Use strict fallthrough. Only __attribute__((fallthrough)) will prevent the
+# warning
+IMPLICIT_FALLTHROUGH_WARNING=-Wimplicit-fallthrough=5
+else
+IMPLICIT_FALLTHROUGH_WARNING=
+endif
+
 AM_CFLAGS = -std=gnu99 -Wall -Wshadow -Wformat=2 \
 	    -Wold-style-definition -Wstrict-prototypes \
+	    $(LOGICAL_OP_WARNING) $(DUPLICATED_COND_WARNING) \
+	    $(NULL_DEREFERENCE_WARNING) $(IMPLICIT_FALLTHROUGH_WARNING) \
 	    $(if $($(*F)_no_Werror),,-Werror) \
 	    $(if $($(*F)_no_Wunused),,-Wunused -Wextra) \
 	    $(if $($(*F)_no_Wstack_usage),,$(STACK_USAGE_WARNING)) \
+	    $(if $($(*F)_no_Wpacked_not_aligned),-Wno-packed-not-aligned,) \
 	    $($(*F)_CFLAGS)
 
 COMPILE.os = $(filter-out -fprofile-arcs -ftest-coverage, $(COMPILE))
@@ -59,14 +89,14 @@ endif
 
 %.os: %.c %.o
 if AMDEP
-	$(AM_V_CC)if $(COMPILE.os) -c -o $@ -fPIC $(DEFS.os) -MT $@ -MD -MP \
+	$(AM_V_CC)if $(COMPILE.os) -c -o $@ $(fpic_CFLAGS) $(DEFS.os) -MT $@ -MD -MP \
 	  -MF "$(DEPDIR)/$*.Tpo" `test -f '$<' || echo '$(srcdir)/'`$<; \
 	then cat "$(DEPDIR)/$*.Tpo" >> "$(DEPDIR)/$*.Po"; \
 	     rm -f "$(DEPDIR)/$*.Tpo"; \
 	else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; \
 	fi
 else
-	$(AM_V_CC)$(COMPILE.os) -c -o $@ -fPIC $(DEFS.os) $<
+	$(AM_V_CC)$(COMPILE.os) -c -o $@ $(fpic_CFLAGS) $(DEFS.os) $<
 endif
 
 CLEANFILES = *.gcno *.gcda

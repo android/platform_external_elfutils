@@ -167,7 +167,7 @@ elf_getarsym (Elf *elf, size_t *ptr)
 
       /* We have an archive.  The first word in there is the number of
 	 entries in the table.  */
-      uint64_t n;
+      uint64_t n = 0;
       size_t off = elf->start_offset + SARMAG + sizeof (struct ar_hdr);
       if (read_number_entries (&n, elf, &off, index64_p) < 0)
 	{
@@ -297,7 +297,15 @@ elf_getarsym (Elf *elf, size_t *ptr)
 		arsym[cnt].as_off = (*u32)[cnt];
 
 	      arsym[cnt].as_hash = _dl_elf_hash (str_data);
+#if HAVE_DECL_RAWMEMCHR
 	      str_data = rawmemchr (str_data, '\0') + 1;
+#else
+	      char c;
+	      do {
+		c = *str_data;
+		str_data++;
+	      } while (c);
+#endif
 	    }
 
 	  /* At the end a special entry.  */

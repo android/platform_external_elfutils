@@ -1,5 +1,5 @@
 /* Relocate debug information.
-   Copyright (C) 2005-2011, 2014 Red Hat, Inc.
+   Copyright (C) 2005-2011, 2014, 2016 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -25,6 +25,10 @@
    You should have received copies of the GNU General Public License and
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "libdwflP.h"
 
@@ -605,7 +609,8 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
 	    case DWFL_E_NOERROR:
 	      /* We applied the relocation.  Elide it.  */
 	      memset (&rel_mem, 0, sizeof rel_mem);
-	      gelf_update_rel (reldata, relidx, &rel_mem);
+	      if (unlikely (gelf_update_rel (reldata, relidx, &rel_mem) == 0))
+		return DWFL_E_LIBELF;
 	      ++complete;
 	      break;
 	    case DWFL_E_BADRELTYPE:
@@ -635,7 +640,9 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
 	    case DWFL_E_NOERROR:
 	      /* We applied the relocation.  Elide it.  */
 	      memset (&rela_mem, 0, sizeof rela_mem);
-	      gelf_update_rela (reldata, relidx, &rela_mem);
+	      if (unlikely (gelf_update_rela (reldata, relidx,
+					      &rela_mem) == 0))
+		return DWFL_E_LIBELF;
 	      ++complete;
 	      break;
 	    case DWFL_E_BADRELTYPE:
@@ -668,10 +675,13 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
 	      {
 		GElf_Rel rel_mem;
 		GElf_Rel *r = gelf_getrel (reldata, relidx, &rel_mem);
+		if (unlikely (r == NULL))
+		  return DWFL_E_LIBELF;
 		if (r->r_info != 0 || r->r_offset != 0)
 		  {
 		    if (next != relidx)
-		      gelf_update_rel (reldata, next, r);
+		      if (unlikely (gelf_update_rel (reldata, next, r) == 0))
+			return DWFL_E_LIBELF;
 		    ++next;
 		  }
 	      }
@@ -680,10 +690,13 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
 	      {
 		GElf_Rela rela_mem;
 		GElf_Rela *r = gelf_getrela (reldata, relidx, &rela_mem);
+		if (unlikely (r == NULL))
+		  return DWFL_E_LIBELF;
 		if (r->r_info != 0 || r->r_offset != 0 || r->r_addend != 0)
 		  {
 		    if (next != relidx)
-		      gelf_update_rela (reldata, next, r);
+		      if (unlikely (gelf_update_rela (reldata, next, r) == 0))
+			return DWFL_E_LIBELF;
 		    ++next;
 		  }
 	      }
@@ -691,7 +704,8 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
 	}
 
       shdr->sh_size = reldata->d_size = nrels * sh_entsize;
-      gelf_update_shdr (scn, shdr);
+      if (unlikely (gelf_update_shdr (scn, shdr) == 0))
+	return DWFL_E_LIBELF;
     }
 
   return result;
@@ -723,6 +737,8 @@ __libdwfl_relocate (Dwfl_Module *mod, Elf *debugfile, bool debug)
     {
       GElf_Shdr shdr_mem;
       GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
+      if (unlikely (shdr == NULL))
+	return DWFL_E_LIBELF;
 
       if ((shdr->sh_type == SHT_REL || shdr->sh_type == SHT_RELA)
 	  && shdr->sh_size != 0)
@@ -735,7 +751,7 @@ __libdwfl_relocate (Dwfl_Module *mod, Elf *debugfile, bool debug)
 	  else
 	    result = relocate_section (mod, debugfile, ehdr, d_shstrndx,
 				       &reloc_symtab, scn, shdr, tscn,
-				       debug, !debug);
+				       debug, true /* partial always OK. */);
 	}
     }
 
@@ -756,10 +772,18 @@ __libdwfl_relocate_section (Dwfl_Module *mod, Elf *relocated,
   if (elf_getshdrstrndx (relocated, &shstrndx) < 0)
     return DWFL_E_LIBELF;
 
-  return (__libdwfl_module_getebl (mod)
-	  ?: relocate_section (mod, relocated,
-			       gelf_getehdr (relocated, &ehdr_mem), shstrndx,
-			       &reloc_symtab,
-			       relocscn, gelf_getshdr (relocscn, &shdr_mem),
-			       tscn, false, partial));
+  Dwfl_Error result = __libdwfl_module_getebl (mod);
+  if (unlikely (result != DWFL_E_NOERROR))
+    return result;
+
+  GElf_Ehdr *ehdr = gelf_getehdr (relocated, &ehdr_mem);
+  if (unlikely (ehdr == NULL))
+    return DWFL_E_LIBELF;
+
+  GElf_Shdr *shdr = gelf_getshdr (relocscn, &shdr_mem);
+  if (unlikely (shdr == NULL))
+    return DWFL_E_LIBELF;
+
+  return relocate_section (mod, relocated, ehdr, shstrndx, &reloc_symtab,
+			   relocscn, shdr, tscn, false, partial);
 }

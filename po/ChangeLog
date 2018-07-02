@@ -1,3 +1,53 @@
+2018-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* *.po: Update for 0.172.
+
+2018-06-01  Mark Wielaard  <mark@klomp.org>
+
+	* *.po: Update for 0.171.
+
+2017-09-01  Mark Wielaard  <mark@klomp.org>
+
+	* *.po: Regenerated. Replace \v with \n\n.
+
+2017-08-02  Mark Wielaard  <mark@klomp.org>
+
+	* *.po: Update for 0.170.
+
+2017-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* *.po: Update for 0.169.
+
+2017-02-16  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* po/POTFILES.in: Removed lib/version.c, added lib/printversion.c.
+
+2016-12-27  Mark Wielaard  <mark@klomp.org>
+
+	* *.po: Update for 0.168.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* Makevars (COPYRIGHT_HOLDER): Set to the elfutils developers.
+	(MSGID_BUGS_ADDRESS): Set to http://sourceware.org/bugzilla/
+
+2016-08-24  Mark Wielaard  <mjw@redhat.com>
+
+	* *.po: Regenerate.
+
+2016-08-04  Mark Wielaard  <mjw@redhat.com>
+
+	* *.po: Update for 0.167.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* po/POTFILES.in: Removed libebl/eblobjecttypename.c,
+	src/i386_ld.c, src/ld.c, src/ldgeneric.c and src/ldscript.y.
+
+2016-03-31  Mark Wielaard  <mjw@redhat.com>
+
+	* *.po: Update for 0.166.
+
 2016-01-11  Mark Wielaard  <mjw@redhat.com>
 
 	* *.po: Regenerate.

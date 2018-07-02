@@ -1,3 +1,178 @@
+2018-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.172.
+	* NEWS: Mention bug fixes.
+
+2018-06-01  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.171.
+	* NEWS: Mention DWARF5, split-dwarf and GNU DebugFission support.
+
+2018-03-17  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (CHECK_FUNCS): Check for process_vm_readv.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* configure.ac (HAVE_FALLTHROUGH): New define.
+
+2017-10-16  Mark Wielaard  <mark@klomp.org>
+
+	* .gitignore: Remove tests/md5-sha1-test.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Check if the compiler supports
+	__attribute__((gcc_struct)).
+
+2017-09-19  Mark Wielaard  <mark@klomp.org>
+
+	* README: Add basic build instructions.
+
+2017-05-03  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Test if symbol versioning is supported.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Check if the compiler supports
+	__attribute__((visibility(...))).
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Check if -fPIC, -fPIE, -Wl,-z,defs,
+	and -Wl,-z,relro are supported by the compiler.
+
+2017-08-02  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.170.
+	* NEWS: Mention new libdw dwarf_line_file function.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention dwarf_getmacros handling version 5 .debug_macro.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention dwarf_peel_type DWARF5 tags improvement.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention new DWARF5 calling conventions and defaulted member
+	function.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention new dwarf_default_lower_bound function.
+
+2017-07-25  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Mention new DWARF5 attributes, tags, character encodings
+	and language codes in dwarf.h.
+
+2017-07-18  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Don't check for linux/bpf.h.
+	* NEWS: Mention always build bpf backend.
+
+2017-07-14  Mark Wielaard  <mark@klomp.org>
+
+	* NEWS: Add 0.170 section and new strip options.
+
+2017-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.169. Update copyright year.
+	* NEWS: Add 0.169 section.
+
+2017-04-21  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* .gitignore: Add fillfile and peel_type tests.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* configure.ac: Add check for mempcpy.
+
+2017-02-09  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Add check for adding -D_FORTIFY_SOURCE=2 to CFLAGS.
+
+2017-01-12  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Define PACKAGE_URL for older autoconf.
+
+2016-12-27  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.168.
+	* NEWS: Add 0.168 updates.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* README: Move design notes to NOTES. Add URLs for home, releases,
+	bugs, git and mailinglist now on sourceware.
+	* NOTES: Add notes from README.
+	* CONTRIBUTING: Change fedorahosted.org references to new
+	sourceware.org locations.
+	* configure.ac (AC_INIT): Add package URL http://elfutils.org/
+	change bug-report to https://sourceware.org/bugzilla/
+	(AC_COPYRIGHT): Set to the elfutils developers.
+
+2016-11-23  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add test for bad fts.h. Add -DBAD_FTS=1 to CFLAGS
+	if necessary.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add check for whether gcc accepts
+	-Wimplict-fallthrough.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* configure.ac: Add memrchr, rawmemchr and powerof2 checks.
+
+2016-08-04  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.167.
+	* NEWS: Add 0.167 section.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* .gitignore: Remove src/ld. ldlex.c, ldscript.c and ldscript.h.
+	* configure.ac (enable generic): Removed.
+
+2016-06-28  Richard Henderson <rth@redhat.com>
+
+	* configure.ac (HAVE_LINUX_BPF_H): New test and conditional.
+
+2016-06-10  Mark Wielaard  <mjw@redhat.com>
+
+	* CONTRIBUTING: Extend patch, committer and maintainer guidelines.
+
+2016-05-02  Filipe Brandenburger  <filbranden@google.com>
+
+	* configure.ac (argp check): Pass pass &argv.
+	* configure.ac (-W<...> checks): Pass -Werror to the warning checks,
+	to ensure unsupported warning options are noticed during ./configure
+	time and not only later during build.
+
+2016-03-31  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set version to 0.166.
+
+2016-03-02  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Set program_prefix to eu- by default.
+	* NEWS (0.166): New sections, document --program-prefix default.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add check for whether gcc accepts -Wnull-dereference.
+
+2016-02-08  Mark Wielaard  <mjw@redhat.com>
+
+	* configure.ac: Add checks for sane -Wlogical-op and whether gcc
+	accepts -Wduplicated-cond.
+
 2016-01-08  Mark Wielaard  <mjw@redhat.com>
 
 	* configure.ac: Set version to 0.165.

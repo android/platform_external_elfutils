@@ -1,3 +1,73 @@
+2018-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.172.
+
+2018-06-01  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.171.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* eu.am (IMPLICIT_FALLTHROUGH_WARNING): Set to 5.
+
+2017-11-02  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Config files under /usr/lib/sysctl.d (_sysctldir)
+	aren't %config.
+
+2017-10-24  Mark Wielaard  <mark@klomp.org>
+
+	* eu.am (AM_CFLAGS): Handle -Wno-packed-not-aligned.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eu.am: Use fpic_CFLAGS.
+
+2016-08-02  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.170.
+
+2017-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.169.
+
+2016-12-27  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.168 and new project location.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.pc.in: Set URL to http://elfutils.org/
+	* libelf.pc.in: Likewise.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Check HAVE_IMPLICIT_FALLTHROUGH_WARNING.
+	(AM_CFLAGS): Add IMPLICIT_FALLTHROUGH_WARNING.
+
+2016-08-04  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.167.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Remove eu-ld.
+
+2016-03-31  Mark Wielaard  <mjw@redhat.com>
+
+	* elfutils.spec.in: Update for 0.166.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Check HAVE_NULL_DEREFERENCE_WARNING.
+	(AM_CFLAGS): Add NULL_DEREFERENCE_WARNING.
+
+2016-02-09  Mark Wielaard  <mjw@redhat.com>
+
+	* eu.am: Check SANE_LOGICAL_OP_WARNING and
+	HAVE_DUPLICATED_COND_WARNING.
+	(AM_CFLAGS): Add LOGICAL_OP_WARNING and DUPLICATED_COND_WARNING.
+
 2016-01-08  Mark Wielaard  <mjw@redhat.com>
 
 	* elfutils.spec.in: Add elfcompress. Update for 0.165.
