@@ -1,3 +1,101 @@
+2018-04-25  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (default_debugscn_p): Add new DWARF5 sections
+	.debug_addr, .debug_line_str, .debug_loclists, .debug_names,
+	.debug_rnglists and .debug_str_offsets.
+
+2018-04-19  Andreas Schwab  <schwab@suse.de>
+
+	* eblopenbackend.c (machines): Add entries for RISC-V.
+
+2018-03-16  Mark Wielaard  <mark@klomp.org>
+
+	* ebldynamictagname.c (ebl_dynamic_tag_name): Add SYMTAB_SHNDX to
+	stdtags. Add a eu_static_assert to make sure stdtags contains all
+	DT_NUM entries.
+
+2018-02-21  Mark Wielaard  <mark@klomp.org>
+
+	* eblcheckreloctargettype.c (ebl_check_reloc_target_type): Accept
+	SHT_NOTE.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* eblobjnote.c (ebl_object_note): Use FALLTHROUGH macro instead of
+	comment.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpic_CFLAGS.
+
+2017-07-19  Gustavo Romero <gromero@linux.vnet.ibm.com>
+
+	* eblcorenotetypename.c: Add ppc64 HTM SPRs note as known type.
+
+2017-07-20  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (gen_SOURCES): Add ebl_data_marker_symbol.c.
+	* ebl-hooks.h (data_marker_symbol): New hook.
+	* ebl_data_marker_symbol.c: New file.
+	* eblopenbackend.c (default_data_marker_symbol): New function.
+	(fill_defaults): Add default_data_marker_symbol.
+	* libebl.h (ebl_data_marker_symbol): New function.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libebl.h: Use __pure_attribute__.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eblmachineflagname.c: Include system.h.
+	* eblopenbackend.c: Likewise.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Remove eblstrtab.c.
+	* eblstrtab.c: Removed.
+	* libebl.h (Ebl_Strtab): Removed.
+	(Ebl_Strent): Removed.
+	(ebl_strtabinit): Removed.
+	(ebl_strtabfree): Removed.
+	(ebl_strtabadd): Removed.
+	(ebl_strtabfinalize): Removed.
+	(ebl_strtaboffset): Removed.
+	(ebl_string): Removed.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (gen_SOURCES): Remove eblobjecttypename.c,
+	eblshflagscombine.c, eblwstrtab.c and eblgstrtab.c.
+	* ebl-hooks.h (object_type_name): Removed.
+	(sh_flags_combine): Likewise.
+	* eblgstrtab.c: Removed.
+	* eblobjecttypename.c: Removed.
+	* eblopenbackend.c (default_object_type_name): Removed.
+	(default_sh_flags_combine): Likewise.
+	(fill_defaults): Removed object_type_name and sh_flags_combine.
+	* eblshflagscombine.c: Removed.
+	* eblwstrtab.c: Removed.
+	* libebl.h (ebl_object_type_name): Removed.
+	(ebl_sh_flags_combine): Likewise.
+	(ebl_wstrtab*): Removed.
+	(ebl_gstrtab*): Likewise.
+
+2016-06-28  Richard Henderson <rth@redhat.com>
+
+	* ebl-hooks.h (EBLHOOK(disasm)): Add ebl parameter.
+	* eblopenbackend.c (machines): Add EM_BPF entry.
+
+2016-05-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* eblopenbackend.c (machines) [EM_68K]: Set class and data.
+
+2016-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* eblobjnotetypename.c (ebl_object_note_type_name): Check name is
+	"Go" and use new goknowntypes then. Otherwise check name is not
+	"GNU" and return "unknown".
+
 2016-01-09  Mark Wielaard  <mjw@redhat.com>
 
 	* eblobjnote.c (ebl_object_note): Add brackets around if statement

@@ -68,8 +68,20 @@
 #define internal_strong_alias(name, aliasname) \
   extern __typeof (name) aliasname __attribute__ ((alias (#name))) internal_function;
 
+#ifdef HAVE_VISIBILITY
 #define attribute_hidden \
   __attribute__ ((visibility ("hidden")))
+#else
+#define attribute_hidden /* empty */
+#endif
+
+#ifdef HAVE_GCC_STRUCT
+#define attribute_packed \
+  __attribute__ ((packed, gcc_struct))
+#else
+#define attribute_packed \
+  __attribute__ ((packed))
+#endif
 
 /* Define ALLOW_UNALIGNED if the architecture allows operations on
    unaligned memory locations.  */
@@ -186,5 +198,12 @@ asm (".section predict_data, \"aw\"; .previous\n"
 # define COMPAT_VERSION(name, version, prefix) error "should use #ifdef SYMBOL_VERSIONING"
 #endif
 
+#ifndef FALLTHROUGH
+# ifdef HAVE_FALLTHROUGH
+#  define FALLTHROUGH __attribute__ ((fallthrough))
+# else
+#  define FALLTHROUGH ((void) 0)
+# endif
+#endif
 
 #endif	/* eu-config.h */

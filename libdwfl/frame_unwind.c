@@ -1,5 +1,5 @@
 /* Get previous frame state for an existing frame state.
-   Copyright (C) 2013, 2014 Red Hat, Inc.
+   Copyright (C) 2013, 2014, 2016 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include "libdwflP.h"
 #include "../libdw/dwarf.h"
-#include <sys/ptrace.h>
+#include <system.h>
 
 /* Maximum number of DWARF expression stack slots before returning an error.  */
 #define DWARF_EXPR_STACK_MAX 0x100
@@ -42,10 +42,6 @@
 /* Maximum number of DWARF expression executed operations before returning an
    error.  */
 #define DWARF_EXPR_STEPS_MAX 0x1000
-
-#ifndef MAX
-# define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
 
 bool
 internal_function
@@ -446,7 +442,7 @@ expr_eval (Dwfl_Frame *state, Dwarf_Frame *frame, const Dwarf_Op *ops,
 	    }
 	  if (val1 == 0)
 	    break;
-	  /* FALLTHRU */
+	  FALLTHROUGH;
 	case DW_OP_skip:;
 	  Dwarf_Word offset = op->offset + 1 + 2 + (int16_t) op->number;
 	  const Dwarf_Op *found = bsearch ((void *) (uintptr_t) offset, ops, nops,
@@ -511,7 +507,7 @@ expr_eval (Dwfl_Frame *state, Dwarf_Frame *frame, const Dwarf_Op *ops,
 #undef pop
 }
 
-static void
+static Dwfl_Frame *
 new_unwound (Dwfl_Frame *state)
 {
   assert (state->unwound == NULL);
@@ -522,6 +518,8 @@ new_unwound (Dwfl_Frame *state)
   assert (nregs > 0);
   Dwfl_Frame *unwound;
   unwound = malloc (sizeof (*unwound) + sizeof (*unwound->regs) * nregs);
+  if (unlikely (unwound == NULL))
+    return NULL;
   state->unwound = unwound;
   unwound->thread = thread;
   unwound->unwound = NULL;
@@ -529,6 +527,7 @@ new_unwound (Dwfl_Frame *state)
   unwound->initial_frame = false;
   unwound->pc_state = DWFL_FRAME_STATE_ERROR;
   memset (unwound->regs_set, 0, sizeof (unwound->regs_set));
+  return unwound;
 }
 
 /* The logic is to call __libdwfl_seterrno for any CFI bytecode interpretation
@@ -545,8 +544,14 @@ handle_cfi (Dwfl_Frame *state, Dwarf_Addr pc, Dwarf_CFI *cfi, Dwarf_Addr bias)
       __libdwfl_seterrno (DWFL_E_LIBDW);
       return;
     }
-  new_unwound (state);
-  Dwfl_Frame *unwound = state->unwound;
+
+  Dwfl_Frame *unwound = new_unwound (state);
+  if (unwound == NULL)
+    {
+      __libdwfl_seterrno (DWFL_E_NOMEM);
+      return;
+    }
+
   unwound->signal_frame = frame->fde->cie->signal_frame;
   Dwfl_Thread *thread = state->thread;
   Dwfl_Process *process = thread->process;
@@ -627,24 +632,38 @@ handle_cfi (Dwfl_Frame *state, Dwarf_Addr pc, Dwarf_CFI *cfi, Dwarf_Addr bias)
 	    ra_set = true;
 	}
     }
-  if (unwound->pc_state == DWFL_FRAME_STATE_ERROR
-      && __libdwfl_frame_reg_get (unwound,
-				  frame->fde->cie->return_address_register,
-				  &unwound->pc))
+  if (unwound->pc_state == DWFL_FRAME_STATE_ERROR)
     {
-      /* PPC32 __libc_start_main properly CFI-unwinds PC as zero.  Currently
-	 none of the archs supported for unwinding have zero as a valid PC.  */
-      if (unwound->pc == 0)
-	unwound->pc_state = DWFL_FRAME_STATE_PC_UNDEFINED;
+      if (__libdwfl_frame_reg_get (unwound,
+				   frame->fde->cie->return_address_register,
+				   &unwound->pc))
+	{
+	  /* PPC32 __libc_start_main properly CFI-unwinds PC as zero.
+	     Currently none of the archs supported for unwinding have
+	     zero as a valid PC.  */
+	  if (unwound->pc == 0)
+	    unwound->pc_state = DWFL_FRAME_STATE_PC_UNDEFINED;
+	  else
+	    {
+	      unwound->pc_state = DWFL_FRAME_STATE_PC_SET;
+	      /* In SPARC the return address register actually contains
+		 the address of the call instruction instead of the return
+		 address.  Therefore we add here an offset defined by the
+		 backend.  Most likely 0.  */
+	      unwound->pc += ebl_ra_offset (ebl);
+	    }
+	}
       else
-        {
-          unwound->pc_state = DWFL_FRAME_STATE_PC_SET;
-          /* In SPARC the return address register actually contains
-             the address of the call instruction instead of the return
-             address.  Therefore we add here an offset defined by the
-             backend.  Most likely 0.  */
-          unwound->pc += ebl_ra_offset (ebl);
-        }
+	{
+	  /* We couldn't set the return register, either it was bogus,
+	     or the return pc is undefined, maybe end of call stack.  */
+	  unsigned pcreg = frame->fde->cie->return_address_register;
+	  if (! ebl_dwarf_to_regno (ebl, &pcreg)
+	      || pcreg >= ebl_frame_nregs (ebl))
+	    __libdwfl_seterrno (DWFL_E_INVALID_REGISTER);
+	  else
+	    unwound->pc_state = DWFL_FRAME_STATE_PC_UNDEFINED;
+	}
     }
   free (frame);
 }
@@ -730,7 +749,11 @@ __libdwfl_frame_unwind (Dwfl_Frame *state)
   Dwfl_Thread *thread = state->thread;
   Dwfl_Process *process = thread->process;
   Ebl *ebl = process->ebl;
-  new_unwound (state);
+  if (new_unwound (state) == NULL)
+    {
+      __libdwfl_seterrno (DWFL_E_NOMEM);
+      return;
+    }
   state->unwound->pc_state = DWFL_FRAME_STATE_PC_UNDEFINED;
   // &Dwfl_Frame.signal_frame cannot be passed as it is a bitfield.
   bool signal_frame = false;

@@ -1,5 +1,5 @@
 /* Get Dwarf Frame state for target live PID process.
-   Copyright (C) 2013, 2014, 2015 Red Hat, Inc.
+   Copyright (C) 2013, 2014, 2015, 2018 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -26,22 +26,24 @@
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libelfP.h"
 #include "libdwflP.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/uio.h>
 #include <fcntl.h>
-#include <sys/ptrace.h>
-#include <sys/wait.h>
 #include <dirent.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
-#ifndef MAX
-# define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
 #ifdef __linux__
+
+#include <sys/ptrace.h>
+#include <sys/syscall.h>
+#include <sys/wait.h>
 
 static bool
 linux_proc_pid_is_stopped (pid_t pid)
@@ -114,12 +116,90 @@ __libdwfl_ptrace_attach (pid_t tid, bool *tid_was_stoppedp)
   return true;
 }
 
+#ifdef HAVE_PROCESS_VM_READV
+/* Note that the result word size depends on the architecture word size.
+   That is sizeof long. */
+static bool
+read_cached_memory (struct __libdwfl_pid_arg *pid_arg,
+		    Dwarf_Addr addr, Dwarf_Word *result)
+{
+  /* Let the ptrace fallback deal with the corner case of the address
+     possibly crossing a page boundery.  */
+  if ((addr & ((Dwarf_Addr)__LIBDWFL_REMOTE_MEM_CACHE_SIZE - 1))
+      > (Dwarf_Addr)__LIBDWFL_REMOTE_MEM_CACHE_SIZE - sizeof (unsigned long))
+    return false;
+
+  struct __libdwfl_remote_mem_cache *mem_cache = pid_arg->mem_cache;
+  if (mem_cache == NULL)
+    {
+      size_t mem_cache_size = sizeof (struct __libdwfl_remote_mem_cache);
+      mem_cache = (struct __libdwfl_remote_mem_cache *) malloc (mem_cache_size);
+      if (mem_cache == NULL)
+	return false;
+
+      mem_cache->addr = 0;
+      mem_cache->len = 0;
+      pid_arg->mem_cache = mem_cache;
+    }
+
+  unsigned char *d;
+  if (addr >= mem_cache->addr && addr - mem_cache->addr < mem_cache->len)
+    {
+      d = &mem_cache->buf[addr - mem_cache->addr];
+      if ((((uintptr_t) d) & (sizeof (unsigned long) - 1)) == 0)
+	*result = *(unsigned long *) d;
+      else
+	memcpy (result, d, sizeof (unsigned long));
+      return true;
+    }
+
+  struct iovec local, remote;
+  mem_cache->addr = addr & ~((Dwarf_Addr)__LIBDWFL_REMOTE_MEM_CACHE_SIZE - 1);
+  local.iov_base = mem_cache->buf;
+  local.iov_len = __LIBDWFL_REMOTE_MEM_CACHE_SIZE;
+  remote.iov_base = (void *) (uintptr_t) mem_cache->addr;
+  remote.iov_len = __LIBDWFL_REMOTE_MEM_CACHE_SIZE;
+
+  ssize_t res = process_vm_readv (pid_arg->tid_attached,
+				  &local, 1, &remote, 1, 0);
+  if (res != __LIBDWFL_REMOTE_MEM_CACHE_SIZE)
+    {
+      mem_cache->len = 0;
+      return false;
+    }
+
+  mem_cache->len = res;
+  d = &mem_cache->buf[addr - mem_cache->addr];
+  if ((((uintptr_t) d) & (sizeof (unsigned long) - 1)) == 0)
+    *result = *(unsigned long *) d;
+  else
+    memcpy (result, d, sizeof (unsigned long));
+  return true;
+}
+#endif /* HAVE_PROCESS_VM_READV */
+
+static void
+clear_cached_memory (struct __libdwfl_pid_arg *pid_arg)
+{
+  struct __libdwfl_remote_mem_cache *mem_cache = pid_arg->mem_cache;
+  if (mem_cache != NULL)
+    mem_cache->len = 0;
+}
+
+/* Note that the result word size depends on the architecture word size.
+   That is sizeof long. */
 static bool
 pid_memory_read (Dwfl *dwfl, Dwarf_Addr addr, Dwarf_Word *result, void *arg)
 {
   struct __libdwfl_pid_arg *pid_arg = arg;
   pid_t tid = pid_arg->tid_attached;
   assert (tid > 0);
+
+#ifdef HAVE_PROCESS_VM_READV
+  if (read_cached_memory (pid_arg, addr, result))
+    return true;
+#endif
+
   Dwfl_Process *process = dwfl->process;
   if (ebl_get_elfclass (process->ebl) == ELFCLASS64)
     {
@@ -252,6 +332,7 @@ pid_detach (Dwfl *dwfl __attribute__ ((unused)), void *dwfl_arg)
 {
   struct __libdwfl_pid_arg *pid_arg = dwfl_arg;
   elf_end (pid_arg->elf);
+  free (pid_arg->mem_cache);
   close (pid_arg->elf_fd);
   closedir (pid_arg->dir);
   free (pid_arg);
@@ -277,6 +358,7 @@ pid_thread_detach (Dwfl_Thread *thread, void *thread_arg)
   pid_t tid = INTUSE(dwfl_thread_tid) (thread);
   assert (pid_arg->tid_attached == tid);
   pid_arg->tid_attached = 0;
+  clear_cached_memory (pid_arg);
   if (! pid_arg->assume_ptrace_stopped)
     __libdwfl_ptrace_detach (tid, pid_arg->tid_was_stopped);
 }
@@ -378,6 +460,7 @@ dwfl_linux_proc_attach (Dwfl *dwfl, pid_t pid, bool assume_ptrace_stopped)
   pid_arg->dir = dir;
   pid_arg->elf = elf;
   pid_arg->elf_fd = elf_fd;
+  pid_arg->mem_cache = NULL;
   pid_arg->tid_attached = 0;
   pid_arg->assume_ptrace_stopped = assume_ptrace_stopped;
   if (! INTUSE(dwfl_attach_state) (dwfl, elf, pid, &pid_thread_callbacks,
@@ -406,27 +489,6 @@ __libdwfl_get_pid_arg (Dwfl *dwfl)
 
 #else	/* __linux__ */
 
-static pid_t
-pid_next_thread (Dwfl *dwfl __attribute__ ((unused)),
-	         void *dwfl_arg __attribute__ ((unused)),
-		 void **thread_argp __attribute__ ((unused)))
-{
-  errno = ENOSYS;
-  __libdwfl_seterrno (DWFL_E_ERRNO);
-  return -1;
-}
-
-static bool
-pid_getthread (Dwfl *dwfl __attribute__ ((unused)),
-	       pid_t tid __attribute__ ((unused)),
-	       void *dwfl_arg __attribute__ ((unused)),
-	       void **thread_argp __attribute__ ((unused)))
-{
-  errno = ENOSYS;
-  __libdwfl_seterrno (DWFL_E_ERRNO);
-  return false;
-}
-
 bool
 internal_function
 __libdwfl_ptrace_attach (pid_t tid __attribute__ ((unused)),
@@ -437,54 +499,12 @@ __libdwfl_ptrace_attach (pid_t tid __attribute__ ((unused)),
   return false;
 }
 
-static bool
-pid_memory_read (Dwfl *dwfl __attribute__ ((unused)),
-                 Dwarf_Addr addr __attribute__ ((unused)),
-	         Dwarf_Word *result __attribute__ ((unused)),
-	         void *arg __attribute__ ((unused)))
-{
-  errno = ENOSYS;
-  __libdwfl_seterrno (DWFL_E_ERRNO);
-  return false;
-}
-
-static bool
-pid_set_initial_registers (Dwfl_Thread *thread __attribute__ ((unused)),
-			   void *thread_arg __attribute__ ((unused)))
-{
-  errno = ENOSYS;
-  __libdwfl_seterrno (DWFL_E_ERRNO);
-  return false;
-}
-
-static void
-pid_detach (Dwfl *dwfl __attribute__ ((unused)),
-	    void *dwfl_arg __attribute__ ((unused)))
-{
-}
-
 void
 internal_function
 __libdwfl_ptrace_detach (pid_t tid __attribute__ ((unused)),
 			 bool tid_was_stopped __attribute__ ((unused)))
 {
 }
-
-static void
-pid_thread_detach (Dwfl_Thread *thread __attribute__ ((unused)),
-		  void *thread_arg __attribute__ ((unused)))
-{
-}
-
-static const Dwfl_Thread_Callbacks pid_thread_callbacks =
-{
-  pid_next_thread,
-  pid_getthread,
-  pid_memory_read,
-  pid_set_initial_registers,
-  pid_detach,
-  pid_thread_detach,
-};
 
 int
 dwfl_linux_proc_attach (Dwfl *dwfl __attribute__ ((unused)),

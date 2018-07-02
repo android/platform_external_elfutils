@@ -26,13 +26,18 @@
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
 
-/* We include this before config.h because it can't handle _FILE_OFFSET_BITS.
-   Everything we need here is fine if its declarations just come first.  */
-/* Some makefiles, e.g. HOST_linux-x86.mk, predefine _FILE_OFFSET_BITS.  */
-#undef _FILE_OFFSET_BITS
-#include <fts.h>
+/* In case we have a bad fts we include this before config.h because it
+   can't handle _FILE_OFFSET_BITS.
+   Everything we need here is fine if its declarations just come first.
+   Also, include sys/types.h before fts. On some systems fts.h is not self
+   contained. */
+#ifdef BAD_FTS
+  #include <sys/types.h>
+  #include <fts.h>
+#endif
 
 #include <config.h>
+#include <system.h>
 
 #include "libdwflP.h"
 #include <inttypes.h>
@@ -45,11 +50,16 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-/* Since fts.h is included before config.h, its indirect inclusions may not
+/* If fts.h is included before config.h, its indirect inclusions may not
    give us the right LFS aliases of these functions, so map them manually.  */
-#ifdef _FILE_OFFSET_BITS
-#define open open64
-#define fopen fopen64
+#ifdef BAD_FTS
+  #ifdef _FILE_OFFSET_BITS
+    #define open open64
+    #define fopen fopen64
+  #endif
+#else
+  #include <sys/types.h>
+  #include <fts.h>
 #endif
 
 
@@ -93,17 +103,21 @@ try_kernel_name (Dwfl *dwfl, char **fname, bool try_debug)
   if (fd < 0)
     {
       Dwfl_Module fakemod = { .dwfl = dwfl };
-      /* First try the file's unadorned basename as DEBUGLINK_FILE,
-	 to look for "vmlinux" files.  */
-      fd = INTUSE(dwfl_standard_find_debuginfo) (&fakemod, NULL, NULL, 0,
-						 *fname, basename (*fname), 0,
-						 &fakemod.debug.name);
-      if (fd < 0 && try_debug)
-	/* Next, let the call use the default of basename + ".debug",
-	   to look for "vmlinux.debug" files.  */
+
+      if (try_debug)
+	/* Passing NULL for DEBUGLINK_FILE searches for both the basenamer
+	   "vmlinux" and the default of basename + ".debug", to look for
+	   "vmlinux.debug" files.  */
 	fd = INTUSE(dwfl_standard_find_debuginfo) (&fakemod, NULL, NULL, 0,
 						   *fname, NULL, 0,
 						   &fakemod.debug.name);
+      else
+	/* Try the file's unadorned basename as DEBUGLINK_FILE,
+	   to look only for "vmlinux" files.  */
+	fd = INTUSE(dwfl_standard_find_debuginfo) (&fakemod, NULL, NULL, 0,
+						   *fname, basename (*fname),
+						   0, &fakemod.debug.name);
+
       if (fakemod.debug.name != NULL)
 	{
 	  free (*fname);
@@ -142,11 +156,18 @@ try_kernel_name (Dwfl *dwfl, char **fname, bool try_debug)
 static inline const char *
 kernel_release (void)
 {
+#ifdef __linux__
   /* Cache the `uname -r` string we'll use.  */
   static struct utsname utsname;
   if (utsname.release[0] == '\0' && uname (&utsname) != 0)
     return NULL;
   return utsname.release;
+#else
+  /* Used for finding the running linux kernel, which isn't supported
+     on non-linux kernel systems.  */
+  errno = ENOTSUP;
+  return NULL;
+#endif
 }
 
 static int
@@ -491,7 +512,7 @@ intuit_kernel_bounds (Dwarf_Addr *start, Dwarf_Addr *end, Dwarf_Addr *notes)
 	if (*notes == 0 && !strcmp (state.p, "__start_notes\n"))
 	  *notes = *end;
 
-      Dwarf_Addr round_kernel = sysconf (_SC_PAGE_SIZE);
+      Dwarf_Addr round_kernel = sysconf (_SC_PAGESIZE);
       *start &= -(Dwarf_Addr) round_kernel;
       *end += round_kernel - 1;
       *end &= -(Dwarf_Addr) round_kernel;

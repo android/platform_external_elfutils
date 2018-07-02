@@ -1,3 +1,191 @@
+2018-06-19  Mark Wielaard  <mark@klomp.org>
+
+	* libelfP.h (__libelf_type_align): Remove !ALLOW_UNALIGNED guard.
+	* elf_getdata.c (__libelf_type_aligns): Likewise.
+	(convert_data): Remove ALLOW_UNALIGNED check.
+	* elf_getdata_rawchunk.c (elf_getdata_rawchunk): Likewise.
+
+2018-06-21  Mark Wielaard  <mark@klomp.org>
+
+	* elf.h: Update from glibc.
+
+2018-04-19  Andreas Schwab  <schwab@suse.de>
+
+	* elf.h: Update from glibc.
+
+2018-02-16  Mark Wielaard  <mark@klomp.org>
+
+	* elf.h: Update from glibc.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* elf32_updatenull.c (updatenull_wrlock): Use FALLTHROUGH macro
+	instead of comment.
+	* elf_begin.c (read_unmmaped_file): Likewise.
+	(elf_begin): Likewise.
+	* elf_cntl.c (elf_cntl): Likewise.
+
+2017-10-04  Mark Wielaard  <mark@klomp.org>
+
+	* elf_begin.c (file_read_elf): Skip sanity checking e_shoff if scncnt
+	is zero, we won't use it then.
+
+2017-10-04  Mark Wielaard  <mark@klomp.org>
+
+	* libelfP.h: Add ELF_E_INVALID_ELF to error values enum.
+	* elf_error.c (ELF_E_INVALID_ELF_IDX): New define. Use it as value
+	for ELF_E_INVALID_ELF in msgidx.
+	* elf_getshdrstrndx.c (elf_getshdrstrndx): Distinquish between pread
+	failing and not having enough data.
+	* elf_begin.c (get_shnum): Likewise. Explicitly set libelf errno on
+	too large value.
+	(file_read_elf): Make sure to always set libelf errno when returning
+	NULL. Distinquish between i/o file and elf data errors.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* gelf_xlate.c: Use attribute_packed.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libelfP.h: Use attribute_hidden.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpic_CFLAGS and dso_LDFLAGS.
+
+2017-08-15  Mark Wielaard  <mark@klomp.org>
+
+	* elf.h: Update from glibc. Add new powerpc note descriptors.
+
+2017-07-19  Gustavo Romero <gromero@linux.vnet.ibm.com>
+
+	* elf.h: Add known type in notes segment descriptor for HTM SPRs.
+
+2017-02-17  Ulf hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Add libelf_so_DEPS, which include libeu.a,
+	libelf_so_LIBS.
+	(libelf_so_LDLIBS): Add $(libelf_so_DEPS).
+	(libelf.so$(EXEEXT): Use $(libelf_so_LIBS), require libelf.map
+	from the right directory.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libelfP.h: Don't include config.h.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* elf_begin.c: Use F_GETFD rather than F_GETFL.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libelf.h: Define macros for various function attributes and use
+	them.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* elf_update.c: Set ELF_F_MMAPPED flag if we mmap from elf_update.
+
+2017-04-19  Mark Wielaard  <mark@klomp.org>
+
+	* elf_getarsym.c (elf_getarsym): Initialize n to zero.
+
+2017-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatefile.c (updatemmap): Always update last_positition.
+	(updatefile): Likewise.
+
+2017-03-24  Mark Wielaard  <mark@klomp.org>
+
+	* elf_compress.c (__libelf_decompress): Check insane compression
+	ratios before trying to allocate output buffer.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+	    Mark Wielaard  <mjw@redhat.com>
+
+	* gelf.h (gelf_newehdr): Change return type to void *.
+	(gelf_newphdr): Likewise.
+	* gelf_newehdr.c (gelf_newehdr): Likewise.
+	* gelf_newphdr.c (gelf_newphdr): Likewise.
+
+2016-10-21  Mark Wielaard  <mjw@redhat.com>
+
+	* elf_getdata.c (__libelf_set_rawdata_wrlock): Sanity check
+	offset and size before trying to malloc and read data.
+
+2016-10-26  Mark Wielaard  <mjw@redhat.com>
+
+	* elf_begin.c (read_file): Always set maxsize when parent == NULL.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* elf_getarsym.c (elf_getarsym): Open code rawmemchr when not
+	available.
+	* elf_strptr.c: Include stdbool.h.
+	(validate_str): New function.
+	(elf_strptr): Use validate_str instead of memrchr.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* elf32_updatefile.c: Remove sys/param.h include.
+	* elf32_updatenull.c: Likewise. Add system.h include.
+	* elf_begin.c: Remove sys/param.h.
+	* elf_compress: Likewise. Add system.h include.
+	(MAX): Remove definition.
+
+2016-08-07  Mark Wielaard  <mjw@redhat.com>
+
+	* elf_compress.c (__libelf_reset_rawdata): Check scn->flags and
+	free rawdata_base when malloced. Set ELF_F_MALLOCED for scn->flags.
+	* elf_end.c (elf_end): Check scn->flags and free rawdata_base if
+	malloced.
+	* libelfP.h (struct Elf_Scn): Document flags ELF_F_MALLOCED usage.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* elf-knowledge.h (SH_FLAGS_COMBINE): Removed.
+	(SH_FLAGS_IMPORTANT): Likewise.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* elf32_updatenull.c (updatenull_wrlock): Ignore e_type when
+	updating phdrs.
+	* elf_getphdrnum.c (__elf_getphdrnum_chk_rdlock): Only do sanity
+	checking if phdrs haven't been read in yet.
+
+2016-06-24  John Ogness  <john.ogness@linutronix.de>
+
+	* elf32_updatenull.c (updatenull_wrlock): Find first section.
+	* elf_nextscn.c (elf_nextscn): When scn is NULL start from 0th
+	section.
+
+2016-06-28  Richard Henderson  <rth@redhat.com>
+
+	* elf.h: Update from glibc.  Add lots of new EM_* definitions.
+
+2016-04-14  Mark Wielaard  <mjw@redhat.com>
+
+	* elf_compress.c (__libelf_compress): Free out_buf if deflateInit
+	fails.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* elf32_updatefile.c (updatemmap): Free scns when out of memory.
+
+2016-01-28  Mark Wielaard  <mjw@redhat.com>
+
+	* elf.h: Update from glibc. Add new i386 and x86_64 relocations.
+
+2016-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* elf.h: Update from glibc. Add NT_ARM_SYSTEM_CALL.
+
+2016-02-04  Mark Wielaard  <mjw@redhat.com>
+
+	* elf_getdata.c (__libelf_set_rawdata_wrlock): Don't adjust align
+	for SHT_NOBITS sections.
+
 2016-01-22  Chih-Hung Hsieh <chh@google.com>
 
 	* elf_compress.c (__libelf_compress): Move nested function

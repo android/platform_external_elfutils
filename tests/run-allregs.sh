@@ -253,9 +253,9 @@ privileged registers:
 	111: spr11 (spr11), unsigned 32 bits
 	112: spr12 (spr12), unsigned 32 bits
 	113: spr13 (spr13), unsigned 32 bits
-	114: spr14 (spr14), unsigned 32 bits
-	115: spr15 (spr15), unsigned 32 bits
-	116: spr16 (spr16), unsigned 32 bits
+	114: tfhar (tfhar), unsigned 32 bits
+	115: tfiar (tfiar), unsigned 32 bits
+	116: texasr (texasr), unsigned 32 bits
 	117: spr17 (spr17), unsigned 32 bits
 	118: dsisr (dsisr), unsigned 32 bits
 	119: dar (dar), unsigned 32 bits
@@ -1276,9 +1276,9 @@ privileged registers:
 	111: spr11 (spr11), unsigned 64 bits
 	112: spr12 (spr12), unsigned 64 bits
 	113: spr13 (spr13), unsigned 64 bits
-	114: spr14 (spr14), unsigned 64 bits
-	115: spr15 (spr15), unsigned 64 bits
-	116: spr16 (spr16), unsigned 64 bits
+	114: tfhar (tfhar), unsigned 64 bits
+	115: tfiar (tfiar), unsigned 64 bits
+	116: texasr (texasr), unsigned 64 bits
 	117: spr17 (spr17), unsigned 64 bits
 	118: dsisr (dsisr), unsigned 64 bits
 	119: dar (dar), unsigned 64 bits
@@ -2869,5 +2869,37 @@ x87 registers:
 	 38: %st5 (st5), float 80 bits
 	 39: %st6 (st6), float 80 bits
 	 40: %st7 (st7), float 80 bits
+EOF
+
+# See run-readelf-mixed-corenote.sh for instructions to regenerate
+# this core file.
+regs_test testfile-m68k-core <<\EOF
+integer registers:
+	  0: %d0 (d0), signed 32 bits
+	  1: %d1 (d1), signed 32 bits
+	  2: %d2 (d2), signed 32 bits
+	  3: %d3 (d3), signed 32 bits
+	  4: %d4 (d4), signed 32 bits
+	  5: %d5 (d5), signed 32 bits
+	  6: %d6 (d6), signed 32 bits
+	  7: %d7 (d7), signed 32 bits
+	  8: %a0 (a0), address 32 bits
+	  9: %a1 (a1), address 32 bits
+	 10: %a2 (a2), address 32 bits
+	 11: %a3 (a3), address 32 bits
+	 12: %a4 (a4), address 32 bits
+	 13: %a5 (a5), address 32 bits
+	 14: %a6 (a6), address 32 bits
+	 15: %a7 (a7), address 32 bits
+	 24: %pc (pc), address 32 bits
+FPU registers:
+	 16: %fp0 (fp0), float 96 bits
+	 17: %fp1 (fp1), float 96 bits
+	 18: %fp2 (fp2), float 96 bits
+	 19: %fp3 (fp3), float 96 bits
+	 20: %fp4 (fp4), float 96 bits
+	 21: %fp5 (fp5), float 96 bits
+	 22: %fp6 (fp6), float 96 bits
+	 23: %fp7 (fp7), float 96 bits
 EOF
 exit 0

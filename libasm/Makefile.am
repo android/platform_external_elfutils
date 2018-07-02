@@ -28,7 +28,7 @@
 ## not, see <http://www.gnu.org/licenses/>.
 ##
 include $(top_srcdir)/config/eu.am
-AM_CPPFLAGS += -I$(top_srcdir)/libelf -I$(top_srcdir)/libebl -I$(top_srcdir)/libdw
+AM_CPPFLAGS += -I$(top_srcdir)/libelf -I$(top_srcdir)/libebl -I$(top_srcdir)/libdw -I$(top_srcdir)/libdwelf
 
 GCC_INCLUDE = -I$(shell $(CC) -print-file-name=include)
 VERSION = 1
@@ -55,17 +55,20 @@ libasm_a_SOURCES = asm_begin.c asm_abort.c asm_end.c asm_error.c \
 libasm_pic_a_SOURCES =
 am_libasm_pic_a_OBJECTS = $(libasm_a_SOURCES:.c=.os)
 
-libasm_so_LDLIBS =
+libasm_so_DEPS = ../lib/libeu.a ../libebl/libebl.a ../libelf/libelf.so ../libdw/libdw.so
+libasm_so_LDLIBS = $(libasm_so_DEPS)
 if USE_LOCKS
 libasm_so_LDLIBS += -lpthread
 endif
 
+libasm_so_LIBS = libasm_pic.a
 libasm_so_SOURCES =
-libasm.so$(EXEEXT): libasm_pic.a libasm.map
-	$(AM_V_CCLD)$(LINK) -shared -o $@ -Wl,--whole-archive,$<,--no-whole-archive \
-		-Wl,--version-script,$(srcdir)/libasm.map,--no-undefined \
+libasm.so$(EXEEXT): $(srcdir)/libasm.map $(libasm_so_LIBS) $(libasm_so_DEPS)
+	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $@ \
 		-Wl,--soname,$@.$(VERSION) \
-		../libebl/libebl.a ../libelf/libelf.so  $(libasm_so_LDLIBS)
+		-Wl,--version-script,$<,--no-undefined \
+		-Wl,--whole-archive $(libasm_so_LIBS) -Wl,--no-whole-archive \
+		$(libasm_so_LDLIBS)
 	@$(textrel_check)
 	$(AM_V_at)ln -fs $@ $@.$(VERSION)
 
