@@ -1,5 +1,5 @@
 /* Return DIE associated with a location expression op.
-   Copyright (C) 2013 Red Hat, Inc.
+   Copyright (C) 2013, 2017 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -43,23 +43,42 @@ dwarf_getlocation_die (Dwarf_Attribute *attr, const Dwarf_Op *op,
   Dwarf_Off dieoff;
   switch (op->atom)
     {
+    case DW_OP_implicit_pointer:
     case DW_OP_GNU_implicit_pointer:
     case DW_OP_call_ref:
+    case DW_OP_GNU_variable_value:
       dieoff = op->number;
       break;
 
     case DW_OP_GNU_parameter_ref:
+    case DW_OP_convert:
     case DW_OP_GNU_convert:
+    case DW_OP_reinterpret:
     case DW_OP_GNU_reinterpret:
+    case DW_OP_const_type:
     case DW_OP_GNU_const_type:
     case DW_OP_call2:
     case DW_OP_call4:
+      if (op->number > (attr->cu->end - attr->cu->start))
+	{
+	invalid_offset:
+	  __libdw_seterrno (DWARF_E_INVALID_OFFSET);
+	  return -1;
+	}
       dieoff = attr->cu->start + op->number;
       break;
 
+    case DW_OP_regval_type:
     case DW_OP_GNU_regval_type:
+    case DW_OP_deref_type:
     case DW_OP_GNU_deref_type:
+      if (op->number2 > (attr->cu->end - attr->cu->start))
+	goto invalid_offset;
       dieoff = attr->cu->start + op->number2;
+      break;
+
+    case DW_OP_xderef_type:
+      dieoff = op->number2;
       break;
 
     default:
@@ -68,7 +87,7 @@ dwarf_getlocation_die (Dwarf_Attribute *attr, const Dwarf_Op *op,
     }
 
   if (__libdw_offdie (attr->cu->dbg, dieoff, result,
-                     attr->cu->type_offset != 0) == NULL)
+		      ISV4TU(attr->cu)) == NULL)
     return -1;
 
   return 0;

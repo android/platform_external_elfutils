@@ -54,6 +54,7 @@
 # volatile int ia[32];
 # const volatile void * const volatile restrict va[64];
 # struct s sa[8];
+# double d3d[3][4][5];
 #
 # typedef const int foo;
 # typedef volatile foo bar;
@@ -62,7 +63,9 @@
 #
 # gcc -std=c99 -g -c -o testfile-sizes3.o sizes.c
 
-testfiles testfile-sizes1.o testfile-sizes2.o testfile-sizes3.o
+# The file testfile-size4.o is hand-crafted.
+
+testfiles testfile-sizes1.o testfile-sizes2.o testfile-sizes3.o testfile-sizes4.o
 
 testrun_compare ${abs_builddir}/aggregate_size -e testfile-sizes1.o <<\EOF
 c size 1
@@ -98,8 +101,13 @@ ca size 16
 ia size 128
 va size 512
 sa size 128
+d3d size 480
 f size 4
 b size 4
+EOF
+
+testrun_compare ${abs_builddir}/aggregate_size -e testfile-sizes4.o <<\EOF
+v size 257
 EOF
 
 exit 0

@@ -1,5 +1,5 @@
 /* Internal interfaces for libelf.
-   Copyright (C) 1998-2010, 2015 Red Hat, Inc.
+   Copyright (C) 1998-2010, 2015, 2016 Red Hat, Inc.
    This file is part of elfutils.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 1998.
 
@@ -29,10 +29,6 @@
 
 #ifndef _LIBELFP_H
 #define _LIBELFP_H 1
-
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
 
 #include <ar.h>
 #include <gelf.h>
@@ -106,6 +102,7 @@ enum
   ELF_E_INVALID_ENCODING,
   ELF_E_NOMEM,
   ELF_E_INVALID_FILE,
+  ELF_E_INVALID_ELF,
   ELF_E_INVALID_OP,
   ELF_E_NO_VERSION,
   ELF_E_INVALID_CMD,
@@ -233,7 +230,13 @@ struct Elf_Scn
   } shdr;
 
   unsigned int shdr_flags;	/* Section header modified?  */
-  unsigned int flags;		/* Section changed in size?  */
+  unsigned int flags;		/* Section changed in size?
+				   ELF_F_MALLOCED for a Elf_Data_Chunk
+				   dummy_scn means the rawchunks
+				   data.d.d_buf was malloced. For normal
+				   sections it means rawdata_base was
+				   malloced (by elf_compress) even if
+				   the Elf was mmapped.  */
 
   char *rawdata_base;		/* The unmodified data of the section.  */
   char *data_base;		/* The converted data of the section.  */
@@ -440,15 +443,11 @@ extern int __libelf_version_initialized attribute_hidden;
 # define LIBELF_EV_IDX	(__libelf_version - 1)
 #endif
 
-#if !ALLOW_UNALIGNED
 /* Array with alignment requirements of the internal types indexed by ELF
    version, binary class, and type. */
 extern const uint_fast8_t __libelf_type_aligns[EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] attribute_hidden;
 # define __libelf_type_align(class, type)	\
     (__libelf_type_aligns[LIBELF_EV_IDX][class - 1][type] ?: 1)
-#else
-# define __libelf_type_align(class, type)	1
-#endif
 
 /* Given an Elf handle and a section type returns the Elf_Data d_type.
    Should not be called when SHF_COMPRESSED is set, the d_type should
@@ -576,7 +575,7 @@ extern Elf_Data *__elf64_xlatetof_internal (Elf_Data *__dest,
 extern unsigned int __elf_version_internal (unsigned int __version)
      attribute_hidden;
 extern unsigned long int __elf_hash_internal (const char *__string)
-       __attribute__ ((__pure__, visibility ("hidden")));
+       __attribute__ ((__pure__)) attribute_hidden;
 extern long int __elf32_checksum_internal (Elf *__elf) attribute_hidden;
 extern long int __elf64_checksum_internal (Elf *__elf) attribute_hidden;
 

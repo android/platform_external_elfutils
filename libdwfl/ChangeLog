@@ -1,3 +1,265 @@
+2018-06-04  Mark Wielaard  <mark@klomp.org>
+
+	* libdwflP.h (__libdwfl_addrsym): Remove function declaration.
+	* dwfl_module_addrsym.c (__libdwfl_addrsym): Make a static function.
+
+2018-05-27  Mark Wielaard  <mark@klomp.org>
+
+	* relocate.c (__libdwfl_relocate): Always call relocate_section with
+	partial true.
+
+2018-05-17  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_module (__libdwfl_module_free): Free elfdir.
+	* dwfl_module_getdwarf.c (load_dw): Close file descriptors after
+	dwarf_begin_elf call. Set Dwarf debugdir if it is NULL, this is the
+	main module file and we recorded the elfdir.
+	* libdwflP.h (struct Dwfl_Module): Add elfdir field.
+	* offline.c (process_elf): Record the elfdir before we close the
+	main ELF file descriptor.
+
+2018-04-10  Mark Wielaard  <mark@klomp.org>
+
+	* frame_unwind.c (unwind): If __libdwfl_frame_reg_get fails for
+	the return address either set an error or mark the pc undefined.
+
+2018-03-17  Mark Wielaard  <mark@klomp.org>
+
+	* libdwflP.h (struct __libdwfl_remote_mem_cache): New.
+	(struct __libdwfl_pid_arg): Add mem_cache field.
+	* linux-pid-attach.c (read_cached_memory): New function.
+	(clear_cached_memory): Likewise.
+	(pid_memory_read): Call read_cached_memory.
+	(pid_detach): Free mem_cache.
+	(pid_thread_detach): Call clear_cached_memory.
+	(dwfl_linux_proc_attach): Initialize mem_cache to NULL.
+
+2018-03-05  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_build_id_find_elf.c (__libdwfl_open_by_build_id): Use
+	realpath (name, NULL) instead of canonicalize_file_name (name).
+	* find-debuginfo.c (dwfl_standard_find_debuginfo): Likewise.
+
+2018-01-29  Mark Wielaard  <mark@klomp.org>
+
+	* cu.c (cudie_offset): Use __libdw_first_die_off_from_cu instead of
+	DIE_OFFSET_FROM_CU_OFFSET.
+	(intern_cu): Simply use a copy of the given die CU as key instead of
+	trying to construct a dummy one by hand.
+
+2018-02-15  Mark Wielaard  <mark@klomp.org>
+
+	* linux-pid-attach.c: Include sys/wait.h after sys/ptrace.h.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* dwfl_report_elf.c (__libdwfl_elf_address_range): Use FALLTHROUGH
+	macro instead of comment.
+	* frame_unwind.c (expr_eval): Likewise.
+
+2017-11-20  Mark Wielaard  <mark@klomp.org>
+
+	* link_map.c (do_check64): Take a char * and calculate type and val
+	offsets before reading, possibly unaligned, values.
+	(do_check32): Likewise.
+	(check64): Remove define.
+	(check32): Likewise.
+	(auxv_format_probe): Call do_check32 and do_check64 directly with
+	a, possibly unaligned, auxv entry pointer.
+	(dwfl_link_map_report): Redefine AUXV_SCAN to not dereference a
+	possibly unaligned auxv entry pointer.
+
+2017-10-16  Mark Wielaard  <mark@klomp.org>
+
+	* argp-std.c (parse_opt): For -k call argp_failure not failure to
+	keep dwfl around.
+
+2017-07-26  Yunlian Jiang  <yunlian@google.com>
+
+	* argp-std.c (failure): Move to file scope.
+	(fail): Likewise.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+	    Mark Wielaard  <mark@klomp.org>
+
+	* derelocate.c (compare_secrefs): Compare by end address and then by
+	section number if addresses are equal.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+	    Mark Wielaard  <mark@klomp.org>
+
+	* linux-kernel-modules.c: Always return NULL from kernel_release() on
+	non-linux systems and set errno to ENOTSUP.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libdwflP.h: Don't include config.h.
+	* argp-std.c: Include config.h.
+	* cu.c: Likewise.
+	* derelocate.c: Likewise.
+	* dwfl_addrdie.c: Likewise.
+	* dwfl_addrdwarf.c: Likewise.
+	* dwfl_addrmodule.c: Likewise.
+	* dwfl_begin.c: Likewise.
+	* dwfl_build_id_find_debuginfo.c: Likewise.
+	* dwfl_build_id_find_elf.c: Likewise.
+	* dwfl_cumodule.c: Likewise.
+	* dwfl_dwarf_line.c: Likewise.
+	* dwfl_end.c: Likewise.
+	* dwfl_frame.c: Likewise.
+	* dwfl_frame_regs.c: Likewise.
+	* dwfl_getdwarf.c: Likewise.
+	* dwfl_getmodules.c: Likewise.
+	* dwfl_getsrc.c: Likewise.
+	* dwfl_getsrclines.c: Likewise.
+	* dwfl_line_comp_dir.c: Likewise.
+	* dwfl_linecu.c: Likewise.
+	* dwfl_lineinfo.c: Likewise.
+	* dwfl_linemodule.c: Likewise.
+	* dwfl_module.c: Likewise.
+	* dwfl_module_addrdie.c: Likewise.
+	* dwfl_module_addrname.c: Likewise.
+	* dwfl_module_addrsym.c: Likewise.
+	* dwfl_module_build_id.c: Likewise.
+	* dwfl_module_dwarf_cfi.c: Likewise.
+	* dwfl_module_eh_cfi.c: Likewise.
+	* dwfl_module_getdarf.c: Likewise.
+	* dwfl_module_getelf.c: Likewise.
+	* dwfl_module_getsrc.c: Likewise.
+	* dwfl_module_getsrc_file.c: Likewise.
+	* dwfl_module_getsym.c: Likewise.
+	* dwfl_module_info.c: Likewise.
+	* dwfl_module_nextcu.c: Likewise.
+	* dwfl_module_register_names.c: Likewise.
+	* dwfl_module_report_build_id.c: Likewise.
+	* dwfl_module_return_value_location.c: Likewise.
+	* dwfl_nextcu.c: Likewise.
+	* dwfl_onesrcline.c: Likewise.
+	* dwfl_report_elf.c: Likewise.
+	* dwfl_validate_address.c: Likewise.
+	* dwfl_version.c: Likewise.
+	* find-debuginfo.c: Likewise.
+	* gzip.c: Likewise.
+	* image-header.c: Likewise.
+	* lines.c: Likewise.
+	* linux-core-attach.c: Likewise.
+	* linux-pid-attach.c: Likewise.
+	* offline.c: Likewise.
+	* open.c: Likewise.
+	* relocate.c: Likewise.
+	* segment.c: Likewise.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libdwfl.h: Use __const_attribute__.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* elf-from-memory.c: Explicitly cast phnum to size_t.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* dwfl_module_getdwarf.c: Check shnum for 0 before subtracting from
+	it.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* dwfl_frame.c: Drop unused sys/ptrace.h include.
+	* frame_unwind.c: Likewise.
+	* linux-pid-attach.c: Include sys/ptrace.h and sys/syscall.h only on
+	linux.
+
+2017-04-20  Ulf Hermann <ulf.hermann@qt.io>
+
+	* linux-kernel-modules.c: Include sys/types.h before fts.h
+
+2017-03-24  Mark Wielaard  <mark@klomp.org>
+
+	* linux-core-attach.c (core_next_thread): If n_namesz == 0 then
+	the note name data is the empty string.
+	(dwfl_core_file_attach): Likewise.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* linux-kernel-modules.c: Include system.h.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* linux-kernel-modules.c: Use sysconf(_SC_PAGESIZE) to get page size.
+	* linux-proc-maps.c: Likewise.
+
+2016-12-29  Luiz Angelo Daros de Luca  <luizluca@gmail.com>
+
+	* dwfl_build_id_find_elf.c: Include system.h.
+	* dwfl_module_getdwarf.c: Likewise.
+	* libdwfl_crc32_file.c: Don't define LIB_SYSTEM_H.
+
+2016-11-23  Mark Wielaard  <mjw@redhat.com>
+
+	* linux-kernel-modules.c: Only include fts.h early if BAD_FTS is
+	defined.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* core-file.c: Remove sys/param.h.
+	* dwfl_segment_report_module.c: Likewise. Add system.h include.
+	(MAX): Remove definition.
+	* frame_unwind.c: Add system.h include.
+	(MAX): Remove definition.
+	* linux-core-attach.c (MIN): Remove definition.
+	* linux-pid-attach.c (MAX): Likewise.
+
+2016-08-12  Mark Wielaard  <mjw@redhat.com>
+
+	* link_map.c (dwfl_link_map_report): Fix assert, set in.d_size.
+
+2016-04-14  Mark Wielaard  <mjw@redhat.com>
+
+	* dwfl_module_getsrc_file.c (dwfl_module_getsrc_file): Free match
+	on invalid DWARF if we allocated it.
+
+2016-04-14  Mark Wielaard  <mjw@redhat.com>
+
+	* linux-proc-maps.c (proc_maps_report): Free last_file on bad file
+	mapping.
+
+2016-03-01  Steven Chamberlain  <steven@pyro.eu.org>
+
+	* linux-pid-attach.c: Removed unused pid_thread_callbacks,
+	pid_thread_detach, pid_detach, pid_set_initial_registers,
+	pid_memory_read, pid_getthread, pid_next_thread in #ifndef
+	__linux__ code.
+
+2016-02-22  Ravi Bangoria <ravi.bangoria@linux.vnet.ibm.com>
+	    Mark Wielaard  <mjw@redhat.com>
+
+	* find-debuginfo.c (find_debuginfo_in_path): Remember whether
+	debuglink_file is NULL. Try file basename (without .debug) ofr
+	absolute and relative path if debug_file was NULL.
+	* linux-kernel-modules.c (try_kernel_name): If try_debug is true call
+	dwfl_standard_find_debuginfo with NULL debuglink_file, otherwise with
+	basename of fname.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* linux-proc-maps.c (proc_maps_report): Free last_file when ENOEXEC.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* frame_unwind.c (new_unwound): Check and return unwound.
+	(handle_cfi): Check new_unwound was able to allocate new memory
+	before use. Return DWFL_E_NOMEM otherwise.
+
+2016-02-11  Mark Wielaard  <mjw@redhat.com>
+
+	* relocate.c (relocate_section): Check result of all gelf_get* calls.
+	(__libdwfl_relocate): Likewise.
+	(__libdwfl_relocate_section): Likewise.
+
+2016-02-11  Mark Wielaard  <mjw@redhat.com>
+
+	* relocate.c (relocate_section): Check result of gelf_update_* calls.
+
 2016-01-08  Mark Wielaard  <mjw@redhat.com>
 
 	* libdwfl_a_SOURCES: Unconditionally add gzip.c.

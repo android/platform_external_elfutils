@@ -140,7 +140,7 @@ ppc_register_info (Ebl *ebl __attribute__ ((unused)),
     case 100:
       if (*bits == 32)
 	return stpcpy (name, "mq") + 1 - name;
-
+      FALLTHROUGH;
     case 102 ... 107:
       name[0] = 's';
       name[1] = 'p';
@@ -149,7 +149,15 @@ ppc_register_info (Ebl *ebl __attribute__ ((unused)),
       namelen = 4;
       break;
 
-    case 110 ... 117:
+    case 114:
+      return stpcpy (name, "tfhar") + 1 - name;
+    case 115:
+      return stpcpy (name, "tfiar") + 1 - name;
+    case 116:
+      return stpcpy (name, "texasr") + 1 - name;
+
+    case 110 ... 113:
+    case 117:
     case 120 ... 121:
     case 123 ... 199:
       name[0] = 's';

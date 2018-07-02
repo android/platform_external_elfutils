@@ -1,3 +1,804 @@
+2018-06-25  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_decoded_line_section): Use dwarf_next_lines
+	instead of dwarf_nextcu.
+	(print_debug_line_section): Don't explicitly lookup CU.
+
+2018-06-15  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Only print block as expressions if it
+	isn't DW_FORM_data16.
+
+2018-06-12  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_form_data): Check we have 4, not 2, bytes
+	available for DW_FORM_block4.
+
+2018-06-12  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_form_data): Don't increase strreadp after use.
+	Do increase readp for DW_FORM_strx[1234].
+
+2018-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_loc_section): Make sure next_off doesn't
+	overflow d_buf.
+
+2018-06-13  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (die_type_sign_bytes): New function.
+	(attr_callback): Recognized DW_FORM_implicit_cost as signed. Use
+	die_type_sign_bytes to lookup the signedness and size of const
+	values.
+
+2018-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_form_data): Don't reuse readp and readendp when
+	reading str_offsets section.
+
+2018-06-10  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_form_data): Don't cast value to ptrdiff_t, cast
+	ptrdiff_t to size_t.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_rnglists_section): Calculate max_entries
+	instead of needed bytes to prevent overflowing. Always print
+	max_entries (but not more).
+	(print_debug_loclists_section): Likewise.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_line_section): Stop printing directories
+	and files when we are at the end of the unit data.
+
+2018-06-07  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (format_result): Removed.
+	(format_result_size): Removed.
+	(format_dwarf_addr): Renamed to...
+	(print_dwarf_addr): ...this. Simply call printf, don't setup buffer,
+	don't call sprintf.
+	(print_ops): Use print_dwarf_addr instead of format_dwarf_addr.
+	(print_debug_addr_section): Likewise.
+	(print_debug_aranges_section): Likewise.
+	(print_debug_rnglists_section): Likewise.
+	(print_debug_ranges_section): Likewise.
+	(print_debug_frame_section): Likewise.
+	(attr_callback): Likewise.
+	(print_decoded_line_section): Likewise.
+	(print_debug_line_section): Likewise.
+	(print_debug_loclists_section): Likewise.
+	(print_debug_loc_section): Likewise.
+	(print_gdb_index_section): Likewsie.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_addr_section): Set unit_length always to
+	(next_unitp - readp) in case we don't have a real header.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_loc_section): Set begin to idx when failing
+	to read the start address if DW_LLE_GNU_start_end_entry.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (handle_sysv_hash): Don't leak lengths array when
+	detecting an invalid chain.
+	(handle_sysv_hash64): Likewise.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_macro_section): Extend vendor array by one
+	to include max DW_MACRO_hi_user opcode.
+
+2018-06-07  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (main): Lookup "no" for no_str.
+	(print_debug_abbrev_section): Use yes_str and no_str.
+	(print_form_data): Likewise.
+
+2018-06-04  Mark Wielaard  <mark@klomp.org>
+
+	* readelf (format_result): New static char pointer.
+	(format_result_size): New static size_t.
+	(format_dwarf_addr): Calculate max string size, reuse format_result
+	if possible, otherwise realloc. Use sprintf on result, not asprintf.
+	(print_ops): Don't free format_dwarf_addr, make sure result is
+	printed before calling format_dwarf_addr again.
+	(print_debug_addr_section): Likewise.
+	(print_debug_aranges_section): Likewise.
+	(print_debug_rnglists_section): Likewise.
+	(print_debug_ranges_section): Likewise.
+	(print_debug_frame_section): Likewise.
+	(attr_callback): Likewise.
+	(print_decoded_line_section): Likewise.
+	(print_debug_line_section): Likewise.
+	(print_debug_loclists_section): Likewise.
+	(print_debug_loc_section): Likewise.
+	(print_gdb_index_section): Likewsie.
+
+2018-06-04  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (yes_str): New static char pointer.
+	(no_str): Likewise.
+	(main): Set yes_str and no_str using gettext.
+	(attr_callback): Use yes_str and no_str instead of calling gettext.
+
+2018-06-04  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (main): Call __fsetlocking (stdout, FSETLOCKING_BYCALLER).
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_units): Print the dwo name and id when
+	unable to find a .dwo file.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (enum section_e): Make section_types not an alias of
+	section_info.
+	(section_all): Add section_types.
+	(parse_opt): Add both section_info and section_types for "info"
+	and "info+".
+	(print_debug_units): Don't be silent for debug_types.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Only register section_loc when not
+	looking at a split dwarf from a skeleton.
+
+2018-05-30  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_loc_section): Use correct listptr for
+	locview attribute.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_units): Check offset against -1 not ~0ul.
+
+2018-05-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_loc_section): Handle GNU DebugFission list
+	entries.
+
+2018-05-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug): Record and reset section_info status in
+	implicit_debug_sections and print_debug_sections.
+
+2018-05-28  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_units): Turn "Could not find split compile
+	unit" into an Warning instead of an error.
+
+2018-04-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (parse_opt): Request implicit section_info for "str".
+	(known_stroffbases): New static variable.
+	(attr_callbackattr_callback): Handle DW_AT_str_offets_base.
+	(print_debug_str_offsets_section): New function.
+	(print_debug): Handle .debug_str_offsets as section_str. Reset
+	known_stroffbases.
+
+2018-04-27  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (options): Add addr.
+	(enum section_e): Add section_addr.
+	(section_all): Add section_addr.
+	(parse_opt): Parse "addr".
+	(known_addrbases): New static variable.
+	(get_listptr): New function.
+	(print_debug_addr_section): Likewise.
+	(attr_callback): Handle DW_AT_addr_base and DW_AT_GNU_addr_base.
+	(print_debug): Add NEW_SECTION (addr). Reset known_addrbases.
+
+2018-04-07  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Handle DW_FORM_loclistx and
+	DW_AT_segment.
+
+2018-04-12  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (dwarf_loc_list_encoding_string): New functions.
+	(dwarf_loc_list_encoding_name): Likewise.
+	(known_loclistptr): Renamed and split in two...
+	(known_locsptr): this and ...
+	(known_loclistsptr): this.
+	(listptr_base): Split out...
+	(cudie_base): ...this.
+	(is_split_dwarf): New function.
+	(attr_callback): Handle DW_AT_loclists_base and notice sec_offset
+	in correct list.
+	(print_debug_rnglists_section): Use spit_dwarf_cu_base.
+	(print_debug_loclists_section): New function.
+	(print_debug_loc_section): Use known_locsptr instead of
+	known_loclistptr.
+	(print_debug): Recognize .debug_loclists. Reset known_locsptr and
+	known_loclistsptr.
+
+2018-05-25  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (DWARF_SKELETON): New constant.
+	(do_not_close_dwfl): New bool.
+	(options): Add dwarf-skeleton.
+	(dwarf_skeleton): New static variable.
+	(parse_opt): Handle DWARF_SKELETON, set dwarf_skeleton.
+	(create_dwfl): New function, with code extracted from...
+	(process_file): ...here. Check do_not_close_dwfl.
+	(is_split_darf): New function.
+	(getone_dwflmod): Likewise.
+	(print_debug): Use new functions to find skeleton DWARF file to use
+	when inspecting .dwo split DWARF file.
+
+2018-04-11  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (dwarf_range_list_encoding_string): New function.
+	(dwarf_range_list_encoding_name): Likewise.
+	(known_rnglistptr): New static variable.
+	(listptr_cu): New function.
+	(print_debug_rnglists_section): Likewise.
+	(attr_callback): Call notice_listptr for DW_AT_ranges. Handle
+	DW_AT_rnglists_base. Handle DW_FORM_rnglistx. DW_AT_start_scope
+	can also have a rnglist.
+	(print_debug_units): Do (silently) scan split DWARF also for
+	debug_ranges before DWARF5 to catch all rangelistptrs.
+	(print_debug): Recognize .debug_rnglists. Reset known_rnglistptr.
+
+2018-01-21  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (get_indexed_addr): New function.
+	(print_ops): Handle DW_OP_addrx, DW_OP_GNU_addr_index,
+	DW_OP_constx, DW_OP_GNU_const_index separately and resolve
+	address.
+	(attr_callback): Print index and address for
+	DW_FORM_GNU_addr_index and DW_FORM_addrx[1234].
+
+2018-01-19  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (options): Add info+.
+	(show_split_units): New static boolean defaulting to false.
+	(parse_opt): For all (no arg) --debug-dump set show_split_units
+	to yes. For "info+" enable section_info and show_split_units.
+	(attrcb_args): Add is_split field.
+	(attr_callback): Use is_split to format DIE offsets differently.
+	(print_debug_units): Likewise. Get subdie (type or split) only
+	when needed. When not silent reiterate over split DIEs when
+	found.
+
+2018-05-15  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_units): Print unit type and id for any
+	unit type that has it even when version < 5.
+
+2018-05-14  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_ops): Handle DW_OP_GNU_addr_index and
+	DW_OP_GNU_const_index.
+	(attr_callback): Handle DW_FORM_GNU_addr_index as DW_FORM_addrx.
+	Handle DW_FORM_GNU_str_index as DW_FORM_constx. Add as_hex_id.
+	Handle DW_AT_GNU_dwo_id as_hex_id.
+	(print_form_data): Handle DW_FORM_GNU_str_index as DW_FORM_strx.
+
+2018-05-12  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug): Also recognize .dwo section name variants.
+
+2018-05-15  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* elflint.c (check_elf_header): Fix typo in error diagnostics.
+
+2018-05-15  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_form_data): Cast comparisons against offset_len to
+	ptrdiff_t.
+	(print_debug_line_section): Print uint64_t as PRIu64.
+
+2018-05-11  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_macro_section): Use libdw_valid_user_form.
+	Use print_form_data for strx and sup strings.
+
+2018-05-09  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (dwarf_line_content_description_string): New function.
+	(dwarf_line_content_description_name): Likewise.
+	(print_bytes): Likewise.
+	(print_form_data): Likewise. Based on code taken from...
+	(print_debug_macro_section): ...here. Now calls print_form_data
+	and str_offsets_base_off.
+	(print_debug_line_section): Parse DWARF5 header, directory and file
+	name tables.
+
+2018-05-12  Mark Wielaard  <mark@klomp.org>
+
+	* addr2line.c (main): Add fflush (stdout) after handle_address ()
+	when reading from stdin.
+
+2018-04-24  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_aranges_section): Try elf_rawdata if no
+	sectiondata.
+	(print_debug_ranges_section): Likewise.
+	(print_debug_frame_section): Likewise.
+	(print_debug_line_section): Likewise. Check for data == NULL.
+	(print_debug_loc_section): Likewise.
+	(print_debug_macinfo_section): Likewise.
+	(print_debug_macro_section): Likewise.
+
+2018-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug): If .debug_info is needed implicitly by
+	then handle it first before handling any other debug section.
+	(parse_opt): Set implicit_debug_sections to section_info when
+	showing all debug sections.
+
+2018-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Handle DW_FORM_ref_sup4 and
+	DW_FORM_ref_sup8 as references.
+
+2018-04-24  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_str_section): Take raw section data. Don't
+	use dwarf_getstring, but determine start and end of string from
+	offset and section data directly.
+	(print_debug): Handle ".debug_line_str" like ".debug_str".
+
+2018-04-19  Andreas Schwab  <schwab@suse.de>
+
+	* elflint.c (valid_e_machine): Add EM_RISCV.
+
+2018-04-16  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_line_section). In advance_pc, advance
+	using op_addr_advance, not op_advance.
+
+2018-04-14  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Only show errors when not silent.
+
+2018-03-23  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Handle DW_FORM_strx[1234].
+
+2018-03-22  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Handle DW_FORM_addrx[1234].
+
+2018-03-28  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (handle_sysv_hash): Break bucket chain after nchain
+	entries are found.
+	(handle_sysv_hash64): Likewise.
+
+2018-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Print dwarf_dieoffset as %PRIx64,
+	not %zx.
+
+2018-03-20  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Report error when DW_AT_decl_file or
+	DW_AT_call_file cannot be resolved.
+
+2018-03-06  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_ops): Handle DW_OP_addrx, DW_OP_constx,
+	DW_OP_implicit_pointer, DW_OP_entry_value, DW_OP_const_type,
+	DW_OP_regval_type, DW_OP_deref_type, DW_OP_xderef_type,
+	DW_OP_convert, DW_OP_reinterpret.
+
+2018-03-01  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (struct listptr): Add attr field.
+	(compare_listptr): Warn when two listptrs for the same offset have
+	different attributes.
+	(notice_listptr): Take attr as argument and add it to listptr.
+	(skip_listptr_hole): New attr argument.
+	(next_listptr_offset): New function.
+	(print_debug_ranges_section): Pass NULL attr to skip_listptr_hole.
+	(attr_callback): Handle DW_AT_GNU_locviews. Call notice_listptr with
+	attr.
+	(print_debug_loc_section): Keep track of which attr is associated with
+	a listptr. If the attr is DW_AT_GNU_locview print view pairs till the
+	next listptr offset.
+
+2018-02-09  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_group): Make sure we can read a complete
+	element when iterating over the group.
+
+2018-02-09  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Handle DW_FORM_data16 as Dwarf_Block.
+
+2018-02-09  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_abbrev_section): Print the value of a
+	DW_FORM_implicit_const using dwarf_getabbrevattr_data.
+	(attr_callback): Handle DW_FORM_implicit_const.
+
+2018-01-30  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (dwarf_unit_string): New function.
+	(dwarf_unit_name): Likewise.
+	(print_debug_units): Use dwarf_get_units and dwarf_cu_die instead
+	of dwarf_next_unit. Print unit type, id and subdie if available.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* addr2line.c (handle_address): Use FALLTHROUGH macro instead of
+	comment.
+	* elfcompress.c (parse_opt): Likewise.
+	* elflint.c (check_dynamic): Likewise.
+	(check_sections): Likewise.
+	(check_note_data): Likewise.
+	* objdump.c (parse_opt): Likewise.
+	* readelf.c (parse_opt): Likewise.
+	(attr_callback): Likewise.
+	(handle_auxv_note): Likewise.
+	* strings.c (parse_opt): Likewise.
+	* backtrace.c (callback_verify): Likewise.
+
+2018-01-25  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_ranges_section): Initialize cu to last_cu.
+	(print_debug_loc_section): Likewise.
+
+2018-01-01  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Use dwarf_form_name for unknown forms.
+	(print_debug_macro_section): Print form using dwarf_form_name.
+
+2017-12-28  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_units): Print DIE offset in error message
+	as hex.
+
+2017-12-18  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (handle_notes_data): Don't use EXIT_FAILURE in error.
+	Adjust error message depending on whether or not we got data.
+
+2017-12-07  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_ops): Update data pointer and print arguments
+	to DW_OP_call2 and DW_OP_call4 as DIE offsets.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (argp_options): Add "section-groups", 'g'.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_loc_section): Print CU base and unresolved
+	addresses. Adjust formatting.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_ranges_section): Print CU base and unresolved
+	addresses. Adjust formatting.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Set valuestr to resolved file name
+	for DW_AT_decl_file and DW_AT_call_file.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_units): Print abbrev code after DIE tag.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_ops): Use only2 space for index. re-indent +5
+	for DW_OP_GNU_entry_value.
+
+2017-11-21  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Print attribute name and form in error
+	message. If only the value cannot be retrieved/resolved don't abort.
+
+2017-10-03  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Print DIE offset in error messages.
+
+2017-11-03  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_ops): Handle DW_OP_GNU_variable_value. Print
+	referenced DIE as offset.
+
+2017-09-10  Mark Wielaard  <mark@klomp.org>
+
+	* ar.c (do_oper_delete): Remove DEBUG conditional check.
+	(no0print): Return bool. Check snprintf return value.
+	(do_oper_insert): Initialize elf. Remove DEBUG conditional check.
+	Check no0print calls succeed. Explicitly elf_end found elfs.
+	(do_oper_extract): Make sure we don't create an empty variable
+	length array.
+
+2017-09-01  Mark Wielaard  <mark@klomp.org>
+
+	* stack.c (main): Replace \v in doc string with \n\n.
+	* unstrip.c (main): Likewise.
+
+2017-05-04  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* stack.c: Print pid_t using %lld.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* readelf.c: Hardcode the signal numbers for non-linux systems.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_macro_section): Accept either version 4 or
+	version 5. Use DW_MACRO names instead of DW_MACRO_GNU names. Add
+	minimal support for DW_MACRO_define_sup, DW_MACRO_undef_sup,
+	DW_MACRO_import_sup, DW_MACRO_define_strx and DW_MACRO_undef_strx.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (dwarf_defaulted_string): New function.
+	(dwarf_defaulted_name): Likewise.
+	(attr_callback): Use dwarf_defaulted_name to get value of
+	DW_AT_defaulted.
+
+2017-07-20  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Deal with data marker symbols pointing to
+	debug sections (they can be removed).
+
+2017-07-14  Mark Wielaard  <mark@klomp.org>
+
+	* strip (OPT_KEEP_SECTION): New define.
+	(options): Add documentation for remove-section. Add keep-section.
+	(struct section_pattern): New data type.
+	(keep_secs, remove_secs): New globals.
+	(add_pattern, free_sec_patterns, free_patterns, section_name_matches):
+	New functions.
+	(main): Call free_patterns.
+	(parse_opt): Handle 'R' and OPT_KEEP_SECTION. Check remove_comment
+	on ARGP_KEY_SUCCESS.
+	(handle_elf): Handle and sanity check keep_secs and remove_secs.
+
+2017-06-07  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Introduce new handle_elf boolean. Use it to
+	determine whether to create an output and/or debug file. Remove new
+	output file on error.
+
+2017-06-06  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Assume e_shstrndx section can be removed.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* readelf.c: Include strings.h.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* unstrip.c: Check shnum for 0 before subtracting from it.
+
+2017-04-20  Ulf Hermann <ulf.hermann@qt.io>
+
+	* readelf.c: Replace YESSTR and NOSTR with gettext ("yes") and
+	gettext ("no"), respectively.
+
+2017-04-05  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_elf_header): Decompress all sections.
+
+2017-03-28  Mark Wielaard  <mark@klomp.org>
+
+	* elflint (check_group): Don't check if there is no flag word.
+
+2017-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_elf_header): Sanity check phnum and shnum.
+
+2017-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_sysv_hash): Return early if section size is
+	too small.
+	(check_sysv_hash64): Likewise.
+	(check_hash): Calculate expect_entsize to check section size.
+
+2017-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_symtab_shndx): Check data->d_size.
+
+2017-03-24  Mark Wielaard  <mjw@redhat.com>
+
+	* elfcmp.c (main): If n_namesz == 0 then the note name data is the
+	empty string.
+	* readelf.c (handle_notes_data): Likewise.
+
+2017-03-24  Mark Wielaard  <mjw@redhat.com>
+
+	* readelf.c (handle_gnu_hash): Check inner < max_nsyms before
+	indexing into chain array.
+
+2017-02-16  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* addr2line.c: Include printversion.h
+	* ar.c: Likewise.
+	* elflint.c: Likewise.
+	* nm.c: Likewise.
+	* objdump.c: Likewise.
+	* ranlib.c: Likewise.
+	* readelf.c: Likewise.
+	* size.c: Likewise.
+	* stack.c: Likewise.
+	* strings.c: Likewise.
+	* strip.c: Likewise.
+	* elfcmp.c: Include printversion.h, remove system.h include.
+	* elfcompress.c: Likewise.
+	* findtextrel.c: Likewise.
+	* unstrip.c: Likewise.
+
+2017-02-14  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* nm.c: Include color.h.
+	* objdump.c: Likewise.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (findtextrel_LDADD): Add $(libeu).
+	(addr2line_LDADD): Likewise.
+	(elfcmp_LDADD): Likewise.
+	* addr2line.c (print_version): Removed.
+	* ar.c (print_version): Likewise.
+	* elfcmp.c (print_version): Likewise.
+	* elfcompress.c (print_version): Likewise.
+	* elflint.c (print_version): Likewise.
+	* findtextrel.c (print_version): Likewise.
+	* nm.c (print_version): Likewise.
+	* objdump.c: Likewise.
+	* ranlib.c: Likewise.
+	* readelf.c: Likewise.
+	* size.c: Likewise.
+	* stack.c: Likewise.
+	* strings.c: Likewise.
+	* strip.c: Likewise.
+	* unstrip.c: Likewise.
+
+2016-11-17  Mark Wielaard  <mjw@redhat.com>
+
+	* readelf.c (options): Add optional arg SECTION for symbols.
+	(symbol_table_section): New static variable.
+	(parse_opt): Set symbol_table_section on 's'.
+	(print_symtab): Filter on symbol_table_section name is set.
+
+2016-11-10  Mark Wielaard  <mjw@redhat.com>
+
+	* ar.c (write_member): Make sure tmpbuf is large enough to contain
+	a starting '/' and ending '\0' char.
+	(do_oper_insert): Likewise.
+	* arlib.c (arlib_finalize): Format tmpbuf as PRId32 decimal.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* addr2line.c (handle_address): Add fallthrough comment.
+	* elfcompress.c (parse_opt): Adjust fallthrough comment.
+	* elflint.c (parse_opt): Add missing break after 'd' case.
+	(check_sections): Add fallthrough comments.
+	* objdump.c (parse_opt): Add explantion for fallthrough comment.
+
+2016-10-22  Kevin Cernekee  <cernekee@chromium.org>
+
+	* unstrip.c: Fix "invalid string offset" error caused by using the
+	  unstripped .symtab with the stripped .strtab.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* arlib.c: Remove system.h include, add libeu.h include.
+	* arlib2.c: Remove sys/param.h include.
+	* elfcompress.c: Add libeu.h include.
+	* elflint.c: Remove sys/param.h include, add libeu.h include.
+	* nm.c: Likewise.
+	* objdump.c: Likewise.
+	* ranlib.c: Likewise.
+	* readelf.c: Likewise.
+	* size.c: Remove sys/param.h include.
+	* strings.c: Likewise, add libeu.h include.
+	* strip.c: Likewise.
+	* unstrip.c: Likewise.
+
+2016-10-06  Mark Wielaard  <mjw@redhat.com>
+
+	* strip.c (handle_elf): Don't remove real symbols from allocated
+	symbol tables.
+
+2016-08-25  Mark Wielaard  <mjw@redhat.com>
+
+	* strip.c (handle_elf): Recompress with ELF_CHF_FORCE.
+
+2016-08-06  Mark Wielaard  <mjw@redhat.com>
+
+	* strip.c (handle_elf): Uncompress and recompress relocation target
+	section if necessary.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (strip_LDADD): Add libdw.
+	* elfcompress.c (process_file): Use dwelf_strtab functions instead of
+	ebl_strtab.
+	* strip.c (handle_elf): Likewise.
+	* unstrip.c (new_shstrtab): Likewise.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* elf32-i386.script, i386_ld.c, ld.c, ld.h, ldgeneric.c, ldlex.l,
+	ldscript.y, libld_elf_i386.map, none_ld.c, sectionhash.c,
+	sectionhash.h, symbolhash.c, symbolhash.h, unaligned.h,
+	versionhash.c, versionhash.h, xelf.h: Removed.
+	* Makefile.am (YACC): Removed.
+	(AM_YFLAGS): Removed.
+	(AM_LFLAGS): Removed.
+	(native_ld): Removed.
+	(base_cpu): Removed.
+	(bin_PROGRAMS): Removed ld.
+	(ld_dsos): Removed.
+	(ld_SOURCES): Removed.
+	(noinst_LIBRARIES): Only libar.a.
+	(EXTRA_DIST): Just arlib.h and debugpred.h.
+	(ld_LDADD): Removed.
+	(ld_LDFLAGS): Removed.
+	(ldlex.o): Removed.
+	(ldscript.h): Removed.
+	(libld*): Removed.
+	(CLEANFILES): Just *.gconv.
+	(MAINTAINERCLEANFILES): Removed.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* unstrip.c (copy_elided_sections): Use unstripped_strent[] from
+	index zero, instead of one.
+
+2016-06-28  Richard Henderson <rth@redhat.com>
+
+	* elflint.c (valid_e_machine): Add EM_BPF.
+
+2016-04-11  David Abdurachmanov  <davidlt@cern.ch>
+
+	* elfcmp.c (main): Fix self-comparison error with GCC 6.
+
+2016-03-21  Mark Wielaard  <mjw@redhat.com>
+
+	* nm.c (show_symbols): Check for malloc size argument overflow.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* readelf.c (print_scngrp): Call error when gelf_getshdr fails.
+	(print_symtab): Likewise.
+	(handle_hash): Likewise.
+	(dump_data_section): Print a warning if decompressing fails.
+	(print_string_section): Likewise.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* elfcompress.c (parse_opt): Don't fallthrough after processing -q.
+
+2016-02-12  Mark Wielaard  <mjw@redhat.com>
+
+	* strip.c (handle_elf): Correct elf_assert shndxdata check.
+
+2016-02-09  Mark Wielaard  <mjw@redhat.com>
+
+	* readelf.c (read_encoded): Move up.
+	(print_cfa_program): Add encoding argument. Use it for read_encoded
+	when reading DW_CFA_set_loc op.
+	(print_debug_frame_section): Pass fde_encoding to print_cfa_program.
+
+2016-02-09  Mark Wielaard  <mjw@redhat.com>
+
+	* elflint.c (compare_hash_gnu_hash): Check hash sh_entsize against
+	sizeof (Elf64_Xword). Correct invalid sh_entsize error message
+	section idx and name.
+
 2016-01-13  Mark Wielaard  <mjw@redhat.com>
 
 	* elflint.c (check_elf_header): Recognize ELFOSABI_FREEBSD.

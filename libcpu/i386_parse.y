@@ -44,8 +44,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
 
+#include <libeu.h>
 #include <system.h>
 
 #define obstack_chunk_alloc xmalloc
@@ -309,10 +309,10 @@ instr:		  bytes ':' bitfieldopt kID bitfieldopt optargs
 			  newp->mnemonic = $4;
 			  if (newp->mnemonic != (void *) -1l
 			      && tfind ($4, &mnemonics,
-					(comparison_fn_t) strcmp) == NULL)
+					(int (*)(const void *, const void *)) strcmp) == NULL)
 			    {
 			      if (tsearch ($4, &mnemonics,
-					   (comparison_fn_t) strcmp) == NULL)
+					   (int (*)(const void *, const void *)) strcmp) == NULL)
 				error (EXIT_FAILURE, errno, "tsearch");
 			      ++nmnemonics;
 			    }
