@@ -1,11 +1,12 @@
 # -*- rpm-spec-*-
-Summary: A collection of utilities and DSOs to handle compiled objects
+Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
 Name: elfutils
 Version: @PACKAGE_VERSION@
 Release: 1
+URL: http://elfutils.org/
 License: GPLv3+ and (GPLv2+ or LGPLv3+)
 Group: Development/Tools
-Source: elfutils-%{version}.tar.bz2
+Source: ftp://sourceware.org/pub/elfutils/%{version}/elfutils-%{version}.tar.bz2
 Obsoletes: libelf libelf-devel
 Requires: elfutils-libelf = %{version}-%{release}
 Requires: glibc >= 2.7
@@ -134,7 +135,6 @@ chmod +x ${RPM_BUILD_ROOT}%{_prefix}/%{_lib}/elfutils/lib*.so*
 
 # XXX Nuke unpackaged files
 { cd ${RPM_BUILD_ROOT}
-  rm -f .%{_bindir}/eu-ld
   rm -f .%{_includedir}/elfutils/libasm.h
   rm -f .%{_libdir}/libasm.so
   rm -f .%{_libdir}/libasm.a
@@ -176,7 +176,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/eu-ar
 %{_bindir}/eu-unstrip
 %{_bindir}/eu-make-debug-archive
-#%{_bindir}/eu-ld
 %{_bindir}/eu-elfcompress
 %{_libdir}/libasm-%{version}.so
 %{_libdir}/libdw-%{version}.so
@@ -225,9 +224,79 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/libelf.a
 
 %files default-yama-scope
-%config(noreplace) %{_sysctldir}/10-default-yama-scope.conf
+%{_sysctldir}/10-default-yama-scope.conf
 
 %changelog
+* Fri Jun 29 2018 Mark Wielaard,,, <mark@klomp.org> 0.173-1
+- More fixes for crashes and hangs found by afl-fuzz. In particular
+  various functions now detect and break infinite loops caused by bad
+  DIE tree cycles.
+- readelf: Will now lookup the size and signedness of constant value
+  types to display them correctly (and not just how they were encoded).
+- libdw: New function dwarf_next_lines to read CU-less .debug_line data.
+  dwarf_begin_elf now accepts ELF files containing just .debug_line
+  or .debug_frame sections (which can be read without needing a DIE
+  tree from the .debug_info section).
+  Removed dwarf_getscn_info, which was never implemented.
+- backends: Handle BPF simple relocations.
+  The RISCV backends now handles ABI specific CFI and knows about
+  RISCV register types and names.
+
+* Mon Jun 11 2018 Mark Wielaard <mark@klomp.org> 0.172-1
+- No functional changes compared to 0.171.
+- Various bug fixes in libdw and eu-readelf dealing with bad DWARF5
+  data. Thanks to running the afl fuzzer on eu-readelf and various
+  testcases.
+- eu-readelf -N is ~15% faster.
+
+* Fri Jun 01 2018 Mark Wielaard <mark@klomp.org> 0.171-1
+- DWARF5 and split dwarf, including GNU DebugFission, support.
+- readelf: Handle all new DWARF5 sections.
+  --debug-dump=info+ will show split unit DIEs when found.
+  --dwarf-skeleton can be used when inspecting a .dwo file.
+  Recognizes GNU locviews with --debug-dump=loc.
+- libdw: New functions dwarf_die_addr_die, dwarf_get_units,
+  dwarf_getabbrevattr_data and dwarf_cu_info.
+  libdw will now try to resolve the alt file on first use
+  when not set yet with dwarf_set_alt.
+  dwarf_aggregate_size() now works with multi-dimensional arrays.
+- libdwfl: Use process_vm_readv when available instead of ptrace.
+- backends: Add a RISC-V backend.
+
+* Wed Aug  2 2017 Mark Wielaard <mark@klomp.org> 0.170-1
+- libdw: Added new DWARF5 attribute, tag, character encoding,
+  language code, calling convention, defaulted member function
+  and macro constants to dwarf.h.
+  New functions dwarf_default_lower_bound and dwarf_line_file.
+  dwarf_peel_type now handles DWARF5 immutable, packed and shared tags.
+  dwarf_getmacros now handles DWARF5 .debug_macro sections.
+- strip: Add -R, --remove-section=SECTION and --keep-section=SECTION.
+- backends: The bpf disassembler is now always build on all platforms.
+
+* Fri May  5 2017 Mark Wielaard <mark@klomp.org> 0.169-1
+- backends: Add support for EM_PPC64 GNU_ATTRIBUTES.
+  Frame pointer unwinding fallback support for i386, x86_64, aarch64.
+- translations: Update Polish translation.
+
+* Tue Dec 27 2016 Mark Wielaard <mark@klomp.org> 0.168-1
+- http://elfutils.org/ is now hosted at http://sourceware.org/elfutils/
+- libelf: gelf_newehdr and gelf_newehdr now return void *.
+- libdw: dwarf.h corrected the DW_LANG_PLI constant name (was DW_LANG_PL1).
+- readelf: Add optional --symbols[=SECTION] argument to select section name.
+
+* Thu Aug  4 2016 Mark Wielaard <mjw@redhat.com> 0.167-1
+- libasm: Add eBPF disassembler for EM_BPF files.
+- backends: Add m68k and BPF backends.
+- ld: Removed.
+- dwelf: Add ELF/DWARF string table creation functions.
+  dwelf_strtab_init, dwelf_strtab_add, dwelf_strtab_add_len,
+  dwelf_strtab_finalize, dwelf_strent_off, dwelf_strent_str and
+  dwelf_strtab_free.
+
+* Thu Mar 31 2016 Mark Wielaard <mjw@redhat.com> 0.166-1
+- config: The default program prefix for the installed tools is now
+  eu-. Use configure --program-prefix="" to not use a program prefix.
+
 * Fri Jan  8 2016 Mark Wielaard <mjw@redhat.com> 0.165-1
 - elfcompress: New utility to compress or decompress ELF sections.
 - readelf: Add -z,--decompress option.

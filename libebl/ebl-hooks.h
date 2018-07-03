@@ -1,5 +1,5 @@
 /* Backend hook signatures internal interface for libebl.
-   Copyright (C) 2000-2011, 2013, 2014 Red Hat, Inc.
+   Copyright (C) 2000-2011, 2013, 2014, 2016, 2017 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -25,9 +25,6 @@
    You should have received copies of the GNU General Public License and
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
-
-/* Return symbol representaton of object file type.  */
-const char *EBLHOOK(object_type_name) (int, char *, size_t);
 
 /* Return symbolic representation of relocation type.  */
 const char *EBLHOOK(reloc_type_name) (int, char *, size_t);
@@ -80,9 +77,6 @@ const char *EBLHOOK(dynamic_tag_name) (int64_t, char *, size_t);
 /* Check dynamic tag.  */
 bool EBLHOOK(dynamic_tag_check) (int64_t);
 
-/* Combine section header flags values.  */
-GElf_Word EBLHOOK(sh_flags_combine) (GElf_Word, GElf_Word);
-
 /* Return symbolic representation of OS ABI.  */
 const char *EBLHOOK(osabi_name) (int, char *, size_t);
 
@@ -127,6 +121,9 @@ bool EBLHOOK(relative_reloc_p) (int);
 bool EBLHOOK(check_special_symbol) (Elf *, GElf_Ehdr *, const GElf_Sym *,
 			      const char *, const GElf_Shdr *);
 
+/* Check if this is a data marker symbol.  e.g. '$d' symbols for ARM.  */
+bool EBLHOOK(data_marker_symbol) (const GElf_Sym *sym, const char *sname);
+
 /* Check whether only valid bits are set on the st_other symbol flag.
    Standard ST_VISIBILITY have already been masked off.  */
 bool EBLHOOK(check_st_other_bits) (unsigned char st_other);
@@ -150,7 +147,7 @@ int EBLHOOK(syscall_abi) (Ebl *ebl, int *sp, int *pc,
 			  int *callno, int args[6]);
 
 /* Disassembler function.  */
-int EBLHOOK(disasm) (const uint8_t **startp, const uint8_t *end,
+int EBLHOOK(disasm) (Ebl *ebl, const uint8_t **startp, const uint8_t *end,
 		     GElf_Addr addr, const char *fmt, DisasmOutputCB_t outcb,
 		     DisasmGetSymCB_t symcb, void *outcbarg, void *symcbarg);
 

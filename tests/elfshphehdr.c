@@ -126,7 +126,7 @@ test (Elf *elf, int class, bool layout)
   check_elf ("elf_getshdrnum", elf_getshdrnum (elf, &shnum) == 0);
   check ("shnum == 1", shnum == 2); /* section zero is also created.  */
 
-  check_elf ("elf_getphdrnum", elf_getphdrnum (elf, &phnum) != 0);
+  check_elf ("elf_getphdrnum", elf_getphdrnum (elf, &phnum) == 0);
   check ("phnum == 1", phnum == 1);
 
   check_elf ("gelf_getehdr", gelf_getehdr (elf, &ehdr) != NULL);
@@ -152,7 +152,7 @@ main (int argc __attribute__ ((unused)), char **argv __attribute ((unused)))
 {
   elf_version (EV_CURRENT);
 
-  int fd = fd = open("/dev/zero", O_WRONLY);
+  int fd = open("/dev/null", O_WRONLY);
   check ("open", fd >= 0);
 
   Elf *elf;

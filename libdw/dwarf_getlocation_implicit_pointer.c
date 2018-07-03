@@ -1,5 +1,5 @@
 /* Return associated attribute for DW_OP_GNU_implicit_pointer.
-   Copyright (C) 2010 Red Hat, Inc.
+   Copyright (C) 2010, 2017 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -55,7 +55,8 @@ dwarf_getlocation_implicit_pointer (Dwarf_Attribute *attr, const Dwarf_Op *op,
   if (attr == NULL)
     return -1;
 
-  if (unlikely (op->atom != DW_OP_GNU_implicit_pointer))
+  if (unlikely (op->atom != DW_OP_implicit_pointer
+		&& op->atom != DW_OP_GNU_implicit_pointer))
     {
       __libdw_seterrno (DWARF_E_INVALID_ACCESS);
       return -1;
@@ -63,7 +64,7 @@ dwarf_getlocation_implicit_pointer (Dwarf_Attribute *attr, const Dwarf_Op *op,
 
   Dwarf_Die die;
   if (__libdw_offdie (attr->cu->dbg, op->number, &die,
-		      attr->cu->type_offset != 0) == NULL)
+		      ISV4TU(attr->cu)) == NULL)
     return -1;
 
   if (INTUSE(dwarf_attr) (&die, DW_AT_location, result) == NULL

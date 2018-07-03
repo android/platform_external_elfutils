@@ -26,6 +26,10 @@
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libdwflP.h"
 #include "../libdw/libdwP.h"
 
@@ -87,6 +91,8 @@ dwfl_module_getsrc_file (Dwfl_Module *mod,
 
 	  if (unlikely (line->file >= line->files->nfiles))
 	    {
+	      if (*nsrcs == 0)
+		free (match);
 	      __libdwfl_seterrno (DWFL_E (LIBDW, DWARF_E_INVALID_DWARF));
 	      return -1;
 	    }

@@ -1,3 +1,770 @@
+2018-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* next_cfi.c: New file.
+	* run-next-cfi.sh: New test.
+	* run-next-cfi-self.sh: Likewise.
+	* Makefile.am (check_PROGRAMS): Add next_cfi.
+	(TESTS): Add run-next-cfi.sh and run-next-cfi-self.sh.
+	(EXTRA_DIST): Likewise.
+	(next_cfi_LDADD): New variable.
+
+2018-06-27  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_cfi.c: New file.
+	* run-dwarfcfi.sh: New test.
+	* testfile11-debugframe.bz2: New testfile.
+	* testfile12-debugframe.bz2: Likewise.
+	* testfileaarch64-debugframe.bz2: Likewise.
+	* testfilearm-debugframe.bz2: Likewise.
+	* testfileppc32-debugframe.bz2: Likewise.
+	* testfileppc64-debugframe.bz2: Likewise.
+	* Makefile.am (check_PROGRAMS): Add dwarfcfi.
+	(TESTS): Add run-dwarfcfi.sh.
+	(EXTRA_DIST): Add run-dwarfcfi.sh, testfile11-debugframe.bz2,
+	testfile12-debugframe.bz2, testfileaarch64-debugframe.bz2,
+	testfilearm-debugframe.bz2, testfileppc32-debugframe.bz2 and
+	testfileppc64-debugframe.bz2.
+
+2018-06-23  Mark Wielaard  <mark@klomp.org>
+
+	* varlocs.c (print_expr): Take a new depth argument. Check it isn't
+	greater than MAX_DEPTH (64). Pass on to print_expr_block.
+	(print_expr_block): Take a new depth argument. Pass it to print_expr.
+	(print_expr_block_addrs): Call print_expr_block with zero depth.
+
+2018-06-25  Mark Wielaard  <mark@klomp.org>
+
+	* next-files.c: New file.
+	* next-lines.c: Likewise.
+	* run-next-files.sh: New test.
+	* run-next-lines.sh: Likewise.
+	* testfile-only-debug-line.bz2: New test file.
+	* Makefile.am (check_PROGRAMS): Add next-files and next-lines.
+	(TESTS): Add run-next-files.sh and run-next-lines.sh.
+	(EXTRA_DIST): Add run-next-files.sh, run-next-lines.sh and
+	testfile-only-debug-line.bz2.
+	(next_lines_LDADD): New variable.
+	(next_files_LDADD): Likewise.
+
+2018-06-16  Yonghong Song  <yhs@fb.com>
+
+	* run-reloc-bpf.sh: New test.
+	* testfile-bpf-reloc.o.bz2: New test file.
+	* testfile-bpf-reloc.expect.bz2: New test file.
+	* Makefile.am (TESTS): Add run-reloc-bpf.sh.
+	(EXTRA_DIST): Add run-reloc-bpf.sh, testfile-bpf-reloc.o.bz2 and
+	testfile-bpf-reloc.expect.bz2.
+
+2018-06-13  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-const-values.sh: New test.
+	* testfile-const-values.debug.bz2: New test file.
+	* run-readelf-zdebug-rel.sh: Adjust expected const_value.
+	* Makefile.am (TESTS): Add run-readelf-const-values.sh.
+	(EXTRA_DIST): Add run-readelf-const-values.sh and
+	testfile-const-values.debug.bz2.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* varlocs.c (print_expr): Error on bad DW_OP_GNU_parameter_ref
+	target, do not assert.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* get-units-invalid.c (main): Check invalid dwarf_getabbrev call.
+	* show-abbrev.c (main): Check illegal dwarf_getabbrev offset call.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* varlocs.c (main): Only assert when cfi_debug_bias != 0 if there
+	actually is a cfi_debug.
+
+2018-06-07  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-loc.sh: Fix expected output for startx_length.
+
+2018-06-06  Mark Wielaard  <mark@klomp.org>
+
+	* varlocs.c (print_base_type): Use error, not assert when the DIE
+	isn't a base type.
+
+2018-06-02  Mark Wielaard  <mark@klomp.org>
+
+	* test-subr.sh (self_test_files_exe): Drop shared libraries.
+	Keep addr2line, elfcmp, objdump and readelf.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-types.sh: New test.
+	* Makefile.am (TESTS): Add run-readelf-types.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* splitdwarf4-not-split4.dwo.bz2: New test file.
+	* testfile-splitdwarf4-not-split4.debug.bz2: Likewise.
+	* run-readelf-loc.sh: Add test for splitdwarf4-not-split4.dwo
+	and testfile-splitdwarf4-not-split4.debug.
+	* run-varlocs.sh: Test testfile-splitdwarf4-not-split4.debug.
+	* Makefile.am (EXTRA_DIST): Add splitdwarf4-not-split4.dwo.bz2
+	and testfile-splitdwarf4-not-split4.debug.bz2.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* test-subr.sh (self_test_files): Split into self_test_files_exe,
+	self_test_files_lib and self_test_obj.
+	(testrun_on_self_exe): New function.
+	(testrun_on_self_lib): Likewise.
+	* run-get-units-split.sh: Replace testrun_on_self with
+	testrun_on_self_exe and testrun_on_self_lib.
+	* run-unit-info.sh: Likewise.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* low_high_pc.c (handle_die): Handle NULL name. Print offset and
+	name of die.
+	(main): Check if the cu DIE is a skeleton, then get and handle
+	the split subdie.
+	* run-low-high-pc.sh: Run on testfile-splitdwarf-4 and
+	testfile-splitdwarf-5. Run on all selftest files.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* get-units-invalid.c (main): Check dwarf_cuoffset and
+	dwarf_dieoffset.
+
+2018-05-29  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf-die-addr-die.c (check_dbg): Also check subdies, split or
+	type, gotten through dwarf_get_units.
+	* run-dwarf-die-addr-die.sh: Add tests for dwarf-4, dwarf-5,
+	split-dwarf-4, split-dwarf-5 and dwo files.
+
+2018-05-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-loc.sh: Add GNU DebugFission split-dwarf variant.
+	* run-varlocs.sh: Likewise.
+
+2018-05-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-twofiles.sh: Add --debug-dump=loc testcase.
+
+2018-05-28  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-info-plus.sh: New test.
+	* Makefile.am (TESTS): Add run-readelf-info-plus.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-04-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-addr.sh: New test.
+	* Makefile.am (TESTS): Add run-readelf-addr.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-04-27  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-ranges.sh: Adjust expected output for address base.
+	* run-readelf-addr.sh: New test.
+	* Makefile.am (TESTS): Add run-readelf-addr.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-04-07  Mark Wielaard  <mark@klomp.org>
+
+	* run-varlocs.sh: Run on testfileranges5.debug and
+	testsplitfileranges5.debug.
+	* varlocs.c (is_debug): New bool.
+	(print_expr): Don't fail on missing CFI for is_debug.
+	(main): Parse --debug, set is_debug.
+
+2018-04-12  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-loc.sh: Add new testcases.
+
+2018-04-06  Mark Wielaard  <mark@klomp.org>
+
+	* testfileranges5.debug.bz2: New testfile.
+	* testfilesplitranges5.debug.bz2: Likewise.
+	* testfile-ranges-hello5.dwo.bz2: Likewise.
+	* testfile-ranges-world5.dwo.bz2: Likewise.
+	* run-dwarf-ranges.sh: Run on testfileranges5.debug.
+	* run-all-dwarf-ranges.sh: Run on testfilesplitranges5.debug.
+	* tests/Makefile.am (EXTRA_DIST): Add testfileranges5.debug.bz2,
+	testfilesplitranges5.debug.bz2, testfile-ranges-hello5.dwo.bz2 and
+	testfile-ranges-world5.dwo.bz2.
+
+2018-04-11  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-ranges.sh: New test.
+	* Makefile.am (TESTS): Add run-readelf-ranges.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-05-21  Mark Wielaard  <mark@klomp.org>
+
+	* addrx_constx-4.dwo.bz2: New testfile.
+	* addrx_constx-5.dwo.bz2: Likewise.
+	* testfile-addrx_constx-4.bz2: Likewise.
+	* testfile-addrx_constx-5.bz2: Likewise
+	* Makefile.am (EXTRA_DIST): Add addrx_constx-5.dwo.bz2
+	testfile-addrx_constx-4\ .bz2 testfile-addrx_constx-5.bz2.
+	* run-varlocs.sh: Add addrx_constx tests for DWARF4 and DWARF5.
+	* varlocx.c (print_expr): Handle DW_OP_GNU_addr_index,
+	DW_OP_addrx, DW_OP_GNU_const_index and DW_OP_constx.
+	(main): Handle split DWARF.
+	* run-all-dwarf-ranges.sh: Add new ranges for addrx low/highpc.
+
+2018-05-20  Mark Wielaard  <mark@klomp.org>
+
+	* unit-info.c: New test.
+	* run-unit-info.sh: New test runner.
+	* Makefile.am (check_PROGRAMS): Add unit-info.
+	(TESTS): Add run-unit-info.sh
+	(EXTRA_INFO): Likewise.
+	(unit_info_LDADD): New variable.
+
+2018-05-24  Mark Wielaard  <mark@klomp.org>
+
+	* get-units-invalid.c (main): Add check for invalid dwarf_ranges.
+	* run-all-dwarf-ranges.sh: Correct expected output.
+
+2018-05-18  Mark Wielaard  <mark@klomp.org>
+
+	* Makefiles.am (check_PROGRAMS): Add all-dwarf-ranges.
+	(TESTS): Add run-all-dwarf-ranges.sh.
+	(EXTRA_DIST): Add run-all-dwarf-ranges.sh,
+	testfilesplitranges4.debug.bz2, testfile-ranges-hello.dwo.bz2
+	and testfile-ranges-world.dwo.bz2.
+	(all_dwarf_ranges_LDADD): New variable.
+	* all-dwarf-ranges.c: New test program.
+	* run-all-dwarf-ranges: New test runner.
+	* testfile-ranges-hello.dwo.bz2: New test file.
+	* testfile-ranges-world.dwo.bz2: Likewise.
+	* testfilesplitranges4.debug.bz2: Likewise.
+
+2018-05-18  Mark Wielaard  <mark@klomp.org>
+
+	* run-get-files.sh: Add testcases for testfile-splitdwarf-4,
+	testfile-hello4.dwo, testfile-world4.dwo and testfile-splitdwarf-5,
+	testfile-hello5.dwo, testfile-world5.dwo.
+
+2018-05-17  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (check_PROGRAMS): Add attr-integrate-skel.
+	(TESTS): Add run-attr-integrate-skel.
+	(EXTRA_DIST): Likewise.
+	(attr_integrate_skel_LDADD): New variable.
+	* attr-integrate-skel.c: New test.
+	* run-attr-integrate-skel.sh: New test runner.
+
+2018-05-16  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (check_PROGRAMS): Add get-units-split.
+	(TESTS): Add run-get-units-split.sh.
+	(EXTRA_DIST): Add run-get-units-split.sh, testfile-hello4.dwo.bz2,
+	testfile-hello5.dwo.bz2, testfile-splitdwarf-4.bz2,
+	testfile-splitdwarf-5.bz2, testfile-world5.dwo.bz2 and
+	testfile-world4.dwo.bz2.
+	(get_units_split_LDADD): New variable.
+	* get-units-split.c: New test.
+	* run-get-units-split.sh: New test runner.
+	* testfile-dwarf-45.source: Extend with build instructions for new
+	test files.
+	* testfile-hello4.dwo.bz2: New test file.
+	* testfile-hello5.dwo.bz2: Likewise.
+	* testfile-splitdwarf-4.bz2: Likewise.
+	* testfile-splitdwarf-5.bz2: Likewise.
+	* testfile-world5.dwo.bz2 and: Likewise.
+	* testfile-world4.dwo.bz2: Likewise.
+
+2018-05-09  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-zdebug.sh: Adjust test output for new header layout.
+	* run-readelf-line.sh: Likewise. Add new tests for testfile-dwarf-4
+	and testfile-dwarf-5.
+
+2018-05-11  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (check_PROGRAMS): Add get-units-invalid.
+	(TESTS): Add run-get-units-invalid.sh.
+	(EXTRA_DIST): Likewise.
+	(get_units_invalid_LDADD): New variable.
+	* get-units-invalid.c: New test program.
+	* run-get-units-invalid.sh: New test program runner.
+
+2018-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* testfile-dwarf-45.source: New file.
+	* testfile-dwarf-4.bz2: New test file.
+	* testfile-dwarf-5.bz2: Likewise.
+	* run-readelf-line.sh: Add testcases for testfile-dwarf-4 and
+	testfile-dwarf-5.
+	* Makefile (EXTRA_DIST): Add testfile-dwarf-45.source,
+	testfile-dwarf-4.bz2 and testfile-dwarf-5.bz2.
+
+2018-04-19  Andreas Schwab  <schwab@suse.de>
+
+	* hello_riscv64.ko.bz2: New file.
+	* run-strip-reloc.sh: Test it.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2018-04-16  Mark Wielaard  <mark@klomp.org>
+
+	* testfile-ppc64-min-instr.bz2: New testfile.
+	* run-readelf-line.sh: Run against testfile-ppc64-min-instr.bz2.
+	* Makefile.am (EXTRA_DIST): Add testfile-ppc64-min-instr.bz2.
+
+2018-04-11  Mark Wielaard  <mark@klomp.org>
+
+	* run-addrcfi.sh: Adjust expected rule for aarch64 sp.
+
+2018-04-03  Mark Wielaard  <mark@klomp.org>
+
+	* testfileranges4.debug.bz2: New testfile.
+	* run-dwarf-ranges.sh: Run on testfileranges4.debug.
+	* tests/Makefile.am (EXTRA_DIST): Add testfileranges4.debug.bz2.
+
+2018-03-06  Mark Wielaard  <mark@klomp.org>
+
+	* varlocs.c (print_expr): Handle DW_OP_implicit_pointer,
+	DW_OP_entry_value, DW_OP_convert, DW_OP_reinterpret,
+	DW_OP_regval_type, DW_OP_deref_type, DW_OP_xderef_type and
+	DW_OP_const_type.
+
+2018-02-16  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-subr.sh (check_native_core): Check if there is any core,
+	if so, use it.
+
+2018-02-15  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-child.c: Include signal.h after sys/ptrace.h.
+	* backtrace-dwarf.c: Include sys/wait.h and signal.h after
+	sys/ptrace.h.
+
+2018-01-25  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (check_PROGRAMS): Add dwarf-die-addr-die.
+	(TESTS): Add run-dwarf-die-addr-die.sh.
+	(EXTRA_DIST): Likewise.
+	(dwarf_die_addr_die_LDADD): New variable.
+	* dwarf-die-addr-die.c: New file.
+	* run-dwarf-die-addr-die.sh: New test.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* elfstrmerge.c (main): Use FALLTHROUGH macro instead of comment.
+
+2018-01-22  Mark Wielaard  <mark@klomp.org>
+
+	* allfcts.c (setup_alt): Print warning when alt file couldn't be
+	found.
+	* run-allfcts-multi.sh: Add testcase where alt file is in a subdir
+	where it cannot be found by allfcts itself (but it can by libdw).
+
+2018-01-25  Mark Wielaard  <mark@klomp.org>
+
+	* elfstrmerge.c (main): Initialize and check symtabshdr instead of
+	symtabndx.
+
+2018-01-14  Petr Machata  <pmachata@gmail.com>
+
+	* testfile-sizes4.o.bz2: New test file.
+	* testfile-sizes4.s: New test source.
+	* run-aggregate-size.sh: Check testfile-sizes4.o v size 257.
+
+2017-12-23  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-subr.sh (check_native_core): Use a lock file and try
+	to extract core using coredumpctl.
+	* Makefile.am (CLEANFILES): Clean core-dump-backtrace.lock.
+
+2017-12-11  Dima Kogan  <dima@secretsauce.net>
+
+	* run-aggregate-size.sh: Added check for multi-dimensional arrays.
+	* run-peel-type.sh: Likewise.
+	* testfile-sizes3.o.bz2: Likewise.
+
+2017-12-07  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-variant.sh: New test.
+	* testfile-ada-variant.bz2: New testfile.
+	* Makefile.am (TESTS): Add run-readelf-variant.sh.
+	(EXTRA_DISTS): Add run-readelf-variant.sh and
+	testfile-ada-variant.bz2.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-loc.sh: Adjust expected loc list output.
+	* run-readelf-zdebug-rel.sh: Likewise.
+	* run-readelf-zdebug.sh: Likewise.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-loc.sh: Adjust expected range list output.
+	* run-readelf-zdebug.sh: Likewise.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-dwz-multi.sh: Add expected file names.
+	* run-readelf-zdebug-rel.sh: Likewise.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-dwz-multi.sh: Add expected abbrev codes.
+	* run-readelf-zdebug-rel.sh: Likewise.
+
+2017-11-29  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-dwz-multi.sh: Adjust expected ops index spaces.
+	* run-readelf-loc.sh: Likewise.
+	* run-readelf-zdebug-rel.sh: Likewise.
+	* run-readelf-zdebug.sh: Likewise.
+
+2017-11-16  Mark Wielaard  <mark@klomp.org>
+
+	* varlocs.c (main): Fix cfi_debug => cfi_debug_bias typo in assert.
+
+2017-11-10  Mark Wielaard  <mark@klomp.org>
+
+	* run-exprlocs-self.sh: New test.
+	* run-varlocs-self.sh: Likewise.
+	* Makefile.am (TESTS) Add run-exprlocs-self.sh and
+	run-varlocs-self.sh.
+	(EXTRA_DIST): Likewise.
+	* varlocs.c (cfi_debug_bias): New global variable.
+	(is_ET_REL): Likewise.
+	(print_expr): Don't crash and burn when CFI cannot be found for an
+	ET_REL file for DW_OP_call_frame_cfa.
+	(handle_die): If there is no entry_pc pick the lowest pc start range
+	for the DIE.
+	(main): Check at least one CU was found. Use dwfl_module_dwarf_cfi
+	and dwfl_module_eh_cfi to fix memory leak. Set is_ET_REL.
+
+2017-11-03  Mark Wielaard  <mark@klomp.org>
+
+	* run-exprlocs.sh: New test.
+	* testfile-stridex.bz2: New testfile.
+	* Makefile.am (TESTS): Add run-exprlocs.sh.
+	(EXTRA_DIST): Add run-exprlocs.sh and testfile-stridex.bz2.
+	* varlocs.c (dwarf_tag_string): New function.
+	(dwarf_attr_string): Likewise.
+	(dwarf_form_string): Likewise.
+	(print_expr): Fix typo in error message.r
+	Handle DW_OP_GNU_variable_value.
+	(attr_arg): New struct.
+	(handle_attr): New function.
+	(handle_die): Likewise.
+	(main): Handle --exprlocs argument. Call handle_die.
+
+2017-10-16  Mark Wielaard  <mark@klomp.org>
+
+	* md5-sha1-test.c: Removed.
+	* Makefile.am (check_PROGRAMS): Remove md5-sha1-test.
+	(TESTS): Likewise.
+	(md5_sha1_test_LDADD): Removed.
+
+2017-10-04  Mark Wielaard  <mark@klomp.org>
+
+	* msg_tst.c: Handle ELF_E_INVALID_ELF.
+
+2017-09-10  Mark Wielaard  <mark@klomp.org>
+
+	* run-ar.sh: New test.
+	* Makefile.am (TESTS): Add run-ar.sh.
+	(EXTRA_DIST): Likewise.
+
+2017-08-18  Ulf Hermann <ulf.hermann@qt.io>
+
+	* Makefile.am: Drop -rdynamic from deleted_lib_so_LDFLAGS.
+
+2017-04-27  Ulf Hermann <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpie_CFLAGS and fpic_CFLAGS.
+
+2017-08-08  Dmitry V. Levin <ldv@altlinux.org>
+
+	* run-strip-nothing.sh: Add -s.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf-getmacros.c (mac): Use DW_MACRO names instead of DW_MACRO_GNU.
+
+2016-10-27  Mark Wielaard  <mjw@redhat.com>
+
+	* dwarf_default_lower_bound.c: New test.
+	* Makefile.am (check_PROGRAMS): Add dwarf_default_lower_bound.
+	(TESTS): Likewise.
+	(dwarf_default_lower_bound_LDADD): New variable.
+
+2017-07-21  Mark Wielaard  <mark@klomp.org>
+
+	* get-lines.c (main): Add dwarf_line_file test.
+
+2017-07-19  Gustavo Romero <gromero@linux.vnet.ibm.com>
+
+	* run-addrcfi.sh: Update generic SPRs names to HTM SPRs names
+	* run-allregs.sh: Update generic SPRs names to HTM SPRs names
+
+2017-07-20  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-g.sh: New test.
+	* Makefile.am (TESTS): Add run-strip-g.sh.
+	(EXTRA_DIST): Likewise.
+
+2017-07-18  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (TESTS): Always add run-disasm-bpf.sh if HAVE_LIBASM.
+
+2017-05-04  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* elfshphehdr.c: For writing, use /dev/null rather than /dev/zero.
+
+2017-07-14  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-remove-keep.sh: New test.
+	* Makefile.am (TESTS): Add run-strip-remove-keep.sh.
+	(EXTRA_DIST): Likewise.
+
+2017-06-07  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-nothing.sh: New test.
+	* Makefile.am (TESTS): Add run-strip-nothing.sh.
+	(EXTRA_DIST): Likewise.
+
+2017-06-06  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-test.sh: Test strip -g doesn't introduce extra .shstrtab.
+
+2017-05-30  Mark Wielaard  <mark@klomp.org>
+
+	* run-backtrace-fp-core-ppc64le.sh: New test.
+	* backtrace.ppc64le.fp.core.bz2: New test file.
+	* backtrace.ppc64le.fp.exec.bz2: New testfile.
+	* backtrace-subr.sh (check_backtracegen): Accept '(null)'.
+	* Makefile.am (TESTS): Add run-backtrace-fp-core-ppc64le.sh.
+	(EXTRA_DIST): Add run-backtrace-fp-core-ppc64le.sh,
+	backtrace.ppc64le.fp.core.bz2 and backtrace.ppc64le.fp.exec.bz2.
+
+2017-02-13  Ulf Hermann  <ulf.hermann@qt.io>
+	    Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am: Add test for unwinding with frame pointers on aarch64
+	* backtrace.aarch64.fp.core.bz2: New file
+	* backtrace.aarch64.fp.exec.bz2: New file
+	* run-backtrace-fp-core-aarch64.sh: New file
+	* backtrace-subr.sh (check_err): Allow Invalid register.
+	* backtrace.c (callback_verify): Allow duplicate_sigusr2 frames.
+
+2017-04-06  Mark Wielaard  <mark@klomp.org>
+
+	* run-backtrace-fp-core-i386.sh: New test.
+	* backtrace.i386.fp.core.bz2: New test file.
+	* backtrace.i386.fp.exec.bz2: New testfile.
+	* Makefile.am (TESTS): Add run-backtrace-fp-core-i386.sh.
+	(EXTRA_DIST): Add run-backtrace-fp-core-i386.sh,
+	backtrace.i386.fp.core.bz2 and backtrace.i386.fp.exec.bz2.
+
+2017-02-09  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Add test for unwinding with frame pointers on x86_64
+	* backtrace.x86_64.fp.core.bz2: New file
+	* backtrace.x86_64.fp.exec.bz2: New file
+	* run-backtrace-fp-core-x86_64.sh: New file
+
+2017-04-25  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-subr.sh (check_backtracegen): New function.
+	(check_core): Add check_backtracegen call.
+	* backtrace.ppc.exec.bz2: Regenerated.
+	* backtrace.ppc.core.bz2: Likewise.
+
+2017-04-24  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace.c: Remove option to allow unknown symbols in the trace.
+	* backtrace-substr.sh: Remove option to allow unknown symbols
+	to check_core() and allow failed symbol lookups in check_err().
+
+2017-04-20  Ulf Hermann <ulf.hermann@qt.io>
+
+	* run-readelf-dwz-multi.sh: Expect readelf to output "yes" for flags
+	that are set.
+	* run-readelf-zdebug-rel.sh: Likewise.
+
+2017-04-20  Ulf Hermann <ulf.hermann@qt.io>
+
+	* backtrace-child.c: Include sys/ptrace.h only on linux.
+	* backtrace-dwarf.c: Likewise.
+
+2017-04-05  Mark Wielaard  <mark@klomp.org>
+
+	* test-subr.sh (testrun_on_self_compressed): New function.
+	* run-elflint-self.sh: Call testrun_on_self_compressed.
+	* run-elflint-test.sh: Add testfile42z and testfile-s390x-hash-bothz.
+
+2017-03-30  Mark Wielaard  <mark@klomp.org>
+
+	* peel_type.c: New file.
+	* run-peel-type.sh: New test.
+	* Makefile.am (check_PROGRAMS): Add peel_type.c.
+	(TESTS): Add run-peel-type.sh.
+	(EXTRA_DIST): Likewise.
+	(peel_type_LDADD): New variable.
+
+2017-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* fillfile.c: New file.
+	* Makefile.am (check_PROGRAMS): Add fillfile.
+	(TESTS): Likewise.
+	(fillfile_LDADD): New variable.
+
+2017-02-15  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (EXTRA_DIST): Add testfileppc64attrs.o.bz2.
+	* run-readelf-A.sh: Add testfileppc64.o test.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* elfstrmerge.c: Include system.h.
+
+2017-02-09  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* backtrace.c: Add an option to allow unknown symbols in the trace
+	* backtrace-substr.sh: Add an option to allow unknown symbols
+	to check_core() and allow failed symbol lookups in check_err()
+
+2017-02-09  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* backtrace-data.c: Don't assert that symbols are found.
+	The unwinder is allowed to ask for invalid addresses. We deny
+	such requests, rather than make the test fail.
+
+2016-11-17  Mark Wielaard  <mjw@redhat.com>
+
+	* run-readelf-s.sh: Add --symbols=.dynsym and --symbols=.symtab tests.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* backtrace-data.c (thread_callback): Add explicit break after error.
+	* backtrace.c (callback_verify): Change PASSTHRU to FALLTHRU.
+
+2016-10-22  Kevin Cernekee  <cernekee@chromium.org>
+
+	* Makefile.am (TESTS): Add run-unstrip-test4.sh.
+	(EXTRA_DIST): Add run-unstrip-test4.sh, testfile-strtab.bz2,
+	testfile-strtab.stripped.bz2, testfile-strtab.debuginfo.bz2.
+	(run-unstrip-test4.sh): New file.
+	(testfile-strtab.bz2): New file.
+	(testfile-strtab.stripped.bz2): New file.
+	(testfile-strtab.debuginfo.bz2): New file.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* arextract.c: Remove sys/param.h include, add system.h include.
+
+2016-08-30  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (asm_tst?_LDADD): Add libdw.
+
+2016-08-25  Mark Wielaard  <mjw@redhat.com>
+
+	* backtrace-child.c: Disable and add documentation about why we disable
+	RAISE_JMP_PATCHING even on x86_64.
+	* backtrace.c (is_x86_64_native): Rename to...
+	(use_raise_jmp_patching): ... this.
+	(callback_verify): Use use_raise_jmp_patching instead of
+	is_x86_64_native.
+	(see_exec_module): Return DWARF_CB_ABORT after finding the correct exe
+	path.
+	(prepare_thread): Use RAISE_JMP_PATCHING instead of __x86_64__
+	conditional.
+	(exec_dump): Only assert on data.mod != NULL. Drop ptrdiff. Use
+	RAISE_JMP_PATCHING instead of __x86_64__ conditional. Use
+	use_raise_jmp_patching instead of is_x86_64_native.
+
+2016-08-24  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (EXTRA_DIST): Add testfilesparc64attrs.o.bz2.
+
+2016-08-09  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* testfilesparc64attrs.o.bz2: New file.
+	* run-readelf-A.sh: Check attributes in a sparc object.
+
+2016-08-06  Mark Wielaard  <mjw@redhat.com>
+
+	* run-strip-reloc.sh: Add explicit compressed and uncompressed
+	test cases.
+
+2016-08-10  Richard Henderson  <rth@redhat.com>
+
+	* file-bpf-dis1.expect.bz2: Fix expected mod and endian operations
+	output.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* update3_LDADD: Use libdw instead of libebl.
+	* update4_LDADD: Likewise.
+	* alldts_LDADD: Likewise.
+	* elfstrmerge_LDADD: Likewise.
+	* alldts.c (main): Use dwelf_strtab instead of ebl_strtab.
+	* elfstrmerge.c (release): Likewise.
+	(main): Likewise.
+	* update3.c (main): Likewise.
+	* update4.c (main): Likewise.
+
+2016-07-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.am (TESTS): Add run-strip-test11.sh.
+	(EXTRA_DIST): Add run-strip-test11.sh, hello_m68k.ko.bz2,
+	testfile-m86k-core.bz2, testfile-m68k.bz2, testfile-m68k-s.bz2.
+	(run-strip-test11.sh): New file.
+	(hello_m68k.ko.bz2): New file.
+	(testfile-m68k-core.bz2): New file.
+	(testfile-m68k.bz2): New file.
+	(testfile-m68k-s.bz2): New file.
+	* run-allregs.sh: Add test for testfile-m68k-core.
+	* run-readelf-mixed-corenote.sh: Likewise.
+	* run-strip-reloc.sh: Add test for hello_m68k.ko.
+
+2016-07-06  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (check_PROGRAMS): Add vendorelf.
+	(TESTS): Likewise.
+	(vendorelf_LDADD): New variable.
+	* vendorelf.c: New test.
+	* elfshphehdr.c (test): Check elf_getphdrnum succeeds.
+
+2016-06-24  Mark Wielaard  <mjw@redhat.com>
+
+	* Makefile.am (check_PROGRAMS): Add emptyfile.
+	(TESTS): Likewise.
+	(emptyfile_LDADD): New variable.
+	* emptyfile.c: New test.
+
+2016-06-28  Richard Henderson  <rth@redhat.com>
+
+	* Makefile.am (TESTS): Add run-disasm-bpf.sh, conditionally.
+	(EXTRA_DIST): Add run-disasm-bpf.sh, testfile-bpf-dis1.expect.bz2,
+	testfile-bpf-dis1.o.bz2
+	(run-disasm-bpf.sh): New file.
+	(testfile-bpf-dis1.expect.bz2): New file.
+	(testfile-bpf-dis1.o.bz2): New file.
+
+2016-02-09  Mark Wielaard  <mjw@redhat.com>
+
+	* testfile-s390x-hash-both.bz2: New testfile.
+	* Makefile.am (EXTRA_DIST): Add testfile-s390x-hash-both.bz2.
+	* run-elflint-test.sh: Add elflint testfile-s390x-hash-both test.
+
+2016-02-04  Mark Wielaard  <mjw@redhat.com>
+
+	* run-strip-nobitsalign.sh: New test.
+	* testfile-nobitsalign.bz2: New testfile.
+	* testfile-nobitsalign.strip.bz2: Likewise.
+	* Makefile.am (TESTS): Add run-strip-nobitsalign.sh.
+	(EXTRA_DIST): Add run-strip-nobitsalign.sh, testfile-nobitsalign.bz2
+	and testfile-nobitsalign.strip.bz2.
+	* run-strip-test.sh: Add --gnu to elflint calls.
+
 2016-01-13  Mark Wielaard  <mjw@redhat.com>
 
 	* dwfl-bug-fd-leak.c: Skip test unless on __linux__.

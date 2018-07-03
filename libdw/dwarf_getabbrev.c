@@ -1,5 +1,5 @@
 /* Get abbreviation at given offset.
-   Copyright (C) 2003, 2004, 2005, 2006, 2014 Red Hat, Inc.
+   Copyright (C) 2003, 2004, 2005, 2006, 2014, 2017 Red Hat, Inc.
    This file is part of elfutils.
    Written by Ulrich Drepper <drepper@redhat.com>, 2003.
 
@@ -121,8 +121,7 @@ __libdw_getabbrev (Dwarf *dbg, struct Dwarf_CU *cu, Dwarf_Off offset,
   abb->attrp = (unsigned char *) abbrevp;
   abb->offset = offset;
 
-  /* Skip over all the attributes and count them while doing so.  */
-  abb->attrcnt = 0;
+  /* Skip over all the attributes and check rest of the abbrev is valid.  */
   unsigned int attrname;
   unsigned int attrform;
   do
@@ -133,8 +132,15 @@ __libdw_getabbrev (Dwarf *dbg, struct Dwarf_CU *cu, Dwarf_Off offset,
       if (abbrevp >= end)
 	goto invalid;
       get_uleb128 (attrform, abbrevp, end);
+      if (attrform == DW_FORM_implicit_const)
+	{
+	  int64_t formval __attribute__((__unused__));
+	  if (abbrevp >= end)
+	    goto invalid;
+	  get_sleb128 (formval, abbrevp, end);
+	}
     }
-  while (attrname != 0 && attrform != 0 && ++abb->attrcnt);
+  while (attrname != 0 && attrform != 0);
 
   /* Return the length to the caller if she asked for it.  */
   if (lengthp != NULL)
@@ -152,7 +158,21 @@ __libdw_getabbrev (Dwarf *dbg, struct Dwarf_CU *cu, Dwarf_Off offset,
 Dwarf_Abbrev *
 dwarf_getabbrev (Dwarf_Die *die, Dwarf_Off offset, size_t *lengthp)
 {
-  return __libdw_getabbrev (die->cu->dbg, die->cu,
-			    die->cu->orig_abbrev_offset + offset, lengthp,
-			    NULL);
+  if (die == NULL || die->cu == NULL)
+    return NULL;
+
+  Dwarf_CU *cu = die->cu;
+  Dwarf *dbg = cu->dbg;
+  Dwarf_Off abbrev_offset = cu->orig_abbrev_offset;
+  Elf_Data *data = dbg->sectiondata[IDX_debug_abbrev];
+  if (data == NULL)
+    return NULL;
+
+  if (offset >= data->d_size - abbrev_offset)
+    {
+      __libdw_seterrno (DWARF_E_INVALID_OFFSET);
+      return NULL;
+    }
+
+  return __libdw_getabbrev (dbg, cu, abbrev_offset + offset, lengthp, NULL);
 }

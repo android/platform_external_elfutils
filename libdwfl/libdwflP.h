@@ -1,5 +1,5 @@
 /* Internal definitions for libdwfl.
-   Copyright (C) 2005-2015 Red Hat, Inc.
+   Copyright (C) 2005-2015, 2018 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -29,9 +29,6 @@
 #ifndef _LIBDWFLP_H
 #define _LIBDWFLP_H	1
 
-#ifndef PACKAGE_NAME
-# include <config.h>
-#endif
 #include <libdwfl.h>
 #include <libebl.h>
 #include <assert.h>
@@ -192,6 +189,8 @@ struct Dwfl_Module
   Elf_Data *aux_symstrdata;	/* Data for aux_sym string table.  */
   Elf_Data *symxndxdata;	/* Data in the extended section index table. */
   Elf_Data *aux_symxndxdata;	/* Data in the extended auxiliary table. */
+
+  char *elfdir;			/* The dir where we found the main Elf.  */
 
   Dwarf *dw;			/* libdw handle for its debugging info.  */
   Dwarf *alt;			/* Dwarf used for dwarf_setalt, or NULL.  */
@@ -404,6 +403,14 @@ struct dwfl_arange
   size_t arange;		/* Index in Dwarf_Aranges.  */
 };
 
+#define __LIBDWFL_REMOTE_MEM_CACHE_SIZE 4096
+/* Structure for caching remote memory reads as used by __libdwfl_pid_arg.  */
+struct __libdwfl_remote_mem_cache
+{
+  Dwarf_Addr addr; /* Remote address.  */
+  Dwarf_Off len;   /* Zero if cleared, otherwise likely 4K. */
+  unsigned char buf[__LIBDWFL_REMOTE_MEM_CACHE_SIZE]; /* The actual cache.  */
+};
 
 /* Structure used for keeping track of ptrace attaching a thread.
    Shared by linux-pid-attach and linux-proc-maps.  If it has been setup
@@ -414,6 +421,10 @@ struct __libdwfl_pid_arg
   DIR *dir;
   /* Elf for /proc/PID/exe.  Set to NULL if it couldn't be opened.  */
   Elf *elf;
+  /* Remote memory cache, NULL if there is no memory cached.
+     Should be cleared on detachment (because that makes the thread
+     runnable and the cache invalid).  */
+  struct __libdwfl_remote_mem_cache *mem_cache;
   /* fd for /proc/PID/exe.  Set to -1 if it couldn't be opened.  */
   int elf_fd;
   /* It is 0 if not used.  */
@@ -451,15 +462,6 @@ extern const char *__libdwfl_getsym (Dwfl_Module *mod, int ndx, GElf_Sym *sym,
 				     Elf **elfp, Dwarf_Addr *biasp,
 				     bool *resolved, bool adjust_st_value)
   internal_function;
-
-/* Internal wrapper for old dwfl_module_addrsym and new dwfl_module_addrinfo.
-   adjust_st_value set to true returns adjusted SYM st_value, set to false
-   it will not adjust SYM at all, but does match against resolved values. */
-extern const char *__libdwfl_addrsym (Dwfl_Module *mod, GElf_Addr addr,
-				      GElf_Off *off, GElf_Sym *sym,
-				      GElf_Word *shndxp, Elf **elfp,
-				      Dwarf_Addr *bias,
-				      bool adjust_st_value) internal_function;
 
 extern void __libdwfl_module_free (Dwfl_Module *mod) internal_function;
 
