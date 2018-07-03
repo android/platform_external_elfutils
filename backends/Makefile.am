@@ -33,21 +33,23 @@ AM_CPPFLAGS += -I$(top_srcdir)/libebl -I$(top_srcdir)/libasm \
 
 
 modules = i386 sh x86_64 ia64 alpha arm aarch64 sparc ppc ppc64 s390 \
-	  tilegx
+	  tilegx m68k bpf riscv
 libebl_pic = libebl_i386_pic.a libebl_sh_pic.a libebl_x86_64_pic.a    \
 	     libebl_ia64_pic.a libebl_alpha_pic.a libebl_arm_pic.a    \
 	     libebl_aarch64_pic.a libebl_sparc_pic.a libebl_ppc_pic.a \
-	     libebl_ppc64_pic.a libebl_s390_pic.a libebl_tilegx_pic.a
+	     libebl_ppc64_pic.a libebl_s390_pic.a libebl_tilegx_pic.a \
+	     libebl_m68k_pic.a libebl_bpf_pic.a libebl_riscv_pic.a
 noinst_LIBRARIES = $(libebl_pic)
 noinst_DATA = $(libebl_pic:_pic.a=.so)
 
 
 libelf = ../libelf/libelf.so
 libdw = ../libdw/libdw.so
+libeu = ../lib/libeu.a
 
 i386_SRCS = i386_init.c i386_symbol.c i386_corenote.c i386_cfi.c \
 	    i386_retval.c i386_regs.c i386_auxv.c i386_syscall.c \
-	    i386_initreg.c
+	    i386_initreg.c i386_unwind.c
 cpu_i386 = ../libcpu/libcpu_i386.a
 libebl_i386_pic_a_SOURCES = $(i386_SRCS)
 am_libebl_i386_pic_a_OBJECTS = $(i386_SRCS:.c=.os)
@@ -58,7 +60,7 @@ am_libebl_sh_pic_a_OBJECTS = $(sh_SRCS:.c=.os)
 
 x86_64_SRCS = x86_64_init.c x86_64_symbol.c x86_64_corenote.c x86_64_cfi.c \
 	      x86_64_retval.c x86_64_regs.c i386_auxv.c x86_64_syscall.c \
-	      x86_64_initreg.c x32_corenote.c
+	      x86_64_initreg.c x86_64_unwind.c x32_corenote.c
 cpu_x86_64 = ../libcpu/libcpu_x86_64.a
 libebl_x86_64_pic_a_SOURCES = $(x86_64_SRCS)
 am_libebl_x86_64_pic_a_OBJECTS = $(x86_64_SRCS:.c=.os)
@@ -79,7 +81,7 @@ am_libebl_arm_pic_a_OBJECTS = $(arm_SRCS:.c=.os)
 
 aarch64_SRCS = aarch64_init.c aarch64_regs.c aarch64_symbol.c	\
 	       aarch64_corenote.c aarch64_retval.c aarch64_cfi.c \
-	       aarch64_initreg.c
+	       aarch64_initreg.c aarch64_unwind.c
 libebl_aarch64_pic_a_SOURCES = $(aarch64_SRCS)
 am_libebl_aarch64_pic_a_OBJECTS = $(aarch64_SRCS:.c=.os)
 
@@ -97,7 +99,7 @@ am_libebl_ppc_pic_a_OBJECTS = $(ppc_SRCS:.c=.os)
 
 ppc64_SRCS = ppc64_init.c ppc64_symbol.c ppc64_retval.c \
 	     ppc64_corenote.c ppc_regs.c ppc_auxv.c ppc_attrs.c ppc_syscall.c \
-	     ppc_cfi.c ppc_initreg.c ppc64_resolve_sym.c
+	     ppc_cfi.c ppc_initreg.c ppc64_unwind.c ppc64_resolve_sym.c
 libebl_ppc64_pic_a_SOURCES = $(ppc64_SRCS)
 am_libebl_ppc64_pic_a_OBJECTS = $(ppc64_SRCS:.c=.os)
 
@@ -112,19 +114,41 @@ tilegx_SRCS = tilegx_init.c tilegx_symbol.c tilegx_regs.c \
 libebl_tilegx_pic_a_SOURCES = $(tilegx_SRCS)
 am_libebl_tilegx_pic_a_OBJECTS = $(tilegx_SRCS:.c=.os)
 
+m68k_SRCS = m68k_init.c m68k_symbol.c m68k_regs.c \
+	    m68k_retval.c m68k_corenote.c
+libebl_m68k_pic_a_SOURCES = $(m68k_SRCS)
+am_libebl_m68k_pic_a_OBJECTS = $(m68k_SRCS:.c=.os)
 
-libebl_%.so libebl_%.map: libebl_%_pic.a $(libelf) $(libdw)
+# m68k prstatus core notes are described by a packed structure
+# which has not naturally aligned fields. Since we don't access
+# these fields directly, but take their offset to be used later
+# to extract the data through elfxx_xlatetom/memmove, this isn't
+# an issue.
+m68k_corenote_no_Wpacked_not_aligned = yes
+
+bpf_SRCS = bpf_init.c bpf_regs.c bpf_symbol.c
+cpu_bpf = ../libcpu/libcpu_bpf.a
+libebl_bpf_pic_a_SOURCES = $(bpf_SRCS)
+am_libebl_bpf_pic_a_OBJECTS = $(bpf_SRCS:.c=.os)
+
+riscv_SRCS = riscv_init.c riscv_symbol.c riscv_cfi.c riscv_regs.c
+libebl_riscv_pic_a_SOURCES = $(riscv_SRCS)
+am_libebl_riscv_pic_a_OBJECTS = $(riscv_SRCS:.c=.os)
+
+
+libebl_%.so libebl_%.map: libebl_%_pic.a $(libelf) $(libdw) $(libeu)
 	@rm -f $(@:.so=.map)
 	$(AM_V_at)echo 'ELFUTILS_$(PACKAGE_VERSION) { global: $*_init; local: *; };' \
 	  > $(@:.so=.map)
-	$(AM_V_CCLD)$(LINK) -shared -o $(@:.map=.so) \
+	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $(@:.map=.so) \
 		-Wl,--whole-archive $< $(cpu_$*) -Wl,--no-whole-archive \
-		-Wl,--version-script,$(@:.so=.map) \
-		-Wl,-z,defs -Wl,--as-needed $(libelf) $(libdw)
+		-Wl,--version-script,$(@:.so=.map),--no-undefined \
+		-Wl,--as-needed $(libelf) $(libdw) $(libeu)
 	@$(textrel_check)
 
 libebl_i386.so: $(cpu_i386)
 libebl_x86_64.so: $(cpu_x86_64)
+libebl_bpf.so: $(cpu_bpf)
 
 install: install-am install-ebl-modules
 install-ebl-modules:

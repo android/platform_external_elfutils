@@ -1,7 +1,6 @@
 /* Unaligned memory access functionality.
-   Copyright (C) 2000-2014 Red Hat, Inc.
+   Copyright (C) 2000-2014, 2018 Red Hat, Inc.
    This file is part of elfutils.
-   Written by Ulrich Drepper <drepper@redhat.com>, 2001.
 
    This file is free software; you can redistribute it and/or modify
    it under the terms of either
@@ -31,6 +30,7 @@
 #define _MEMORY_ACCESS_H 1
 
 #include <byteswap.h>
+#include <endian.h>
 #include <limits.h>
 #include <stdint.h>
 
@@ -87,8 +87,26 @@ __libdw_get_uleb128 (const unsigned char **addrp, const unsigned char *end)
   return UINT64_MAX;
 }
 
+static inline uint64_t
+__libdw_get_uleb128_unchecked (const unsigned char **addrp)
+{
+  uint64_t acc = 0;
+
+  /* Unroll the first step to help the compiler optimize
+     for the common single-byte case.  */
+  get_uleb128_step (acc, *addrp, 0);
+
+  const size_t max = len_leb128 (uint64_t);
+  for (size_t i = 1; i < max; ++i)
+    get_uleb128_step (acc, *addrp, i);
+  /* Other implementations set VALUE to UINT_MAX in this
+     case.  So we better do this as well.  */
+  return UINT64_MAX;
+}
+
 /* Note, addr needs to me smaller than end. */
 #define get_uleb128(var, addr, end) ((var) = __libdw_get_uleb128 (&(addr), end))
+#define get_uleb128_unchecked(var, addr) ((var) = __libdw_get_uleb128_unchecked (&(addr)))
 
 /* The signed case is similar, but we sign-extend the result.  */
 
@@ -121,7 +139,26 @@ __libdw_get_sleb128 (const unsigned char **addrp, const unsigned char *end)
   return INT64_MAX;
 }
 
+static inline int64_t
+__libdw_get_sleb128_unchecked (const unsigned char **addrp)
+{
+  int64_t acc = 0;
+
+  /* Unroll the first step to help the compiler optimize
+     for the common single-byte case.  */
+  get_sleb128_step (acc, *addrp, 0);
+
+  /* Subtract one step, so we don't shift into sign bit.  */
+  const size_t max = len_leb128 (int64_t) - 1;
+  for (size_t i = 1; i < max; ++i)
+    get_sleb128_step (acc, *addrp, i);
+  /* Other implementations set VALUE to INT_MAX in this
+     case.  So we better do this as well.  */
+  return INT64_MAX;
+}
+
 #define get_sleb128(var, addr, end) ((var) = __libdw_get_sleb128 (&(addr), end))
+#define get_sleb128_unchecked(var, addr) ((var) = __libdw_get_sleb128_unchecked (&(addr)))
 
 
 /* We use simple memory access functions in case the hardware allows it.
@@ -170,7 +207,7 @@ union unaligned
     int16_t s2;
     int32_t s4;
     int64_t s8;
-  } __attribute__ ((packed));
+  } attribute_packed;
 
 # define read_2ubyte_unaligned(Dbg, Addr) \
   read_2ubyte_unaligned_1 ((Dbg)->other_byte_order, (Addr))
@@ -278,6 +315,57 @@ read_8sbyte_unaligned_1 (bool other_byte_order, const void *p)
      Addr = (__typeof (Addr)) (((uintptr_t) (Addr)) + 8);		      \
      t_; })
 
+/* 3ubyte reads are only used for DW_FORM_addrx3 and DW_FORM_strx3.
+   And are probably very rare.  They are not optimized.  They are
+   handled as if reading a 4byte value with the first (for big endian)
+   or last (for little endian) byte zero.  */
+
+static inline int
+file_byte_order (bool other_byte_order)
+{
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  return other_byte_order ? __BIG_ENDIAN : __LITTLE_ENDIAN;
+#else
+  return other_byte_order ? __LITTLE_ENDIAN : __BIG_ENDIAN;
+#endif
+}
+
+static inline uint32_t
+read_3ubyte_unaligned (Dwarf *dbg, const unsigned char *p)
+{
+  union
+  {
+    uint32_t u4;
+    unsigned char c[4];
+  } d;
+  bool other_byte_order = dbg->other_byte_order;
+
+  if (file_byte_order (other_byte_order) == __BIG_ENDIAN)
+    {
+      d.c[0] = 0x00;
+      d.c[1] = p[0];
+      d.c[2] = p[1];
+      d.c[3] = p[2];
+    }
+  else
+    {
+      d.c[0] = p[0];
+      d.c[1] = p[1];
+      d.c[2] = p[2];
+      d.c[3] = 0x00;
+    }
+
+  if (other_byte_order)
+    return bswap_32 (d.u4);
+  else
+    return d.u4;
+}
+
+
+#define read_3ubyte_unaligned_inc(Dbg, Addr) \
+  ({ uint32_t t_ = read_2ubyte_unaligned (Dbg, Addr);			      \
+     Addr = (__typeof (Addr)) (((uintptr_t) (Addr)) + 3);		      \
+     t_; })
 
 #define read_addr_unaligned_inc(Nbytes, Dbg, Addr)			\
   (assert ((Nbytes) == 4 || (Nbytes) == 8),				\

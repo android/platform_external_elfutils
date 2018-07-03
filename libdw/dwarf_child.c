@@ -1,5 +1,5 @@
 /* Return child of current DIE.
-   Copyright (C) 2003-2011, 2014 Red Hat, Inc.
+   Copyright (C) 2003-2011, 2014, 2017 Red Hat, Inc.
    This file is part of elfutils.
    Written by Ulrich Drepper <drepper@redhat.com>, 2003.
 
@@ -43,36 +43,27 @@ internal_function
 __libdw_find_attr (Dwarf_Die *die, unsigned int search_name,
 		   unsigned int *codep, unsigned int *formp)
 {
-  Dwarf *dbg = die->cu->dbg;
   const unsigned char *readp;
 
   /* Find the abbreviation entry.  */
   Dwarf_Abbrev *abbrevp = __libdw_dieabbrev (die, &readp);
   if (unlikely (abbrevp == DWARF_END_ABBREV))
     {
-    invalid_dwarf:
       __libdw_seterrno (DWARF_E_INVALID_DWARF);
       return NULL;
     }
 
-  /* Search the name attribute.  */
-  unsigned char *const endp
-    = ((unsigned char *) dbg->sectiondata[IDX_debug_abbrev]->d_buf
-       + dbg->sectiondata[IDX_debug_abbrev]->d_size);
-
+  /* Search the name attribute.  Attribute has been checked when
+     Dwarf_Abbrev was created, we can read unchecked.  */
   const unsigned char *attrp = abbrevp->attrp;
   while (1)
     {
       /* Get attribute name and form.  */
-      if (unlikely (attrp >= endp))
-	goto invalid_dwarf;
       unsigned int attr_name;
-      get_uleb128 (attr_name, attrp, endp);
+      get_uleb128_unchecked (attr_name, attrp);
 
-      if (unlikely (attrp >= endp))
-	goto invalid_dwarf;
       unsigned int attr_form;
-      get_uleb128 (attr_form, attrp, endp);
+      get_uleb128_unchecked (attr_form, attrp);
 
       /* We can stop if we found the attribute with value zero.  */
       if (attr_name == 0 && attr_form == 0)
@@ -86,7 +77,12 @@ __libdw_find_attr (Dwarf_Die *die, unsigned int search_name,
 	  if (formp != NULL)
 	    *formp = attr_form;
 
-	  return (unsigned char *) readp;
+	  /* Normally the attribute data comes from the DIE/info,
+	     except for implicit_form, where it comes from the abbrev.  */
+	  if (attr_form == DW_FORM_implicit_const)
+	    return (unsigned char *) attrp;
+	  else
+	    return (unsigned char *) readp;
 	}
 
       /* Skip over the rest of this attribute (if there is any).  */
@@ -101,6 +97,13 @@ __libdw_find_attr (Dwarf_Die *die, unsigned int search_name,
 
 	  // __libdw_form_val_len will have done a bounds check.
 	  readp += len;
+
+	  // If the value is in the abbrev data, skip it.
+	  if (attr_form == DW_FORM_implicit_const)
+	    {
+	      int64_t attr_value __attribute__((__unused__));
+	      get_sleb128_unchecked (attr_value, attrp);
+	    }
 	}
     }
 

@@ -1,11 +1,14 @@
-The project homepage is at https://fedorahosted.org/elfutils/
+The project home is http://elfutils.org/
 
 The current elfutils source code can be checked out with
-git clone git://git.fedorahosted.org/git/elfutils.git
+git clone git://sourceware.org/git/elfutils.git
 
 The developer mailinglist to send patches to is
-elfutils-devel@lists.fedorahosted.org.
-https://fedorahosted.org/mailman/listinfo/elfutils-devel
+elfutils-devel@sourceware.org.
+https://sourceware.org/ml/elfutils-devel/
+
+To subscribe send an email to elfutils-devel-subscribe@sourceware.org
+Or use the form at https://sourceware.org/lists.html#ml-requestor
 
 Please supply patches using git format-patch or using git send-email.
 
@@ -46,3 +49,58 @@ using your real name (sorry, no pseudonyms or anonymous contributions.)
 
 git commit --signoff will add such a Signed-off-by line at the end of
 the commit log message for you.
+
+The ideal patch contains a ChangeLog entry and a test case for the
+bug fixed or feature added.
+
+The testsuite (make check) is expected to have zero failing tests.
+Do not knowingly add tests that FAIL. If there are architectures or
+configurations where a tests is not supported make sure they are
+skipped instead of failing. Adding "exit 77" in the test shell wrapper
+indicates that a test was SKIPPED.
+
+We do allow binaries in the testsuite for tests that only need to
+read ELF or DWARF data and if generating the data in the testcase
+itself is difficult or would be architecture specific.
+The binaries should be bzip2 compressed. Add a note in the test
+wrapper run-<testcase>.sh script how to regenerate the binary.
+
+After sending your patch to the mailinglist one of the committers
+to the project will review it, give feedback, and if perfect they
+will commit it for you.
+
+You can become a maintainer/committer yourself after you have provided
+at least a handful of accepted patches and agree to the guidelines in
+this document for creating, reviewing, accepting and committing patches.
+
+To become a committer you need a sourceware account:
+https://sourceware.org/cgi-bin/pdw/ps_form.cgi
+Upload a SSH public key and have an existing maintainer sponsor you
+for the elfutils group.
+
+committers can push patches through:
+ssh://<user>@sourceware.org/git/elfutils.git
+
+The current webpages published at https://sourceware.org/elfutils/
+can be checked out with:
+git clone ssh://<user>@sourceware.org/git/elfutils-htdocs.git
+Patches should also be posted to the mailinglist.
+
+As a maintainer/committer you should still post patches as described
+above. And ideally they are reviewed and approved as above. If no
+other committer has reviewed or objected to your patch for a week
+you may use your own judgement whether you ping your patch or push
+it after "self-review". If you do, you should post a message to the
+mailinglist that the patch has been pushed.
+
+committers may also create git branches starting with <nickname>/...
+patches on these branches are works in progress, so might not be perfect
+yet, but should follow the above guidelines as much as possible and should
+be aimed at integration into master. For merging a branch into master
+the same process as above should be followed by posting the patches
+to the list first.
+
+committers/maintainers who repeatedly ignore the above guidelines,
+are hostile or offensive towards other committers or contributors,
+and don't correct their behavior after being asked by other committers
+will be removed as maintainer/committer.

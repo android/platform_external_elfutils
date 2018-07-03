@@ -1,5 +1,5 @@
 /* Standard libdwfl callbacks for debugging a live Linux process.
-   Copyright (C) 2005-2010, 2013, 2014 Red Hat, Inc.
+   Copyright (C) 2005-2010, 2013, 2014, 2016 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -25,6 +25,10 @@
    You should have received copies of the GNU General Public License and
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "libdwflP.h"
 #include <inttypes.h>
@@ -218,6 +222,7 @@ proc_maps_report (Dwfl *dwfl, FILE *f, GElf_Addr sysinfo_ehdr, pid_t pid)
 	  || nread <= 0)
 	{
 	  free (line);
+	  free (last_file);
 	  return ENOEXEC;
 	}
 
@@ -249,7 +254,10 @@ proc_maps_report (Dwfl *dwfl, FILE *f, GElf_Addr sysinfo_ehdr, pid_t pid)
 	{
 	  /* This is another portion of the same file's mapping.  */
 	  if (strcmp (last_file, file) != 0)
-	    goto bad_report;
+	    {
+	      free (last_file);
+	      goto bad_report;
+	    }
 	  high = end;
 	}
       else
@@ -414,7 +422,7 @@ dwfl_linux_proc_find_elf (Dwfl_Module *mod __attribute__ ((unused)),
       if (fd < 0)
 	goto detach;
 
-      *elfp = elf_from_remote_memory (base, getpagesize (), NULL,
+      *elfp = elf_from_remote_memory (base, sysconf (_SC_PAGESIZE), NULL,
 				      &read_proc_memory, &fd);
 
       close (fd);

@@ -1,5 +1,5 @@
 /* Write changed data structures.
-   Copyright (C) 2000-2010, 2014, 2015 Red Hat, Inc.
+   Copyright (C) 2000-2010, 2014, 2015, 2016 Red Hat, Inc.
    This file is part of elfutils.
    Written by Ulrich Drepper <drepper@redhat.com>, 2000.
 
@@ -39,7 +39,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <sys/param.h>
 
 #include <system.h>
 #include "libelfP.h"
@@ -269,6 +268,7 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 	      void *p = malloc (sizeof (ElfW2(LIBELFBITS,Shdr)));
 	      if (unlikely (p == NULL))
 		{
+		  free (scns);
 		  __libelf_seterrno (ELF_E_NOMEM);
 		  return -1;
 		}
@@ -295,6 +295,7 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 	      void *p = malloc (scn->data_list.data.d.d_size);
 	      if (unlikely (p == NULL))
 		{
+		  free (scns);
 		  __libelf_seterrno (ELF_E_NOMEM);
 		  return -1;
 		}
@@ -342,8 +343,9 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 		  {
 		    fill_mmap (dl->data.d.d_off, last_position, scn_start,
 		               shdr_start, shdr_end);
-		    last_position = scn_start + dl->data.d.d_off;
 		  }
+
+		last_position = scn_start + dl->data.d.d_off;
 
 		if ((scn->flags | dl->flags | elf->flags) & ELF_F_DIRTY)
 		  {
@@ -351,8 +353,6 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 		       layout with overlaps.  We'll overwrite the stupid
 		       user's section data with the latest one, rather than
 		       crashing.  */
-
-		    last_position = scn_start + dl->data.d.d_off;
 
 		    if (unlikely (change_bo))
 		      {
@@ -727,6 +727,8 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
 		      }
 		  }
 
+		last_offset = scn_start + dl->data.d.d_off;
+
 		if ((scn->flags | dl->flags | elf->flags) & ELF_F_DIRTY)
 		  {
 		    char tmpbuf[MAX_TMPBUF];
@@ -736,8 +738,6 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
 		       layout with overlaps.  We'll overwrite the stupid
 		       user's section data with the latest one, rather than
 		       crashing.  */
-
-		    last_offset = scn_start + dl->data.d.d_off;
 
 		    if (unlikely (change_bo))
 		      {

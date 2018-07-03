@@ -1,3 +1,848 @@
+2018-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_next_cfi.c (dwarf_next_cfi): Check whether length is zero.
+
+2018-06-27  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (check_section): Allow a single .debug_frame
+	section.
+
+2018-06-26  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.h (dwarf_getscn_info): Remove.
+	* libdw.map (ELFUTILS_0.122): Remove dwarf_getscn_info.
+
+2018-06-25  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libdw_a_SOURCES): Add dwarf_next_lines.c.
+	* libdw.h (dwarf_next_lines): New function declaration.
+	* libdw.map (ELFUTILS_0.173): New section.
+	* dwarf_next_lines.c: New files.
+	* dwarf_begin_elf.c (check_section): Don't error out when elf
+	decompression fails.
+	(valid_p): Allow just a single .debug_line section.
+	* dwarf_getsrclines.c (read_srclines): Keep files relative if comp_dir
+	is missing.
+
+2018-06-22  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_nextcu.c (__libdw_next_unit): Set next_off to -1 when it would
+	wrap around.
+
+2018-06-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_aggregate_size.c (array_size): New depth argument. Use
+	aggregate_size instead of dwarf_aggregate_size and pass depth.
+	(aggregate_size): New depth argument. Check depth isn't bigger
+	than MAX_DEPTH (256). Pass depth to recursive calls.
+	(dwarf_aggregate_size): ass zero as depth to aggregate_size.
+
+2018-06-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_peel_type.c (dwarf_peel_type): Limit modifier chain to 64.
+
+2018-06-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_aggregate_size.c (aggregate_size): Check die is not NULL.
+
+2018-06-17  Luiz Angelo Daros de Luca  <luizluca@gmail.com>
+
+	* dwarf_getsrclines.c (read_srclines): Intialize filelist early.
+
+2018-06-15  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation.c (check_constant_offset): Clarify DW_FORM_data16
+	isn't really a constant.
+	(dwarf_getlocation): Don't handle DW_FORM_data16 as block.
+	(dwarf_getlocation_addr): Likewise.
+	(dwarf_getlocations): Likewise.
+
+2018-06-12  Mark Wielaard  <mark@klomp.org>
+
+	* memory-access.h (read_3ubyte_unaligned_inc): New define.
+
+2018-06-12  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.h (__libdw_dieabbrev): Set die->abbrev to DWARF_END_ABBREV
+	on failure.
+
+2018-06-10  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_attr_integrate.c (dwarf_attr_integrate): Stop after 16 DIE
+	ref chains.
+	* dwarf_hasattr_integrate.c (dwarf_hasattr_integrate): Likewise.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getabbrev.c (dwarf_getabbrev): Check die and offset.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_get_units.c (dwarf_get_units): Handle existing error, no
+	dwarf.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation.c (store_implicit_value): Return error when
+	seeing bad DWARF or when tsearch runs out of memory.
+	(__libdw_intern_expression): Report error when store_implicit_value
+	reported an error.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getsrclines.c (read_srclines): Sanity check ndirs and nfiles.
+
+2018-06-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation_attr.c (addr_valp): Set error and return NULL
+	when there is no .debug_addr section.
+	(dwarf_getlocation_attr): If addr_valp returns NULL, then return -1.
+
+2018-06-07  Mark Wielaard  <mark@klomp.org>
+
+	* libdw_findcu.c (__libdw_intern_next_unit): Report DWARF_E_VERSION,
+	not DWARF_E_INVALID_DWARF on unknown version. Set address_size and
+	offset_size to 8 when unknown.
+
+2018-06-06  Mark Wielaard  <mark@klomp.org>
+
+	* libdwP.h (__libdw_dieabbrev): Check DIE addr falls in cu.
+
+2018-06-06  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation_die.c (dwarf_getlocation_die): Check offset
+	falls inside cu data.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getsrclines.c (read_srclines): Explicitly set diridx to -1
+	in case dwarf_formudata fails.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getaranges (dwarf_getaranges): Free new_arange if
+	__libdw_findcu fails.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getsrclines.c (read_srclines): Define dirarray early and
+	check whether or not it is equal to dirstack on exit/out before
+	cleanup.
+
+2018-06-05  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getalt.c (find_debug_altlink): id_path array should be 2
+	larger to contain MAX_BUILD_ID_BYTES.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* libdw_find_split_unit.c (try_split_file): New function extracted
+	from...
+	(__libdw_find_split_unit): ... here. Try both the relative and
+	absolute paths to find a .dwo file.
+
+2018-05-30  Mark Wielaard  <mark@klomp.org>
+
+	* libdw/dwarf_getsrclines.c (read_srclines): Change ndir and
+	ndirlist to size_t. Add check to see ndirlist doesn't overflow.
+
+2018-05-31  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_dieoffset.c: Check die->cu != NULL. Return -1, not ~0ul
+	on failure.
+
+2018-05-29  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_cuoffset.c (dwarf_cuoffset): Check die->cu is not NULL.
+	* dwarf_die_addr_die.c (dwarf_die_addr_die): Also search split
+	Dwarfs.
+	* libdwP.h (struct Dwarf): Add split_tree field.
+	(__libdw_find_split_dbg_addr): New internal function definition.
+	(__libdw_finddbg_cb): Likewise.
+	* libdw_find_split_unit.c (__libdw_find_split_unit): Insert split
+	Dwarf into skeleton dbg split_tree.
+	* libdw_findcu.c (__libdw_finddbg_cb): New function.
+	(__libdw_find_split_dbg_addr): Likewise.
+	* dwarf_end (dwarf_end): Destroy split_tree.
+
+2018-05-29  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add GNU DebugFission list entry encodings
+	DW_LLE_GNU_end_of_list_entry,
+	DW_LLE_GNU_base_address_selection_entry,
+	DW_LLE_GNU_start_end_entry and DW_LLE_GNU_start_length_entry.
+	* dwarf_ranges.c (__libdw_read_begin_end_pair_inc): Handle
+	GNU DebugFission list entries.
+
+2018-05-28  Mark Wielaard  <mark@klomp.org>
+
+	* libdw_find_split_unit.c (__libdw_find_split_unit): End split_dwarf
+	only after we tried every unit id in it.
+
+2018-04-07  Mark Wielaard  <mark@klomp.org>
+
+	* libdwP.h (struct Dwarf_CU): Add locs_base.
+	(__libdw_cu_locs_base): New static inline function.
+	* libdw_findcu.c (__libdw_intern_next_unit): Initialize locs_base.
+	* dwarf_begin_elf.c (valid_p): Create fake_loclists_cu if necessary.
+	* dwarf_end.c (dwarf_end): Clean up fake_loclists_cu.
+	* dwarf_getlocation.c (initial_offset): Handle .debug_loclists.
+	(getlocations_addr): Likewise.
+	(dwarf_getlocation_addr): Likewise.
+	* dwarf_getlocation_attr.c (attr_form_cu): Use fake_loclists_cu for
+	DWARF5.
+	(initial_offset): Handle DW_FORM_loclistx.
+	* dwarf_ranges.c (__libdw_read_begin_end_pair_inc): Handle
+	.debug_loclists.
+	* libdwP.h (struct Dwarf): Add fake_loclists_cu.
+
+2018-04-12  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DWARF5 location list entry DW_LLE encodings.
+	* begin_elf.c (dwarf_scnnames): Add IDX_debug_loclists.
+	* dwarf_error.c (errmsgs): Remove DWARF_E_NO_LOCLIST. And replace
+	with DWARF_E_NO_DEBUG_LOC, DWARF_E_NO_DEBUG_LOCLISTS and
+	DWARF_E_NO_LOC_VALUE.
+	* dwarf_formudata.c (dwarf_formudata): Handle DW_AT_loclists_base
+	and DW_FORM_loclistx.
+	* dwarf_getlocation.c (attr_ok): Use DWARF_E_NO_LOC_VALUE.
+	(initial_offset): Use DWARF_E_NO_DEBUG_LOC.
+	* libdwP.h: Add IDX_debug_rnglists. Remove DWARF_E_NO_LOCLIST.
+	Add DWARF_E_NO_DEBUG_LOC, DWARF_E_NO_DEBUG_LOCLISTS and
+	DWARF_E_NO_LOC_VALUE.
+
+2018-05-25  Mark Wielaard  <mark@klomp.org>
+
+	* libdw_find_split_unit.c (__libdw_find_split_unit): Extract linking
+	skeleton and split compile units code into...
+	* libdwP (__libdw_link_skel_split): ...this new function.
+
+2018-04-06  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_formaddr.c (__libdw_addrx): New function, extracted from...
+	(dwarf_formaddr): here. Use __libdw_addrx.
+	* dwarf_getlocation.c (getlocations_addr): Pass cu to
+	__libdw_read_begin_end_pair_inc.
+	* dwarf_ranges.c (__libdw_read_begin_end_pair_inc): Take cu as
+	argument. Handle .debug_rnglists.
+	(initial_offset): Handle .debug_rnglists and DW_FORM_rnglistx.
+	(dwarf_ranges): Likewise. Check cu isn't NULL before use. Pass cu to
+	__libdw_read_begin_end_pair_inc.
+	* libdwP.h (__libdw_read_begin_end_pair_inc): Take cu as argument.
+	(__libdw_cu_ranges_base): Handle DW_AT_rnglists_base.
+	(__libdw_addrx): New function definition.
+
+2018-04-11  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DWARF5 range list entry DW_RLE encodings.
+	* begin_elf.c (dwarf_scnnames): Add IDX_debug_rnglists.
+	* dwarf_error.c (errmsgs): Add DWARF_E_NO_DEBUG_RNGLISTS.
+	* dwarf_formudata.c (dwarf_formudata): Handle DW_AT_rnglists_base
+	and DW_FORM_rnglistx.
+	* dwarf_getscopes.c (pc_match): Also check for
+	DWARF_E_NO_DEBUG_RNGLISTS.
+	* libdwP.h: Add IDX_debug_rnglists.
+
+2018-05-25  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation_attr.c (__libdw_cu_addr_base): Cast offset to
+	uintptr_t before returning as pointer.
+
+2018-05-22  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation.c (__libdw_cu_base_address): Treat errors of
+	getting lowpc or entrypc the same as missing base address (zero).
+	* dwarf_highpc (dwarf_highpc): Handle any address form. Always set
+	error when attribute could not be found.
+
+2018-05-21  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (valid_p): Add a fake_addr_cu to the result.
+	* dwarf_end.c (cu_free): Disconnect the fake_addr_cu from the split
+	dwarf if shared with skeleton.
+	(dwarf_end): release fake_addr_cu.
+	* dwarf_formaddr.c (__libdw_cu_addr_base): Move to...
+	* libdwP.h (__libdw_cu_addr_base): ... here.
+	(struct Dwarf): Add fake_addr_cu field.
+	* dwarf_formudata.c (dwarf_formudata): Handle
+	DW_FORM_GNU_addr_index and DW_FORM_addrx[1234].
+	* dwarf_getlocation_attr.c (addr_valp): New static function.
+	(dwarf_getlocation_attr): Create attribute for values of
+	DW_OP_GNU_const_index, DW_OP_constx and DW_OP_GNU_addr_index and
+	DW_OP_addrx.
+	* libdw_find_split_unit.c (__libdw_find_split_unit): Connect
+	IDX_debug_addr sectiondata and fake_addr_cu between split and
+	skeleton.
+
+2018-05-20  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_cu_info.c: New file.
+	* Makefile.am (libdw_a_SOURCES): Add dwarf_cu_info.c.
+	* libdw.h (dwarf_cu_info): New function declaration.
+	* libdw.map (ELFUTILS_0.171): Add dwarf_cu_info.
+
+2018-05-24  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_ranges.c (dwarf_ranges): Check for NULL cu.
+	* libdw_findcu.c (__libdw_intern_next_unit): Initialize ranges_base.
+
+2018-05-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_formudata.c (__libdw_formptr): Handle the special case
+	of IDX_debug_ranges for DW_UT_split_compile with version < 5.
+	* dwarf_highpc.c (dwarf_highpc): Use dwarf_lowpc, check for
+	split compile cudie.
+	* dwarf_lowpc.c (dwarf_lowpc): Check for split compile cudie.
+	* dwarf_ranges.c (dwarf_ranges): Switch cu and sectiondata for
+	split compile units.
+	* libdwP.h (struct Dwarf_CU): Add ranges_base field.
+	(__libdw_cu_ranges_base): New static inline function.
+
+2018-05-18  Mark Wielaard  <mark@klomp.org>
+
+	* libdw_findcu.c (__libdw_intern_next_unit): Init files to NULL.
+	* dwarf_getsrclines.c (dwarf_getsrclines): Handle split units by
+	taking the line table from the skeleton.
+	* dwarf_getsrcfiles.c (dwarf_getsrcfiles): Handle split units by
+	only taking the files from .debug_line offset zero (if it exists),
+	otherwise fall back to the skeleton.
+
+2018-05-17  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (__libdw_debugdir): New function.
+	(valid_p): Call __libdw_debugdir.
+	* dwarf_end.c (dwarf_end.c): Free debugdir.
+	* dwarf_getalt.c (__libdw_filepath): Extract __libdw_debugdir logic.
+	take debugdir as argument instead of fd.
+	(find_debug_altlink): Call __libdw_filepath with debugdir.
+	* libdwP.h (struct Dwarf): Add debugdir field.
+	(__libdw_debugdir): New function prototype.
+	(__libdw_filepath): Adjust prototype to take a const char * instead of
+	an int.
+	* libdw_find_split_unit.c (__libdw_find_split_unit): Call
+	__libdw_filepath with debugdir.
+
+2018-05-17  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_attr_integrate.c (dwarf_attr_integrate): Handle split_compile
+	unit DIE, search skeleton_compile unit DIE.
+	* dwarf_hasattr_integrate.c (dwarf_hasattr_integrate): Likewise.
+	* libdwP.h (is_cudie): Check cu is not NULL.
+
+2018-05-19  Mark Wielaard  <mark@klomp.org>
+
+	* libdwP.h (__libdw_find_split_unit): Mark as internal_function.
+
+2018-05-15  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libdw_a_SOURCES): Add libdw_find_split_unit.c.
+	* dwarf_end.c (cu_free): Free split Dwarf.
+	* dwarf_get_units.c (dwarf_get_units): Handle DW_UT_skeleton by
+	calling __libdw_find_split_unit.
+	* libdwP.h (struct Dwarf_CU): Add split Dwarf_CU field.
+	(__libdw_find_split_unit): New function prototype.
+	(str_offsets_base_off): Use cu Dwarf if dbg is NULL.
+	(filepath): Rename to ...
+	(__libdw_filepath): This. Which is the actual function name in
+	dwarf_getalt.c.
+	(libdw_find_split_unit.c): New file.
+	* libdw_findcu.c (__libdw_intern_next_unit): Initialize split to -1.
+
+2018-05-15  Mark Wielaard  <mark@klomp.org>
+
+	* libdwP.h (__libdw_first_die_from_cu_start): Adjust commented out
+	asserts.
+	* libdw_findcu.c (__libdw_intern_next_unit): For version 4 DWARF if
+	the cudie has a DW_AT_GNU_dwi_id set the unit_id8 and unit_type to
+	DW_UT_skeleton or DW_UT_split_compile based on whether the cudie has
+	child DIEs and a DW_AT_GNU_dwo_name attribute.
+
+2018-05-14  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add GNU Debug Fission extensions. DW_AT_GNU_dwo_name,
+	DW_AT_GNU_dwo_id, DW_AT_GNU_ranges_base, DW_AT_GNU_addr_base,
+	DW_AT_GNU_pubnames, DW_AT_GNU_pubtypes. DW_FORM_GNU_addr_index,
+	DW_FORM_GNU_str_index. DW_OP_GNU_addr_index, DW_OP_GNU_const_index.
+	* dwarf_formaddr.c (dwarf_formaddr): Handle DW_FORM_GNU_addr_index
+	as DW_FORM_addrx.
+	(__libdw_cu_addr_base): Check for both DW_AT_GNU_addr_base and
+	DW_AT_addr_base.
+	* dwarf_formstring.c (dwarf_formstring): Handle DW_FORM_GNU_str_index
+	as DW_FORM_strx.
+	* dwarf_formudata.c (dwarf_formudata): Recognize DW_AT_GNU_addr_base
+	as addrptr. Recognize DW_AT_GNU_ranges_base as rangelistptr.
+	* dwarf_getlocation.c (__libdw_intern_expression): Handle
+	DW_OP_GNU_addr_index as DW_OP_addrx and DW_OP_GNU_const_index as
+	DW_OP_constx.
+	* libdw_form.c (__libdw_form_val_compute_len): Handle
+	DW_FORM_GNU_addr_index and DW_FORM_GNU_str_index taking an uleb128.
+
+2018-05-12  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (check_section): Also recognize .dwo section
+	name variants.
+
+2018-05-11  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_formudata.c (dwarf_formudata): Handle DW_AT_macros as macptr.
+	* dwarf_getmacros.c (get_table_for_offset): Add DW_MACRO_define_sup,
+	DW_MACRO_undef_sup, DW_MACRO_import_sup, DW_MACRO_define_strx and
+	DW_MACRO_undef_strx. Add str_offsets_base_off to fake CU. Deal with
+	DW_AT_macros. Use libdw_valid_user_form.
+
+2018-05-09  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_formstring.c (__libdw_cu_str_off_base): Moved to...
+	* libdwP.h (__libdw_cu_str_off_base): ...here. Make static inline.
+	(str_offsets_base_off): New internal function that also parses
+	.debug_str_offsets header if necessary.
+
+2018-05-11  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_siblingof.c (dwarf_siblingof): Don't reference cu till it is
+	known the Dwarf_Die is came from is valid.
+	* libdwP.h (__libdw_dieabbrev): Check cu is not NULL.
+
+2018-05-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_formref.c (__libdw_formref): Explicitly don't handle
+	DW_FORM_ref_sup4 and DW_FORM_ref_sup8.
+	* dwarf_formref_die.c (dwarf_formref_die): Handle DW_FORM_ref_sup4
+	and DW_FORM_ref_sup8.
+	* dwarf_formstring.c (dwarf_formstring): Handle DW_FORM_strp_sup
+	as DW_FORM_GNU_strp_alt.
+
+2018-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DWARF line content descriptions.
+	* libdwP.h (libdw_valid_user_form): New static function.
+	* dwarf_getsrclines.c (read_srclines): Check and parse version 5
+	DWARF header, dir and file tables separately from older versions
+	where different.
+
+2018-04-24  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (dwarf_scnnames): Add ".debug_line_str".
+	* dwarf_error.c (errmsgs): Add DWARF_E_NO_DEBUG_STR and
+	DWARF_E_NO_DEBUG_LINE_STR.
+	* dwarf_formstring.c (dwarf_formstring): Handle DW_FORM_line_strp.
+	Get data from either .debug_str or .debug_line_str.
+	* libdwP.h: Add IDX_debug_line_str, DWARF_E_NO_DEBUG_STR and
+	DWARF_E_NO_DEBUG_LINE_STR.
+
+2018-04-03  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_formudata.c (__libdw_formptr): Take and return const
+	unsigned char pointers.
+	* dwarf_getlocation.c (attr_base_address): Rename to...
+	(__libdw_cu_base_address): this. Take Dwarf_CU, check and set
+	base_address.
+	(initial_offset_base): Renamed to...
+	(initial_offset): this. Only provide offset.
+	(getlocations_addr): Move data size check and
+	address base addition into __libdw_read_begin_end_pair_inc. Use
+	__libdw_cu_base_address and initial_offset. Drop Elf_Data NULL
+	check (already done by initial_offset, through __libdw_formptr).
+	(dwarf_getlocations): Use __libdw_cu_base_address and initial_offset.
+	Drop Elf_Data NULL check.
+	* dwarf_ranges.c (__libdw_read_begin_end_pair_inc): Change argument
+	type of readp to Add readend argument. Check data size. Include base
+	in begin and end result.
+	(initial_offset): New static function.
+	(dwarf_ranges): Don't check Elf_Data being NULL (already done by
+	initial_offset, through __libdw_formptr). Use __libdw_cu_base_address
+	and initial_offset. Remove base check and addition (already done by
+	__libdw_read_begin_end_pair_inc.
+	* libdwP.h (Dwarf_CU): Add base_address field.
+	(__libdw_read_begin_end_pair_inc): Change argument type of readp to
+	const. Add readend argument.
+	(__libdw_formptr): Take and return const unsigned char pointers.
+	* libdw_findcu.c (__libdw_intern_next_unit): Initialize Dwarf_CU
+	base_address.
+
+2018-04-04  Mark Wielaard  <mark@klomp.org>
+
+	* libdw_findcu.c (__libdw_intern_next_unit): Initialize Dwarf_CU
+	addr_base and str_off_base.
+
+2018-03-23  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (dwarf_scnnames): Add IDX_debug_str_offsets,
+	increase size.
+	* dwarf_error.c (errmsgs): Add DWARF_E_NO_STR_OFFSETS.
+	* dwarf_formstring.c (dwarf_formstring): Handle DW_FORM_strx[1234].
+	(__libdw_cu_str_off_base): New function.
+	* dwarf_formudata.c (dwarf_formudata): Handle IDX_debug_str_offsets
+	as stroffsetsptr.
+	* libdwP.h: Add IDX_debug_str_offsets and DWARF_E_NO_STR_OFFSETS.
+	(struct Dwarf_CU): Add str_off_base field.
+	(__libdw_cu_str_off_base): New function declaration.
+
+2018-03-22  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (dwarf_scnnames): Add IDX_debug_addr.
+	* dwarf_error.c (errmsgs): Add DWARF_E_NO_DEBUG_ADDR.
+	* dwarf_formaddr.c (dwarf_formaddr): Handle DW_FORM_addrx[1234].
+	(__libdw_cu_addr_base): New function.
+	* dwarf_formudata.c (dwarf_formudata): Handle DW_AT_addr_base as
+	addrptr.
+	* libdwP.h: Add IDX_debug_addr and DWARF_E_NO_DEBUG_ADDR.
+	(struct Dwarf_CU): Add addr_base field.
+	(__libdw_cu_addr_base): New function definition.
+	* memory-access.h (file_byte_order): New static function.
+	(read_3ubyte_unaligned): New inline function.
+
+2018-03-29  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.h (dwarf_decl_file): Extend documentation.
+	(dwarf_linesrc): Likewise.
+	(dwarf_filesrc): Likewise.
+
+2018-03-06  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_OP_implicit_pointer, DW_OP_addrx, DW_OP_constx,
+	DW_OP_entry_value, DW_OP_const_type, DW_OP_regval_type,
+	DW_OP_deref_type, DW_OP_xderef_type, DW_OP_convert and
+	DW_OP_reinterpret.
+	* dwarf_getlocation.c (__libdw_intern_expression): Handle
+	DW_OP_convert, DW_OP_reinterpret, DW_OP_addrx, DW_OP_constx,
+	DW_OP_regval_type, DW_OP_entry_value, DW_OP_implicit_pointer,
+	DW_OP_deref_type, DW_OP_xderef_type and DW_OP_const_type.
+	* dwarf_getlocation_attr.c (dwarf_getlocation_attr): Handle
+	DW_OP_entry_value, DW_OP_const_type and DW_OP_implicit_pointer.
+	* dwarf_getlocation_die.c (dwarf_getlocation_die): Handle
+	DW_OP_implicit_pointer, DW_OP_convert, DW_OP_reinterpret,
+	DW_OP_const_type, DW_OP_regval_type, DW_OP_deref_type and
+	DW_OP_xderef_type.
+	* dwarf_getlocation_implicit_pointer.c
+	(dwarf_getlocation_implicit_pointer): Handle DW_OP_implicit_pointer.
+
+2018-03-01  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_AT_GNU_locviews and DW_AT_GNU_entry_view.
+	* dwarf_formudata.c (dwarf_formudata): Handle DW_AT_GNU_locviews
+	as a loclistptr.
+
+2018-02-09  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_formblock.c (dwarf_formblock): Handle DW_FORM_data16 as a
+	16 byte block.
+
+2018-02-09  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_child.c (__libdw_find_attr): Handle DW_FORM_implicit_const.
+	* dwarf_formsdata.c (dwarf_formsdata): Likewise.
+	* dwarf_formudata.c (dwarf_formudata): Likewise.
+	* dwarf_getabbrev.c (__libdw_getabbrev): Likewise.
+	* dwarf_getattrs.c (dwarf_getattrs): Likewise.
+	* dwarf_hasattr.c (dwarf_hasattr): Likewise.
+	* dwarf_getabbrevattr.c (dwarf_getabbrevattr_data): New function
+	that will also return any data associated with the abbrev. Which
+	currently is only for DW_FORM_implicit_const. Based on...
+	(dwarf_getabbrevattr): ... this function. Which now just calls
+	dwarf_getabbrevattr_data.
+	* libdw.h (dwarf_getabbrevattr_data): Declare new function.
+	* libdw.map (ELFUTILS_0.170): Add dwarf_getabbrevattr_data.
+	* libdwP.h (dwarf_getabbrevattr_data): INTDECL.
+	* memory-access.h (__libdw_get_sleb128_unchecked): New inlined
+	function based on __libdw_get_uleb128_unchecked.
+
+2018-02-08  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DWARF5 DW_FORMs.
+	* libdwP.h (__libdw_form_val_compute_len): Handle fix length
+	DW_FORM_implicit_const, DW_FORM_addrx[1234], DW_FORM_strx[1234],
+	DW_FORM_ref_sup[48] and DW_FORM_data16.
+	* libdw_form.c (__libdw_form_val_compute_len): DW_FORM_strp_sup
+	and DW_FORM_line_strp are offset_size. DW_FORM_addrx, DW_FORM_strx,
+	DW_FORM_loclistx and DW_FORM_rnglistx are uleb128.
+
+2018-01-30  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libdw_a_SOURCES): Add dwarf_get_units.c.
+	* dwarf_get_units.c: New file.
+	* libdw.h (dwarf_get_units): New function declaration.
+	* libdw.map (ELFUTILS_0.170): Add dwarf_get_units.
+
+2018-01-29  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h (DW_UT_*): Add DWARF Unit Header Types.
+	* dwarf_cu_die.c (dwarf_cu_die): Rename arguments. type_signaturep
+	is now called unit_idp. type_offsetp is now called subdie_offsetp.
+	* dwarf_formref_die.c (dwarf_formref_die): Scan both .debug_info
+	and .debug_types sections for type units when type signature ref
+	not found.
+	* dwarf_getaranges.c (dwarf_getaranges): Use __libdw_findcu and
+	__libdw_first_die_off_from_cu instead of trying by hand.
+	* dwarf_getlocation_die.c (dwarf_getlocation_die): Use ISV4TU
+	instead of checking type_offset by hand.
+	* dwarf_getlocation_implicit_pointer.c
+	(dwarf_getlocation_implicit_pointer): Likewise.
+	* dwarf_nextcu.c (dwarf_next_unit): Call __libdw_next_unit.
+	(__libdw_next_unit): New function based on dwarf_next_unit with
+	DWARF5 header support.
+	* libdwP.h (struct Dwarf_CU): Renamed type_offset to subdie_offset
+	and type_sig8 to unit_id8.
+	(ISV4TU): New macro to determine whether a CU is a version 4 type
+	unit (which comes from the .debug_types section).
+	(DIE_OFFSET_FROM_CU_OFFSET): Replaced macro by real function...
+	(__libdw_first_die_from_cu_start): ... that also handles DWARF5
+	unit headers.
+	(__libdw_first_die_off_from_cu): New function that calls the above
+	using the CU fields.
+	(CUDIE): Use __libdw_first_die_off_from_cu.
+	(SUBDIE): New macro that provides the DIE for a CU using the
+	subdie_offset.
+	(__libdw_next_unit): New internal function declaration.
+	* libdw_findcu.c (__libdw_intern_next_unit): Use __libdw_next_unit.
+	Accept DWARF version 5 headers. Setup unit_type.
+	(__libdw_findcu): Rename debug_types argument to v4_debug_types
+	argument (to indicate that we are looking in the .debug_types
+	section). Support finding the exact offset (unit header start).
+
+2018-01-25  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libdw_a_SOURCES): Add dwarf_die_addr_die.c.
+	* dwarf_die_addr_die.c: New file.
+	* libdw.h (dwarf_die_addr_die): New function declaration.
+	* libdw.map (ELFUTILS_0.171): New section with dwarf_die_addr_die.
+	* libdwP.h (__libdw_findcu_addr): New internal function declaration.
+	* libdw_findcu.c (__libdw_findcu_addr): New internal function.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* cfi.c (execute_cfi): Use FALLTHROUGH macro instead of comment.
+	* dwarf_frame_register.c (dwarf_frame_register): Likewise.
+
+2018-01-22  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (AM_CPPFLAGS): Add -I libdwelf.
+	* dwarf_begin_elf.c (dwarf_begin_elf): Initialize Dwarf alt_fd to -1.
+	* dwarf_end.c (dwarf_end): Call dwarf_end and close on the alt_dwarf
+	and alt_fd if we allocated them.
+	* dwarf_fromref_die.c (dwarf_formref_die): Call dwarf_getalt.
+	* dwarf_formstring.c (dwarf_formstring): Likewise.
+	* dwarf_getalt.c (__libdw_filepath): New internal function.
+	(find_debug_altlink): New static function.
+	(dwarf_getalt): Check Dwarf alt_dwarf and call find_debug_altlink.
+	Cache result.
+	* dwarf_setalt.c (dwarf_setalt): Clean up Dwarf alt_dwarf and alt_fd
+	if we allocated.
+	* libdw.h (dwarf_getalt): Extend documentation.
+	(dwarf_setalt): Likewise.
+	* libdwP.h (struct Dwarf): Add alt_fd field.
+	(filepath): Declare new internal function.
+
+2018-01-14  Petr Machata  <pmachata@gmail.com>
+
+	* dwarf_formsdata.c (dwarf_formsdata):
+	<DW_FORM_data1>: Cast to signed char.
+	<DW_FORM_data2,4,8>: Use read_*sbyte_unaligned instead of
+	read_*ubyte_unaligned.
+
+2017-12-26  Mark Wielaard  <mark@klomp.org>
+
+	* libdwP.h (struct Dwarf_Abbrev): Pack struct. Remove attrcnt,
+	use bitfields for has_children and code.
+	* dwarf_getabbrev.c (__libdw_getabbrev): Don't count attrs.
+	* dwarf_getattrcnt.c (dwarf_getattrcnt): Count attrs.
+
+2017-12-26  Mark Wielaard  <mark@klomp.org>
+
+	* memory-access.h (__libdw_get_uleb128_unchecked): New function.
+	(get_uleb128_unchecked): New define.
+	* dwarf_child.c (__libdw_find_attr): Use get_uleb128_unchecked to
+	read attr name and form.
+	* dwarf_getabbrevattr.c (dwarf_getabbrevattr): Likewise.
+	* dwarf_getattrs.c (dwarf_getattrs): Likewise.
+	* dwarf_hasattr.c (dwarf_hasattr): Likewise.
+
+2017-12-28  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_offdie.c (__libdw_offdie): Check sectiondata exists.
+
+2017-05-09  Ulf Hermann  <ulf.hermann@qt.io>
+	    Mark Wielaard  <mark@klomp.org>
+
+	* libdwP.h (__libdw_in_section): Fix check for the upper border of
+	the range.
+	(__libdw_offset_in_section): Likewise.
+
+2017-12-20  Mark Wielaard  <mark@klomp.org>
+
+	* libdwP.h (struct Dwarf_CU): Add sec_idx field.
+	(cu_sec_idx): Return cu->sec_idx.
+	* libdw_findcu.c (__libdw_intern_next_unit): Set cu sec_idx to
+	IDX_debug_info or IDX_debug_types.
+	* dwarf_begin_elf.c (valid_p): Set fake_loc_cu->sec_idx to
+	IDX_debug_loc.
+	* dwarf_getmacros.c (read_macros): Set fake_cu->sec_idx to
+	IDX_debug_macro or IDX_debug_macinfo.
+
+2017-12-12  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_aggregate_size.c (dwarf_aggregate_size): Don't peel the
+	given DIE. Reserve memory for a new DIE first.
+
+2017-12-11  Dima Kogan  <dima@secretsauce.net>
+
+	* dwarf_aggregate_size.c (array_size): Handle multi-dimensional
+	arrays properly.
+
+2017-11-03  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation.c (__libdw_intern_expression): Handle
+	DW_OP_GNU_variable_value.
+	* dwarf_getlocation_attr.c (dwarf_getlocation_attr): Likewise.
+	* dwarf_getlocation_die.c (dwarf_getlocation_die): Likewise.
+
+2017-11-03  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation.c (attr_ok): Always accept DW_FORM_exprloc.
+	Update list of acceptable attribute codes based on DWARF5.
+
+2017-11-03  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_OP_GNU_variable_value.
+
+2017-10-03  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.h: Define LIBDW_CIE_ID and use it in dwarf_cfi_cie_p.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* memory-access.h: Use attribute_packed.
+
+2017-02-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libdwP.h: Use attribute_hidden.
+	* libdw_alloc.c: Likewise.
+
+2017-02-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpic_CFLAGS and dso_LDFLAGS.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_MACRO_* and compat defines for DW_MACRO_GNU_*.
+	* dwarf_getmacros.c (get_table_for_offset): Accept either version
+	4 or 5. Use DW_MACRO names instead of DW_MACRO_GNU names.
+	(read_macros): Use table version for fake_cu.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_peel_type.c (dwarf_peel_type): Handle DW_TAG_immutable_type,
+	DW_TAG_packed_type and DW_TAG_shared_type.
+	* libdw.h (dwarf_peel_type): Extend documentation.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_DEFAULTED_no, DW_DEFAULTED_in_class and
+	DW_DEFAULTED_out_of_class.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_CC_pass_by_reference and DW_CC_pass_by_reference.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_default_lower_bound.c: New file.
+	* Makefile.am (libdw_a_SOURCES): Add dwarf_default_lower_bound.c.
+	* dwarf_aggregate_size.c (array_size): Use dwarf_default_lower_bound.
+	* dwarf_error.c (errmsgs): Add DWARF_E_UNKNOWN_LANGUAGE.
+	* libdw.h: Add dwarf_default_lower_bound.
+	* libdw.map (ELFUTILS_0.170): Add dwarf_default_lower_bound.
+	* libdwP.h: Add DWARF_E_UNKNOWN_LANGUAGE and
+	dwarf_default_lower_bound INTDECL.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_LANG_OpenCL, DW_LANG_Modula3,
+	DW_LANG_C_plus_plus_03, DW_LANG_OCaml, DW_LANG_Rust, DW_LANG_Swift,
+	DW_LANG_Julia, DW_LANG_Dylan, DW_LANG_RenderScript, DW_LANG_BLISS.
+	* dwarf_aggregate_size.c (array_size): Add lower bound for
+	DW_LANG_C_plus_plus_03, DW_LANG_Python, DW_LANG_OpenCL,
+	DW_LANG_Haskell, DW_LANG_OCaml, DW_LANG_Rust, DW_LANG_Swift,
+	DW_LANG_Dylan, DW_LANG_RenderScript, DW_LANG_Modula3,
+	DW_LANG_Julia and DW_LANG_BLISS.
+
+2017-07-26  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_ATE_UCS and DW_ATE_ASCII.
+
+2017-07-25  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_TAG_coarray_type, DW_TAG_generic_subrange,
+	DW_TAG_dynamic_type, DW_TAG_call_site, DW_TAG_call_site_parameter,
+	DW_TAG_skeleton_unit, DW_TAG_immutable_type. Add reserved comments
+	for currently unused numbers.
+
+2017-07-25  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h (DWARF attributes enum): Remove DW_AT_subscr_data,
+	DW_AT_element_list and DW_AT_member. Add DWARF5 attribute constants.
+	(DW_AT_subscr_data, DW_AT_element_list, DW_AT_member): New defines.
+
+2017-07-21  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_line_file.c: New file.
+	* Makefile.am (libdw_a_SOURCES): Add dwarf_line_file.c.
+	* libdw.h (dwarf_line_file): New function declaration.
+	* libdw.map (ELFUTILS_0.170): New. Add dwarf_line_file.
+
+2017-02-17  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Add libdw_so_LIBS to specify the archives libdw is is
+	made of, libdw_so_DEPS for libraries it depends on (including
+	libeu.a), libdw_so_LDLIBS to specify libraries libdw links against.
+	(libdw.so$(EXEEXT)): Add $(libdw_so_LDLIBS), remove enumeration of
+	library dependencies, use libdw_so_LIBS rather than relying on the
+	order of dependencies specified, add -z,relro.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* libdw.h: Remove attribute macro declarations and use
+	__noreturn_attribute__ as defined in libelf.h.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* dwarf_begin_elf.c: Include endian.h.
+
+2017-03-30  Mark Wielaard  <mjw@redhat.com>
+
+	* dwarf_peel_type.c (dwarf_peel_type): Call dwarf_attr_integrate on
+	result.
+
+2016-10-22  Mark Wielaard  <mjw@redhat.com>
+
+	* dwarf.h: Correct spelling of DW_LANG_PLI. Add compatibility define.
+	* dwarf_aggregate_size.c (array_size): Use correct spelling of
+	DW_LANG_PLI.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* cfi.c (execute_cfi): Add fallthrough comments.
+	* encoded-value.h (encoded_value_size): Add explicit return instead
+	of relying on fallthrough.
+	* dwfl_report_elf.c (__libdwfl_elf_address_range): Add fallthrough
+	comment.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* dwarf_getpubnames.c: Remove sys/param.h include, add system.h.
+	* libdw_alloc.c: Likewise.
+
+2016-07-08  Mark Wielaard  <mjw@redhat.com>
+
+	* libdw.map (ELFUTILS_0.167): New. Add dwelf_strtab_init,
+	dwelf_strtab_add, dwelf_strtab_add_len, dwelf_strtab_finalize,
+	dwelf_strent_off, dwelf_strent_str and dwelf_strtab_free.
+
+2016-02-13  Mark Wielaard  <mjw@redhat.com>
+
+	* dwarf_getsrclines.c (read_srclines): Calculate ndirs first, then
+	assign to ndirlist.
+
 2015-12-18  Mark Wielaard  <mjw@redhat.com>
 
 	* libdwP.h (struct Dwarf): Remove sectiondata_gzip_mask.

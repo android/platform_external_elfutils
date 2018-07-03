@@ -37,8 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "system.h"
-
+#include "libeu.h"
+#include "color.h"
 
 /* Prototype for option handler.  */
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
