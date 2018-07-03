@@ -22,6 +22,30 @@
       "revId": "396fbaf25ee29977efc24cd39544bd7a5e92195a",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e193344_d3f38127",
+        "filename": "config.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1307957
+      },
+      "writtenOn": "2018-07-03T16:16:58Z",
+      "side": 0,
+      "message": "Done\n\nBut why use a macro here instead of \"sizeof(long)\" directly?",
+      "parentUuid": "b99b492d_cd5418ea",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 0
+      },
+      "revId": "396fbaf25ee29977efc24cd39544bd7a5e92195a",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
     }
   ]
 }
