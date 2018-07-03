@@ -46,6 +46,30 @@
       "revId": "396fbaf25ee29977efc24cd39544bd7a5e92195a",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e6a1860c_c985d30e",
+        "filename": "config.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2018-07-03T17:01:25Z",
+      "side": 0,
+      "message": "sometimes you can replace it with that, true, but in general you can\u0027t --- some projects have needed this to be a constant. (if all they needed was sizeof(long) you\u0027d hope that they\u0027d just write sizeof(long) rather than SIZEOF_LONG!)",
+      "parentUuid": "2e193344_d3f38127",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 0
+      },
+      "revId": "396fbaf25ee29977efc24cd39544bd7a5e92195a",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
     }
   ]
 }
