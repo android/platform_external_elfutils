@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b99b492d_cd5418ea",
+        "filename": "config.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2018-07-03T14:58:01Z",
+      "side": 0,
+      "message": "i think you need to reapply this local hack. (this kind of LP32 vs LP64 thing is one of the main problems we have with configure-based projects in the Android tree.)",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 0
+      },
+      "revId": "396fbaf25ee29977efc24cd39544bd7a5e92195a",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
+    }
+  ]
+}
