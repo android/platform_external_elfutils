@@ -1,3 +1,107 @@
+2018-06-01  Mark Wielaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* eu-config.h (FALLTHROUGH): New macro.
+
+2017-10-16  Mark Wielaard  <mark@klomp.org>
+
+	* md5.{c,h}: Removed.
+	* sha1.{c,h}: Likewise.
+	* Makefile.am (libeu_a_SOURCES): Remove md5.c and sha1.c.
+	(noinst_HEADERS): Remove md5.h and sha1.h.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eu-config.h: Define attribute_packed to either
+	__attribute__((packed)) or __attribute__((packed, gcc_struct)).
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* eu-config.h: Define attribute_hidden to be empty if the compiler
+	doesn't support it.
+
+2017-04-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpic_CFLAGS.
+
+2017-07-18  Mark Wielaard  <mark@klomp.org>
+
+	* bpf.h: New file.
+	* Makefile.am (noinst_HEADERS): Add bpf.h
+
+2017-05-05  Mark Wielaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* crc32.c: include config.h.
+	* system.h: Don't include config.h.
+
+2017-02-16  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am (libeu_a_SOURCES): Remove version.c, add printversion.c
+	(noinst_HEADERS): Add printversion.h
+	* version.c: Moved to printversion.c.
+	* printversion.c: New file, moved from version.c,
+	remove stdio.h, argp.h, system.h includes,
+	add printversion.h include.
+	* printversion.h: New file.
+	* system.h: Remove argp.h include,
+	(ARGP_PROGRAM_VERSION_HOOK_DEF, ARGP_PROGRAM_BUG_ADDRESS_DEF): Remove.
+	(print_version): Remove.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* system.h: Provide mempcpy if it doesn't exist.
+	* xstrndup.c: Include system.h.
+
+2017-02-15  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* crc32_file.c: Use _SC_PAGESIZE rather than _SC_PAGE_SIZE.
+
+2017-02-14  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* color.h: New file.
+	* color.c: Include color.h.
+	* libeu.h: Remove color handling.
+	* Makefile.am (noinst_HEADERS): Add color.h.
+
+2016-12-29  Luiz Angelo Daros de Luca  <luizluca@gmail.com>
+
+	* crc32_file.c: Include system.h.
+	* system.h: Remove semi-colon after TEMP_FAILURE_RETRY definition.
+
+2016-12-24  Mark Wielaard  <mark@klomp.org>
+
+	* version.c: New source file.
+	* Makefile.am (libeu_a_SOURCES): Add version.c
+	* system.h (print_version): New function definition.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* fixedsizehash.h (CONCAT): Use __CONCAT when available.
+	* system.h: Include config.h and errno.h.
+	(powerof2): Define if not already defined.
+	(TEMP_FAILURE_RETRY): Define when not yet defined.
+
+2015-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* Makefile.am (noinst_HEADERS): Add libeu.h.
+	* color.c: Remove system.h include, add libeu.h include.
+	* crc32_file.c: Likewise.
+	* fixedsizehash.h: Remove sys/param.h include.
+	* libeu.h: New file.
+	* system.h: Include sys/param.h.
+	(xmalloc, xcalloc, xrealloc, xstrdup, xstrndup, crc32, crc32_file,
+	color_argp, color_enum, color_*): Move definitions to libeu.h.
+	* xstrdup.c: Remove system.h include, add libeu.h include.
+	* xstrndup.c: Remove system.h include, add libeu.h and stdint.h
+	includes.
+
 2015-09-24  Jose E. Marchesi  <jose.marchesi@oracle.com>
 
 	* Makefile.am (AM_CFLAGS): Use -fPIC instead of -fpic to avoid relocation

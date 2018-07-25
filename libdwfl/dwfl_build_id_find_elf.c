@@ -26,10 +26,15 @@
    the GNU Lesser General Public License along with this program.  If
    not, see <http://www.gnu.org/licenses/>.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include "libdwflP.h"
 #include <inttypes.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include "system.h"
 
 
 int
@@ -94,7 +99,7 @@ __libdwfl_open_by_build_id (Dwfl_Module *mod, bool debug, char **file_name,
 	{
 	  if (*file_name != NULL)
 	    free (*file_name);
-	  *file_name = canonicalize_file_name (name);
+	  *file_name = realpath (name, NULL);
 	  if (*file_name == NULL)
 	    {
 	      *file_name = name;

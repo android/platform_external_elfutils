@@ -32,14 +32,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/param.h>
 
+#include <libeu.h>
 #include <system.h>
+#include <color.h>
+#include <printversion.h>
 #include "../libebl/libeblP.h"
 
 
 /* Name and version of program.  */
-static void print_version (FILE *stream, struct argp_state *state);
 ARGP_PROGRAM_VERSION_HOOK_DEF = print_version;
 
 /* Bug report address.  */
@@ -169,20 +170,6 @@ main (int argc, char *argv[])
 }
 
 
-/* Print the version information.  */
-static void
-print_version (FILE *stream, struct argp_state *state __attribute__ ((unused)))
-{
-  fprintf (stream, "objdump (%s) %s\n", PACKAGE_NAME, PACKAGE_VERSION);
-  fprintf (stream, gettext ("\
-Copyright (C) %s Red Hat, Inc.\n\
-This is free software; see the source for copying conditions.  There is NO\n\
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2012");
-  fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
-}
-
-
 /* Handle program arguments.  */
 static error_t
 parse_opt (int key, char *arg,
@@ -234,7 +221,9 @@ parse_opt (int key, char *arg,
 		     program_invocation_short_name);
 	  exit (EXIT_FAILURE);
 	}
-
+      /* We only use this for checking the number of arguments, we don't
+	 actually want to consume them.  */
+      FALLTHROUGH;
     default:
       return ARGP_ERR_UNKNOWN;
     }

@@ -1,3 +1,56 @@
+2018-02-09  Joshua Watt  <JPEWhacker@gmail.com>
+
+	* i386_disasm.c (i386_disasm): Use FALLTHOUGH macro instead of
+	comment.
+
+2017-08-18  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* memory-access.h: Use attribute_packed.
+
+2017-02-27  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* Makefile.am: Use fpic_CFLAGS.
+
+2017-07-18  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am: Don't check HAVE_LINUX_BPF_H, just define libcpu_bpf.
+	* bpf_disasm.c: Include bpf.h instead of linux/bpf.h. Don't define
+	BPF_PSEUDO_MAP_FD.
+
+2017-04-20  Ulf Hermann <ulf.hermann@qt.io>
+
+	* Makefile.am: Add EXEEXT to gendis.
+
+2017-04-20  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* i386_parse.y: Eliminate comparison_fn_t.
+
+2016-11-02  Mark Wielaard  <mjw@redhat.com>
+
+	* i386_disasm.c (i386_disasm): Add fallthrough comment.
+
+2016-10-11  Akihiko Odaki  <akihiko.odaki.4i@stu.hosei.ac.jp>
+
+	* i386_lex.l: Remove system.h include, add libeu.h include.
+	* i386_parse.y: Remove sys/param.h include, add libeu.h include.
+	* i386_disasm.c: Remove sys/param.h.
+
+2016-09-05  Mark Wielaard  <mjw@redhat.com>
+
+	* bpf_disasm.c: Define BPF_PSEUDO_MAP_FD if undefined.
+
+2016-08-10  Richard Henderson  <rth@redhat.com>
+
+	* bpf_disasm.c (bpf_disasm): Rearrange the printing of instructions
+	to use exactly the operands required.
+
+2016-06-28  Richard Henderson  <rth@redhat.com>
+
+	* Makefile.am (noinst_LIBRARIES): Add libcpu_bpf.a.
+	(libcpu_bpf_a_SOURCES, libcpu_bpf_a_CFLAGS): New.
+	* bpf_disasm.c: New file.
+	* i386_disasm.c (i386_disasm): Add ebl parameter.
+
 2015-10-05  Josh Stone  <jistone@redhat.com>
 
 	* Makefile.am (%_defs): Add AM_V_GEN and AM_V_at silencers.

@@ -7,11 +7,36 @@
 /* Should ar and ranlib use -D behavior by default? */
 #define DEFAULT_AR_DETERMINISTIC false
 
+/* Define to 1 if you have the declaration of `mempcpy', and to 0 if you
+   don't. */
+#define HAVE_DECL_MEMPCPY 1
+
+/* Define to 1 if you have the declaration of `memrchr', and to 0 if you
+   don't. */
+#define HAVE_DECL_MEMRCHR 1
+
+/* Define to 1 if you have the declaration of `powerof2', and to 0 if you
+   don't. */
+#define HAVE_DECL_POWEROF2 1
+
+/* Define to 1 if you have the declaration of `rawmemchr', and to 0 if you
+   don't. */
+#define HAVE_DECL_RAWMEMCHR 1
+
+/* Defined if __attribute__((fallthrough)) is supported */
+/* #undef HAVE_FALLTHROUGH  */
+
+/* Defined if __attribute__((gcc_struct)) is supported */
+/* #undef HAVE_GCC_STRUCT */
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
+
+/* Define to 1 if you have the `process_vm_readv' function. */
+#define HAVE_PROCESS_VM_READV 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -37,35 +62,35 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
+/* Defined if __attribute__((visibility())) is supported */
+#define HAVE_VISIBILITY 1
+
 /* $libdir subdirectory containing libebl modules. */
 #define LIBEBL_SUBDIR "elfutils"
 
 /* Identifier for modules in the build. */
-#define MODVERSION "Build for elfutils 165 x86_64-unknown-linux-gnu"
-
-/* Define to 32 or 64 if a specific implementation is wanted. */
-/* #undef NATIVE_ELF */
+#define MODVERSION "Build for elfutils 173 x86_64-pc-linux-gnu"
 
 /* Name of package */
 #define PACKAGE "elfutils"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "https://bugzilla.redhat.com/"
+#define PACKAGE_BUGREPORT "https://sourceware.org/bugzilla"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "elfutils"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "elfutils 0.165"
+#define PACKAGE_STRING "elfutils 0.173"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "elfutils"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+#define PACKAGE_URL "http://elfutils.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.165"
+#define PACKAGE_VERSION "0.173"
 
 /* The size of `long', as computed by sizeof. */
 #if __LP64__
@@ -93,7 +118,7 @@
 #define USE_ZLIB 1
 
 /* Version number of package */
-#define VERSION "0.165"
+#define VERSION "0.173"
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */
