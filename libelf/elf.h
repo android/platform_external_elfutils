@@ -19,7 +19,9 @@
 #ifndef _ELF_H
 #define	_ELF_H 1
 
+#ifdef __linux__
 #include <features.h>
+#endif
 
 __BEGIN_DECLS
 
