@@ -1,3 +1,102 @@
+2019-01-18  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (INSTALL_ELFH): Add elf.h to include_HEADERS when
+	defined, otherwise (the default) add elf.h to noinst_HEADERS.
+
+2019-01-16  Mark Wielaard  <mark@klomp.org>
+
+	* note_xlate.h (elf_cvt_note): Check n_namesz and n_descsz don't
+	overflow note_len into note header.
+
+2018-11-17  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatefile.c (updatemmap): Make sure to call convert
+	function on a properly aligned destination.
+
+2018-11-16  Mark Wielaard  <mark@klomp.org>
+
+	* libebl.h (__elf32_msize): Mark with const attribute.
+	(__elf64_msize): Likewise.
+
+2018-11-13  Mark Wielaard  <mark@klomp.org>
+
+	* elf_getdata.c (__libelf_set_rawdata_wrlock): Explicitly set the
+	alignment of SHF_COMPRESSED data to the alignment of ELF_T_CHDR.
+	* elf_compress.c (elf_compress): After compression set sh_addralign
+	to the alignment of ELF_T_CHDR.
+
+2018-11-09  Mark Wielaard  <mark@klomp.org>
+
+	* elf_compress_gnu.c (elf_compress_gnu): Use elf_getdata.
+
+2018-11-12  Mark Wielaard  <mark@klomp.org>
+
+	* elf-knowledge.c (ELF_NOTE_GNU_BUILD_ATTRIBUTE_PREFIX): New define.
+	(NT_GNU_BUILD_ATTRIBUTE_{OPEN,FUNC}): Likewise.
+	(GNU_BUILD_ATTRIBUTE_TYPE_{NUMERIC,STRING,BOOL_TRUE,BOOL_FALSE}):
+	Likewise.
+	(GNU_BUILD_ATTRIBUTE_{VERSION,STACK_PROT,RELRO,STACK_SIZE,TOOL,ABI,
+	PIC,SHORT_ENUM}): Likewise.
+
+2018-11-09  Mark Wielaard  <mark@klomp.org>
+
+	* elf_compress.c (__libelf_reset_rawdata): Make rawdata change
+	explicit by calling __libelf_set_data_list.
+	* elf_getdata.c (convert_data): Don't convert if type is ELF_T_BYTE
+	even if endianness is different.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* libelf.h (Elf_Type): Add ELF_T_NHDR8.
+	* libelfP.h (__libelf_data_type): Add align argument.
+	(NOTE_ALIGN): Split into...
+	(NOTE_ALIGN4): ... and ...
+	(NOTE_ALIGN8): this.
+	* elf32_xlatetom.c (xlatetom): Recognize both ELF_T_NHDR and
+	ELF_T_NHDR8.
+	* elf_compress.c (elf_compress): Pass zdata_align to
+	__libelf_data_type.
+	* elf_compress_gnu.c (elf_compress_gnu): Pass sh_addralign to
+	__libelf_data_type.
+	* elf_getdata.c (shtype_map): Add ELF_T_NHDR8.
+	(__libelf_data_type): Take align as extra argument, use it to
+	determine Elf_Type.
+	(__libelf_set_rawdata_wrlock): Recognize ELF_T_NHDR8. Pass align to
+	__libelf_data_type.
+	* gelf_fsize.c (__libelf_type_sizes): Add ELF_T_NHDR8.
+	* gelf_getnote.c (gelf_getnote): Use Elf_Type of Elf_Data to calculate
+	padding.
+	* gelf_xlate.c (__elf_xfctstom): Set ELF_T_NHDR to elf_cvt_note4,
+	add ELF_T_NHDR8.
+	* note_xlate.h (elf_cvt_note): Take nhdr8 argument and use it to
+	determine padding.
+	(elf_cvt_note4): New function.
+	(elf_cvt_note8): Likewise.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatefile.c (updatemmap): Use shnum, not ehdr->e_shnum.
+	* elf_getscn.c (elf_getscn): Create section zero if it is requested,
+	but doesn't exist yet.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatefile.c (updatemmap): Use memmove, not memcpy.
+	* elf_update.c (write_file): Try to mremap if file needs to be
+	extended.
+
+2018-08-18  Mark Wielaard  <mark@klomp.org>
+
+	* libelf.h (elf_compress_gnu): Add documentation about
+	interaction between SHF_COMPRESED and elf_compress_gnu.
+	* elf_compress_gnu.c (elf_compress_gnu): Return error if section
+	sh_flags has SHF_COMPRESSED set.
+
+2018-07-27  Mark Wielaard  <mark@klomp.org>
+
+	* libelf.h (elf_getshdrstrndx): Fix documentation.
+	(elf_getshstrndx): Likewise.
+
 2018-06-19  Mark Wielaard  <mark@klomp.org>
 
 	* libelfP.h (__libelf_type_align): Remove !ALLOW_UNALIGNED guard.

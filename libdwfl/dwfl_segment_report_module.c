@@ -1,5 +1,5 @@
 /* Sniff out modules from ELF headers visible in memory segments.
-   Copyright (C) 2008-2012, 2014, 2015 Red Hat, Inc.
+   Copyright (C) 2008-2012, 2014, 2015, 2018 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@
    not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include "../libelf/libelfP.h"	/* For NOTE_ALIGN.  */
+#include "../libelf/libelfP.h"	/* For NOTE_ALIGN4 and NOTE_ALIGN8.  */
 #undef	_
 #include "libdwflP.h"
 #include "common.h"
@@ -301,7 +301,10 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
   inline bool read_portion (void **data, size_t *data_size,
 			    GElf_Addr vaddr, size_t filesz)
   {
-    if (vaddr - start + filesz > buffer_available
+    /* Check whether we will have to read the segment data, or if it
+       can be returned from the existing buffer.  */
+    if (filesz > buffer_available
+	|| vaddr - start > buffer_available - filesz
 	/* If we're in string mode, then don't consider the buffer we have
 	   sufficient unless it contains the terminator of the string.  */
 	|| (filesz == 0 && memchr (vaddr - start + buffer, '\0',
@@ -367,6 +370,11 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
       phentsize = ehdr.e32.e_phentsize;
       if (phentsize != sizeof (Elf32_Phdr))
 	return finish ();
+      /* NOTE if the number of sections is > 0xff00 then e_shnum
+	 is zero and the actual number would come from the section
+	 zero sh_size field. We ignore this here because getting shdrs
+	 is just a nice bonus (see below in consider_phdr PT_LOAD
+	 where we trim the last segment).  */
       shdrs_end = ehdr.e32.e_shoff + ehdr.e32.e_shnum * ehdr.e32.e_shentsize;
       break;
 
@@ -380,6 +388,7 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
       phentsize = ehdr.e64.e_phentsize;
       if (phentsize != sizeof (Elf64_Phdr))
 	return finish ();
+      /* See the NOTE above for shdrs_end and ehdr.e32.e_shnum.  */
       shdrs_end = ehdr.e64.e_shoff + ehdr.e64.e_shnum * ehdr.e64.e_shentsize;
       break;
 
@@ -442,7 +451,8 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
   GElf_Addr build_id_vaddr = 0;
 
   /* Consider a PT_NOTE we've found in the image.  */
-  inline void consider_notes (GElf_Addr vaddr, GElf_Xword filesz)
+  inline void consider_notes (GElf_Addr vaddr, GElf_Xword filesz,
+			      GElf_Xword align)
   {
     /* If we have already seen a build ID, we don't care any more.  */
     if (build_id != NULL || filesz == 0)
@@ -452,6 +462,12 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
     size_t data_size;
     if (read_portion (&data, &data_size, vaddr, filesz))
       return;
+
+    /* data_size will be zero if we got everything from the initial
+       buffer, otherwise it will be the size of the new buffer that
+       could be read.  */
+    if (data_size != 0)
+      filesz = data_size;
 
     assert (sizeof (Elf32_Nhdr) == sizeof (Elf64_Nhdr));
 
@@ -463,7 +479,8 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
 	notes = malloc (filesz);
 	if (unlikely (notes == NULL))
 	  return;
-	xlatefrom.d_type = xlateto.d_type = ELF_T_NHDR;
+	xlatefrom.d_type = xlateto.d_type = (align == 8
+					     ? ELF_T_NHDR8 : ELF_T_NHDR);
 	xlatefrom.d_buf = (void *) data;
 	xlatefrom.d_size = filesz;
 	xlateto.d_buf = notes;
@@ -474,15 +491,23 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
       }
 
     const GElf_Nhdr *nh = notes;
-    while ((const void *) nh < (const void *) notes + filesz)
-     {
-	const void *note_name = nh + 1;
-	const void *note_desc = note_name + NOTE_ALIGN (nh->n_namesz);
-	if (unlikely ((size_t) ((const void *) notes + filesz
-				- note_desc) < nh->n_descsz))
+    size_t len = 0;
+    while (filesz > len + sizeof (*nh))
+      {
+	const void *note_name;
+	const void *note_desc;
+
+	len += sizeof (*nh);
+	note_name = notes + len;
+
+	len += nh->n_namesz;
+	len = align == 8 ? NOTE_ALIGN8 (len) : NOTE_ALIGN4 (len);
+	note_desc = notes + len;
+
+	if (unlikely (filesz < len + nh->n_descsz))
 	  break;
 
-	if (nh->n_type == NT_GNU_BUILD_ID
+        if (nh->n_type == NT_GNU_BUILD_ID
 	    && nh->n_descsz > 0
 	    && nh->n_namesz == sizeof "GNU"
 	    && !memcmp (note_name, "GNU", sizeof "GNU"))
@@ -495,7 +520,9 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
 	    break;
 	  }
 
-	nh = note_desc + NOTE_ALIGN (nh->n_descsz);
+	len += nh->n_descsz;
+	len = align == 8 ? NOTE_ALIGN8 (len) : NOTE_ALIGN4 (len);
+	nh = (void *) notes + len;
       }
 
   done:
@@ -520,7 +547,7 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
       case PT_NOTE:
 	/* We calculate from the p_offset of the note segment,
 	   because we don't yet know the bias for its p_vaddr.  */
-	consider_notes (start + offset, filesz);
+	consider_notes (start + offset, filesz, align);
 	break;
 
       case PT_LOAD:
@@ -756,6 +783,12 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
   if (dyn_filesz != 0 && dyn_filesz % dyn_entsize == 0
       && ! read_portion (&dyn_data, &dyn_data_size, dyn_vaddr, dyn_filesz))
     {
+      /* dyn_data_size will be zero if we got everything from the initial
+         buffer, otherwise it will be the size of the new buffer that
+         could be read.  */
+      if (dyn_data_size != 0)
+	dyn_filesz = dyn_data_size;
+
       void *dyns = malloc (dyn_filesz);
       Elf32_Dyn (*d32)[dyn_filesz / sizeof (Elf32_Dyn)] = dyns;
       Elf64_Dyn (*d64)[dyn_filesz / sizeof (Elf64_Dyn)] = dyns;

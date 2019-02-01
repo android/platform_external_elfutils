@@ -43,7 +43,7 @@ internal_function
 __libdw_find_attr (Dwarf_Die *die, unsigned int search_name,
 		   unsigned int *codep, unsigned int *formp)
 {
-  const unsigned char *readp;
+  const unsigned char *readp = NULL;
 
   /* Find the abbreviation entry.  */
   Dwarf_Abbrev *abbrevp = __libdw_dieabbrev (die, &readp);

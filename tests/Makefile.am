@@ -59,7 +59,8 @@ check_PROGRAMS = arextract arsymtest newfile saridx scnnames sectiondump \
 		  elfgetzdata elfputzdata zstrptr emptyfile vendorelf \
 		  fillfile dwarf_default_lower_bound dwarf-die-addr-die \
 		  get-units-invalid get-units-split attr-integrate-skel \
-		  all-dwarf-ranges unit-info next_cfi
+		  all-dwarf-ranges unit-info next_cfi \
+		  elfcopy addsections
 
 asm_TESTS = asm-tst1 asm-tst2 asm-tst3 asm-tst4 asm-tst5 \
 	    asm-tst6 asm-tst7 asm-tst8 asm-tst9
@@ -86,7 +87,8 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-strip-test3.sh run-strip-test4.sh run-strip-test5.sh \
 	run-strip-test6.sh run-strip-test7.sh run-strip-test8.sh \
 	run-strip-test9.sh run-strip-test10.sh run-strip-test11.sh \
-	run-strip-nothing.sh run-strip-g.sh \
+	run-strip-test12.sh \
+	run-strip-nothing.sh run-strip-g.sh run-annobingroup.sh \
 	run-strip-groups.sh run-strip-reloc.sh run-strip-strmerge.sh \
 	run-strip-nobitsalign.sh run-strip-remove-keep.sh \
 	run-unstrip-test.sh run-unstrip-test2.sh run-unstrip-test3.sh \
@@ -98,12 +100,14 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-find-prologues.sh run-allregs.sh run-addrcfi.sh \
 	run-dwarfcfi.sh \
 	run-nm-self.sh run-readelf-self.sh run-readelf-info-plus.sh \
+	run-readelf-compressed.sh \
 	run-readelf-const-values.sh \
 	run-varlocs-self.sh run-exprlocs-self.sh \
 	run-readelf-test1.sh run-readelf-test2.sh run-readelf-test3.sh \
 	run-readelf-test4.sh run-readelf-twofiles.sh \
 	run-readelf-macro.sh run-readelf-loc.sh run-readelf-ranges.sh \
 	run-readelf-aranges.sh run-readelf-line.sh run-readelf-z.sh \
+	run-readelf-n.sh \
 	run-native-test.sh run-bug1-test.sh \
 	run-debuglink.sh run-debugaltlink.sh run-buildid.sh \
 	dwfl-bug-addr-overflow run-addrname-test.sh \
@@ -152,7 +156,10 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-attr-integrate-skel.sh \
 	run-all-dwarf-ranges.sh run-unit-info.sh \
 	run-reloc-bpf.sh \
-	run-next-cfi.sh run-next-cfi-self.sh
+	run-next-cfi.sh run-next-cfi-self.sh \
+	run-copyadd-sections.sh run-copymany-sections.sh \
+	run-typeiter-many.sh run-strip-test-many.sh \
+	run-strip-version.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -191,7 +198,11 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-strip-test4.sh run-strip-test5.sh run-strip-test6.sh \
 	     run-strip-test7.sh run-strip-test8.sh run-strip-groups.sh \
 	     run-strip-test9.sh run-strip-test10.sh run-strip-test11.sh \
+	     run-strip-test12.sh \
 	     run-strip-nothing.sh run-strip-remove-keep.sh run-strip-g.sh \
+	     run-annobingroup.sh testfile-annobingroup.o.bz2 \
+	     testfile-annobingroup-i386.o.bz2 \
+	     testfile-annobingroup-x86_64.o.bz2 \
 	     run-strip-strmerge.sh run-strip-nobitsalign.sh \
 	     testfile-nobitsalign.bz2 testfile-nobitsalign.strip.bz2 \
 	     run-strip-reloc.sh hello_i386.ko.bz2 hello_x86_64.ko.bz2 \
@@ -207,6 +218,7 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-ranlib-test3.sh run-ranlib-test4.sh \
 	     run-addrscopes.sh run-strings-test.sh run-funcscopes.sh \
 	     run-nm-self.sh run-readelf-self.sh run-readelf-info-plus.sh \
+	     run-readelf-compressed.sh \
 	     run-readelf-const-values.sh testfile-const-values.debug.bz2 \
 	     run-addrcfi.sh run-dwarfcfi.sh \
 	     testfile11-debugframe.bz2 testfile12-debugframe.bz2 \
@@ -264,6 +276,12 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     testfile-dwzstr.bz2 testfile-dwzstr.multi.bz2 \
 	     run-readelf-addr.sh run-readelf-str.sh \
 	     run-readelf-types.sh \
+	     run-readelf-n.sh \
+	     testfile-gnu-property-note.bz2 testfile-gnu-property-note.o.bz2 \
+	     testfile_gnu_props.32le.o.bz2 \
+	     testfile_gnu_props.64le.o.bz2 \
+	     testfile_gnu_props.32be.o.bz2 \
+	     testfile_gnu_props.64be.o.bz2 \
 	     run-allfcts-multi.sh \
 	     test-offset-loop.bz2 test-offset-loop.alt.bz2 \
 	     run-prelink-addr-test.sh \
@@ -397,7 +415,15 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-attr-integrate-skel.sh \
 	     run-all-dwarf-ranges.sh testfilesplitranges4.debug.bz2 \
 	     testfile-ranges-hello.dwo.bz2 testfile-ranges-world.dwo.bz2 \
-	     run-unit-info.sh run-next-cfi.sh run-next-cfi-self.sh
+	     run-unit-info.sh run-next-cfi.sh run-next-cfi-self.sh \
+	     testfile-riscv64.bz2 testfile-riscv64-s.bz2 \
+	     testfile-riscv64-core.bz2 \
+	     run-copyadd-sections.sh run-copymany-sections.sh \
+	     run-typeiter-many.sh run-strip-test-many.sh \
+	     testfile-debug-rel-ppc64-g.o.bz2 \
+	     testfile-debug-rel-ppc64-z.o.bz2 \
+	     testfile-debug-rel-ppc64.o.bz2 \
+	     run-strip-version.sh testfile-version.bz2
 
 if USE_VALGRIND
 valgrind_cmd='valgrind -q --leak-check=full --error-exitcode=1'
@@ -565,10 +591,16 @@ attr_integrate_skel_LDADD = $(libdw)
 all_dwarf_ranges_LDADD = $(libdw)
 unit_info_LDADD = $(libdw)
 next_cfi_LDADD = $(libelf) $(libdw)
+elfcopy_LDADD = $(libelf)
+addsections_LDADD = $(libelf)
 
 # We want to test the libelf header against the system elf.h header.
-# Don't include any -I CPPFLAGS.
+# Don't include any -I CPPFLAGS. Except when we install our own elf.h.
+if !INSTALL_ELFH
 system_elf_libelf_test_CPPFLAGS =
+else
+system_elf_libelf_test_CPPFLAGS = -I$(top_srcdir)/libelf
+endif
 system_elf_libelf_test_LDADD = $(libelf)
 
 # A lock file used to make sure only one test dumps core at a time

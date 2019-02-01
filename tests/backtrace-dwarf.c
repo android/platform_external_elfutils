@@ -1,5 +1,5 @@
 /* Test program for unwinding of complicated DWARF expressions.
-   Copyright (C) 2013, 2015 Red Hat, Inc.
+   Copyright (C) 2013, 2015, 2018 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -16,15 +16,14 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <assert.h>
 #include <inttypes.h>
 #include <stdio_ext.h>
 #include <locale.h>
 #include <errno.h>
-#include <error.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include ELFUTILS_HEADER(dwfl)
+#include "system.h"
 
 #ifndef __linux__
 
@@ -117,13 +116,16 @@ frame_callback (Dwfl_Frame *state, void *frame_arg)
 static int
 thread_callback (Dwfl_Thread *thread, void *thread_arg)
 {
-  dwfl_thread_getframes (thread, frame_callback, NULL);
+  if (dwfl_thread_getframes (thread, frame_callback, NULL) == -1)
+    error (1, 0, "dwfl_thread_getframes: %s", dwfl_errmsg (-1));
+
   /* frame_callback shall exit (0) on success.  */
-  error (1, 0, "dwfl_thread_getframes: %s", dwfl_errmsg (-1));
+  printf ("dwfl_thread_getframes returned, main not found\n");
   return DWARF_CB_ABORT;
 }
 
 int
+__attribute__((section(".main"))) /* Defeat -freorder-blocks-and-partition  */
 main (int argc __attribute__ ((unused)), char **argv)
 {
   /* We use no threads here which can interfere with handling a stream.  */
@@ -140,13 +142,18 @@ main (int argc __attribute__ ((unused)), char **argv)
   switch (pid)
   {
     case -1:
-      abort ();
+      perror ("fork failed");
+      exit (-1);
     case 0:;
       long l = ptrace (PTRACE_TRACEME, 0, NULL, NULL);
-      assert (errno == 0);
-      assert (l == 0);
+      if (l != 0)
+	{
+	  perror ("PTRACE_TRACEME failed");
+	  exit (-1);
+	}
       cleanup_13_main ();
-      abort ();
+      printf ("cleanup_13_main returned, impossible...\n");
+      exit (-1);
     default:
       break;
   }
@@ -154,16 +161,20 @@ main (int argc __attribute__ ((unused)), char **argv)
   errno = 0;
   int status;
   pid_t got = waitpid (pid, &status, 0);
-  assert (errno == 0);
-  assert (got == pid);
-  assert (WIFSTOPPED (status));
-  assert (WSTOPSIG (status) == SIGABRT);
+  if (got != pid)
+    error (1, errno, "waitpid returned %d", got);
+  if (!WIFSTOPPED (status))
+    error (1, 0, "unexpected wait status %u", status);
+  if (WSTOPSIG (status) != SIGABRT)
+    error (1, 0, "unexpected signal %u", WSTOPSIG (status));
 
   Dwfl *dwfl = pid_to_dwfl (pid);
-  dwfl_getthreads (dwfl, thread_callback, NULL);
+  if (dwfl_getthreads (dwfl, thread_callback, NULL) == -1)
+    error (1, 0, "dwfl_getthreads: %s", dwfl_errmsg (-1));
 
   /* There is an exit (0) call if we find the "main" frame,  */
-  error (1, 0, "dwfl_getthreads: %s", dwfl_errmsg (-1));
+  printf ("dwfl_getthreads returned, main not found\n");
+  exit (-1);
 }
 
 #endif /* ! __linux__ */

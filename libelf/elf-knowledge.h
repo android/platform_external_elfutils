@@ -77,4 +77,25 @@
    || ((Ehdr)->e_machine == EM_S390					      \
        && (Ehdr)->e_ident[EI_CLASS] == ELFCLASS64) ? 8 : 4)
 
+/* GNU Annobin notes are not fully standardized and abuses the owner name.  */
+
+#define ELF_NOTE_GNU_BUILD_ATTRIBUTE_PREFIX "GA"
+
+#define NT_GNU_BUILD_ATTRIBUTE_OPEN 0x100
+#define NT_GNU_BUILD_ATTRIBUTE_FUNC 0x101
+
+#define GNU_BUILD_ATTRIBUTE_TYPE_NUMERIC	'*'
+#define GNU_BUILD_ATTRIBUTE_TYPE_STRING		'$'
+#define GNU_BUILD_ATTRIBUTE_TYPE_BOOL_TRUE	'+'
+#define GNU_BUILD_ATTRIBUTE_TYPE_BOOL_FALSE	'!'
+
+#define GNU_BUILD_ATTRIBUTE_VERSION	1
+#define GNU_BUILD_ATTRIBUTE_STACK_PROT	2
+#define GNU_BUILD_ATTRIBUTE_RELRO	3
+#define GNU_BUILD_ATTRIBUTE_STACK_SIZE	4
+#define GNU_BUILD_ATTRIBUTE_TOOL	5
+#define GNU_BUILD_ATTRIBUTE_ABI		6
+#define GNU_BUILD_ATTRIBUTE_PIC		7
+#define GNU_BUILD_ATTRIBUTE_SHORT_ENUM	8
+
 #endif	/* elf-knowledge.h */

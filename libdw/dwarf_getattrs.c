@@ -44,7 +44,7 @@ dwarf_getattrs (Dwarf_Die *die, int (*callback) (Dwarf_Attribute *, void *),
   if (unlikely (offset == 1))
     return 1;
 
-  const unsigned char *die_addr;
+  const unsigned char *die_addr = NULL;
 
   /* Find the abbreviation entry.  */
   Dwarf_Abbrev *abbrevp = __libdw_dieabbrev (die, &die_addr);

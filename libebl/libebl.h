@@ -99,8 +99,10 @@ extern bool ebl_reloc_type_check (Ebl *ebl, int reloc);
 extern bool ebl_reloc_valid_use (Ebl *ebl, int reloc);
 
 /* Check if relocation type is for simple absolute relocations.
-   Return ELF_T_{BYTE,HALF,SWORD,SXWORD} for a simple type, else ELF_T_NUM.  */
-extern Elf_Type ebl_reloc_simple_type (Ebl *ebl, int reloc);
+   Return ELF_T_{BYTE,HALF,SWORD,SXWORD} for a simple type, else ELF_T_NUM.
+   If the relocation type is an ADD or SUB relocation, set *ADDSUB to 1 or -1,
+   resp.  */
+extern Elf_Type ebl_reloc_simple_type (Ebl *ebl, int reloc, int *addsub);
 
 /* Return true if the symbol type is that referencing the GOT.  E.g.,
    R_386_GOTPC.  */
@@ -152,7 +154,7 @@ extern bool ebl_dynamic_tag_check (Ebl *ebl, int64_t tag);
 
 /* Check whether given symbol's st_value and st_size are OK despite failing
    normal checks.  */
-extern bool ebl_check_special_symbol (Ebl *ebl, GElf_Ehdr *ehdr,
+extern bool ebl_check_special_symbol (Ebl *ebl,
 				      const GElf_Sym *sym, const char *name,
 				      const GElf_Shdr *destshdr);
 
@@ -173,12 +175,12 @@ extern const char *ebl_core_note_type_name (Ebl *ebl, uint32_t type, char *buf,
 
 /* Return name of the note section type for an object file.  */
 extern const char *ebl_object_note_type_name (Ebl *ebl, const char *name,
-					      uint32_t type, char *buf,
-					      size_t len);
+					      uint32_t type, GElf_Word descsz,
+					      char *buf, size_t len);
 
 /* Print information about object note if available.  */
-extern void ebl_object_note (Ebl *ebl, const char *name, uint32_t type,
-			     uint32_t descsz, const char *desc);
+extern void ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name,
+			     uint32_t type, uint32_t descsz, const char *desc);
 
 /* Check whether an attribute in a .gnu_attributes section is recognized.
    Fills in *TAG_NAME with the name for this tag.
@@ -205,7 +207,7 @@ extern bool ebl_none_reloc_p (Ebl *ebl, int reloc);
 extern bool ebl_relative_reloc_p (Ebl *ebl, int reloc);
 
 /* Check whether section should be stripped.  */
-extern bool ebl_section_strip_p (Ebl *ebl, const GElf_Ehdr *ehdr,
+extern bool ebl_section_strip_p (Ebl *ebl,
 				 const GElf_Shdr *shdr, const char *name,
 				 bool remove_comment, bool only_remove_debug);
 
@@ -317,7 +319,8 @@ typedef struct
 
 /* Describe the format of a core file note with the given header and NAME.
    NAME is not guaranteed terminated, it's NHDR->n_namesz raw bytes.  */
-extern int ebl_core_note (Ebl *ebl, const GElf_Nhdr *nhdr, const char *name,
+extern int ebl_core_note (Ebl *ebl, const GElf_Nhdr *nhdr,
+			  const char *name, const char *desc,
 			  GElf_Word *regs_offset, size_t *nregloc,
 			  const Ebl_Register_Location **reglocs,
 			  size_t *nitems, const Ebl_Core_Item **items)

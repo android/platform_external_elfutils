@@ -70,7 +70,7 @@ IMPLICIT_FALLTHROUGH_WARNING=
 endif
 
 AM_CFLAGS = -std=gnu99 -Wall -Wshadow -Wformat=2 \
-	    -Wold-style-definition -Wstrict-prototypes \
+	    -Wold-style-definition -Wstrict-prototypes -Wtrampolines \
 	    $(LOGICAL_OP_WARNING) $(DUPLICATED_COND_WARNING) \
 	    $(NULL_DEREFERENCE_WARNING) $(IMPLICIT_FALLTHROUGH_WARNING) \
 	    $(if $($(*F)_no_Werror),,-Werror) \

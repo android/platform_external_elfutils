@@ -217,7 +217,7 @@ proc_maps_report (Dwfl *dwfl, FILE *f, GElf_Addr sysinfo_ehdr, pid_t pid)
       uint64_t ino;
       int nread = -1;
       if (sscanf (line, "%" PRIx64 "-%" PRIx64 " %*s %" PRIx64
-		  " %x:%x %" PRIi64 " %n",
+		  " %x:%x %" PRIu64 " %n",
 		  &start, &end, &offset, &dmajor, &dminor, &ino, &nread) < 6
 	  || nread <= 0)
 	{

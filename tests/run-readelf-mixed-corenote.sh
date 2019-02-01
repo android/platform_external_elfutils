@@ -646,4 +646,74 @@ Note segment of 1056 bytes at offset 0x1f4:
     fp6: 0x7fff0000ffffffffffffffff  fp7: 0x7fff0000ffffffffffffffff
 EOF
 
+# To reproduce this core dump, do this on a riscv64 machine:
+# $ gcc -x c <(echo 'int main () { return *(int *)0x12345678; }')
+# $ ./a.out
+testfiles testfile-riscv64-core
+testrun_compare ${abs_top_builddir}/src/readelf -n testfile-riscv64-core <<\EOF
+
+Note segment of 1408 bytes at offset 0x388:
+  Owner          Data size  Type
+  CORE                 376  PRSTATUS
+    info.si_signo: 11, info.si_code: 0, info.si_errno: 0, cursig: 11
+    sigpend: <>
+    sighold: <>
+    pid: 6801, ppid: 1155, pgrp: 6801, sid: 1155
+    utime: 0.000000, stime: 0.110000, cutime: 0.000000, cstime: 0.000000
+    pc: 0x000000000001049a, fpvalid: 0
+    ra:    0x0000002000051c9a  sp:    0x0000003fff981240
+    gp:    0x0000000000012828  tp:    0x00000020000311d0
+    t0:          137439068496  t1:          137439288314
+    t2:                 74672  s0:          274871095888
+    s1:                 66724  a0:                     1
+    a1:          274871096232  a2:          274871096248
+    a3:                     0  a4:          274871095928
+    a5:             305419896  a6:          137440357656
+    a7:                     0  s2:          183254994416
+    s3:          137439062288  s4:                     0
+    s5:          183257703888  s6:          183256061824
+    s7:                     0  s8:          183252656348
+    s9:          183257666368  s10:         183257700608
+    s11:                    0  t3:                130042
+    t4:                     2  t5:                     3
+    t6:                 15632
+  CORE                 136  PRPSINFO
+    state: 0, sname: R, zomb: 0, nice: 0, flag: 0x0000000000400600
+    uid: 0, gid: 0, pid: 6801, ppid: 1155, pgrp: 6801, sid: 1155
+    fname: a.out, psargs: /tmp/a.out 
+  CORE                 128  SIGINFO
+    si_signo: 11, si_errno: 0, si_code: 1
+    fault address: 0x12345678
+  CORE                 288  AUXV
+    SYSINFO_EHDR: 0x200001d000
+    HWCAP: 0x1105
+    PAGESZ: 4096
+    CLKTCK: 100
+    PHDR: 0x10040
+    PHENT: 56
+    PHNUM: 9
+    BASE: 0x2000000000
+    FLAGS: 0
+    ENTRY: 0x103e0
+    UID: 0
+    EUID: 0
+    GID: 0
+    EGID: 0
+    SECURE: 0
+    RANDOM: 0x3fff9816d6
+    EXECFN: 0x3fff981fed
+    NULL
+  CORE                 379  FILE
+    9 files:
+      00010000-00011000 00000000 4096                /tmp/a.out
+      00011000-00012000 00000000 4096                /tmp/a.out
+      00012000-00013000 00001000 4096                /tmp/a.out
+      2000000000-200001a000 00000000 106496          /lib64/ld-2.27.so
+      200001a000-200001b000 00019000 4096            /lib64/ld-2.27.so
+      200001b000-200001c000 0001a000 4096            /lib64/ld-2.27.so
+      2000032000-2000151000 00000000 1175552         /lib64/libc-2.27.so
+      2000151000-2000155000 0011e000 16384           /lib64/libc-2.27.so
+      2000155000-2000157000 00122000 8192            /lib64/libc-2.27.so
+EOF
+
 exit 0

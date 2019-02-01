@@ -23,7 +23,6 @@
 #include <argp.h>
 #include <assert.h>
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <locale.h>
 #include <libintl.h>
@@ -36,7 +35,7 @@
 #include <printversion.h>
 #include "../libelf/elf-knowledge.h"
 #include "../libebl/libeblP.h"
-
+#include "system.h"
 
 /* Prototypes of local functions.  */
 static Elf *open_file (const char *fname, int *fdp, Ebl **eblp);
@@ -236,6 +235,22 @@ main (int argc, char *argv[])
       DIFFERENCE;
     }
 
+  size_t shstrndx1;
+  size_t shstrndx2;
+  if (elf_getshdrstrndx (elf1, &shstrndx1) != 0)
+    error (2, 0, gettext ("cannot get hdrstrndx of '%s': %s"),
+	   fname1, elf_errmsg (-1));
+  if (elf_getshdrstrndx (elf2, &shstrndx2) != 0)
+    error (2, 0, gettext ("cannot get hdrstrndx of '%s': %s"),
+	   fname2, elf_errmsg (-1));
+  if (shstrndx1 != shstrndx2)
+    {
+      if (! quiet)
+	error (0, 0, gettext ("%s %s diff: shdr string index"),
+	       fname1, fname2);
+      DIFFERENCE;
+    }
+
   /* Iterate over all sections.  We expect the sections in the two
      files to match exactly.  */
   Elf_Scn *scn1 = NULL;
@@ -252,10 +267,10 @@ main (int argc, char *argv[])
 	  scn1 = elf_nextscn (elf1, scn1);
 	  shdr1 = gelf_getshdr (scn1, &shdr1_mem);
 	  if (shdr1 != NULL)
-	    sname1 = elf_strptr (elf1, ehdr1->e_shstrndx, shdr1->sh_name);
+	    sname1 = elf_strptr (elf1, shstrndx1, shdr1->sh_name);
 	}
       while (scn1 != NULL
-	     && ebl_section_strip_p (ebl1, ehdr1, shdr1, sname1, true, false));
+	     && ebl_section_strip_p (ebl1, shdr1, sname1, true, false));
 
       GElf_Shdr shdr2_mem;
       GElf_Shdr *shdr2;
@@ -265,10 +280,10 @@ main (int argc, char *argv[])
 	  scn2 = elf_nextscn (elf2, scn2);
 	  shdr2 = gelf_getshdr (scn2, &shdr2_mem);
 	  if (shdr2 != NULL)
-	    sname2 = elf_strptr (elf2, ehdr2->e_shstrndx, shdr2->sh_name);
+	    sname2 = elf_strptr (elf2, shstrndx2, shdr2->sh_name);
 	}
       while (scn2 != NULL
-	     && ebl_section_strip_p (ebl2, ehdr2, shdr2, sname2, true, false));
+	     && ebl_section_strip_p (ebl2, shdr2, sname2, true, false));
 
       if (scn1 == NULL || scn2 == NULL)
 	break;

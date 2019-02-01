@@ -315,7 +315,7 @@ read_srclines (Dwarf *dbg,
   if (version < 5)
     {
       const unsigned char *dirp = linep;
-      while (*dirp != 0)
+      while (dirp < lineendp && *dirp != 0)
 	{
 	  uint8_t *endp = memchr (dirp, '\0', lineendp - dirp);
 	  if (endp == NULL)
@@ -323,6 +323,8 @@ read_srclines (Dwarf *dbg,
 	  ++ndirs;
 	  dirp = endp + 1;
 	}
+      if (dirp >= lineendp || *dirp != '\0')
+	goto invalid_data;
       ndirs = ndirs + 1; /* There is always the "unknown" dir.  */
     }
   else
@@ -392,11 +394,12 @@ read_srclines (Dwarf *dbg,
 	{
 	  dirarray[n].dir = (char *) linep;
 	  uint8_t *endp = memchr (linep, '\0', lineendp - linep);
-	  assert (endp != NULL);
+	  assert (endp != NULL); // Checked above when calculating ndirlist.
 	  dirarray[n].len = endp - linep;
 	  linep = endp + 1;
 	}
       /* Skip the final NUL byte.  */
+      assert (*linep == '\0'); // Checked above when calculating ndirlist.
       ++linep;
     }
   else
@@ -471,7 +474,7 @@ read_srclines (Dwarf *dbg,
     {
       if (unlikely (linep >= lineendp))
 	goto invalid_data;
-      while (*linep != 0)
+      while (linep < lineendp && *linep != '\0')
 	{
 	  struct filelist *new_file = NEW_FILE ();
 
@@ -527,6 +530,8 @@ read_srclines (Dwarf *dbg,
 	    goto invalid_data;
 	  get_uleb128 (new_file->info.length, linep, lineendp);
 	}
+      if (linep >= lineendp || *linep != '\0')
+	goto invalid_data;
       /* Skip the final NUL byte.  */
       ++linep;
     }

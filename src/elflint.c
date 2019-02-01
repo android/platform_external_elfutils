@@ -1,5 +1,5 @@
 /* Pedantic checking of ELF files compliance with gABI/psABI spec.
-   Copyright (C) 2001-2015, 2017 Red Hat, Inc.
+   Copyright (C) 2001-2015, 2017, 2018 Red Hat, Inc.
    This file is part of elfutils.
    Written by Ulrich Drepper <drepper@redhat.com>, 2001.
 
@@ -24,7 +24,6 @@
 #include <assert.h>
 #include <byteswap.h>
 #include <endian.h>
-#include <error.h>
 #include <fcntl.h>
 #include <gelf.h>
 #include <inttypes.h>
@@ -542,7 +541,7 @@ invalid number of program header table entries\n"));
       if (ehdr->e_shentsize != 0 && ehdr->e_shentsize != sizeof (Elf64_Shdr))
 	ERROR (gettext ("invalid section header size: %hd\n"),
 	       ehdr->e_shentsize);
-      else if (ehdr->e_shoff + ehdr->e_shnum * ehdr->e_shentsize > size)
+      else if (ehdr->e_shoff + shnum * ehdr->e_shentsize > size)
 	ERROR (gettext ("invalid section header position or size\n"));
     }
 }
@@ -797,7 +796,7 @@ section [%2d] '%s': symbol %zu: function in COMMON section is nonsense\n"),
 		st_value = sym->st_value;
 	      if (GELF_ST_TYPE (sym->st_info) != STT_TLS)
 		{
-		  if (! ebl_check_special_symbol (ebl, ehdr, sym, name,
+		  if (! ebl_check_special_symbol (ebl, sym, name,
 						  destshdr))
 		    {
 		      if (st_value - sh_addr > destshdr->sh_size)
@@ -957,7 +956,7 @@ section [%2d] '%s': symbol %zu: non-local section symbol\n"),
 		      destshdr = gelf_getshdr (gscn, &destshdr_mem);
 		      assert (destshdr != NULL);
 		      const char *sname = elf_strptr (ebl->elf,
-						      ehdr->e_shstrndx,
+						      shstrndx,
 						      destshdr->sh_name);
 		      if (sname != NULL)
 			{
@@ -978,7 +977,7 @@ section [%2d] '%s': symbol %zu: non-local section symbol\n"),
 
 	      const char *sname = ((destshdr == NULL || xndx == SHN_UNDEF)
 				   ? NULL
-				   : elf_strptr (ebl->elf, ehdr->e_shstrndx,
+				   : elf_strptr (ebl->elf, shstrndx,
 						 destshdr->sh_name));
 	      if (sname == NULL)
 		{
@@ -998,7 +997,7 @@ section [%2d] '%s'\n"),
 	      if (destshdr != NULL)
 		{
 		  /* Found it.  */
-		  if (!ebl_check_special_symbol (ebl, ehdr, sym, name,
+		  if (!ebl_check_special_symbol (ebl, sym, name,
 						 destshdr))
 		    {
 		      if (ehdr->e_type != ET_REL
@@ -2024,7 +2023,7 @@ check_sysv_hash (Ebl *ebl, GElf_Shdr *shdr, Elf_Data *data, int idx,
   Elf32_Word nbucket = ((Elf32_Word *) data->d_buf)[0];
   Elf32_Word nchain = ((Elf32_Word *) data->d_buf)[1];
 
-  if (shdr->sh_size < (2 + nbucket + nchain) * sizeof (Elf32_Word))
+  if (shdr->sh_size < (2ULL + nbucket + nchain) * sizeof (Elf32_Word))
     {
       ERROR (gettext ("\
 section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
@@ -2078,7 +2077,10 @@ check_sysv_hash64 (Ebl *ebl, GElf_Shdr *shdr, Elf_Data *data, int idx,
   Elf64_Xword nbucket = ((Elf64_Xword *) data->d_buf)[0];
   Elf64_Xword nchain = ((Elf64_Xword *) data->d_buf)[1];
 
-  if (shdr->sh_size < (2 + nbucket + nchain) * sizeof (Elf64_Xword))
+  uint64_t maxwords = shdr->sh_size / sizeof (Elf64_Xword);
+  if (maxwords < 2
+      || maxwords - 2 < nbucket
+      || maxwords - 2 - nbucket < nchain)
     {
       ERROR (gettext ("\
 section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
@@ -4329,7 +4331,31 @@ section [%2d] '%s': unknown core file note type %" PRIu32
 	  case NT_GNU_HWCAP:
 	  case NT_GNU_BUILD_ID:
 	  case NT_GNU_GOLD_VERSION:
-	    break;
+	  case NT_GNU_PROPERTY_TYPE_0:
+	    if (nhdr.n_namesz == sizeof ELF_NOTE_GNU
+		&& strcmp (data->d_buf + name_offset, ELF_NOTE_GNU) == 0)
+	      break;
+	    else
+	      {
+		/* NT_VERSION is 1, same as NT_GNU_ABI_TAG.  It has no
+		   descriptor and (ab)uses the name as version string.  */
+		if (nhdr.n_descsz == 0 && nhdr.n_type == NT_VERSION)
+		  break;
+	      }
+	      goto unknown_note;
+
+	  case NT_GNU_BUILD_ATTRIBUTE_OPEN:
+	  case NT_GNU_BUILD_ATTRIBUTE_FUNC:
+	    /* GNU Build Attributes store most data in the owner
+	       name, which must start with the
+	       ELF_NOTE_GNU_BUILD_ATTRIBUTE_PREFIX "GA".  */
+	    if (nhdr.n_namesz >= sizeof ELF_NOTE_GNU_BUILD_ATTRIBUTE_PREFIX
+		&& strncmp (data->d_buf + name_offset,
+			    ELF_NOTE_GNU_BUILD_ATTRIBUTE_PREFIX,
+			    strlen (ELF_NOTE_GNU_BUILD_ATTRIBUTE_PREFIX)) == 0)
+	      break;
+	    else
+	      goto unknown_note;
 
 	  case 0:
 	    /* Linux vDSOs use a type 0 note for the kernel version word.  */
@@ -4338,16 +4364,21 @@ section [%2d] '%s': unknown core file note type %" PRIu32
 	      break;
 	    FALLTHROUGH;
 	  default:
+	    {
+	    unknown_note:
 	    if (shndx == 0)
 	      ERROR (gettext ("\
-phdr[%d]: unknown object file note type %" PRIu32 " at offset %zu\n"),
-		     phndx, (uint32_t) nhdr.n_type, offset);
+phdr[%d]: unknown object file note type %" PRIu32 " with owner name '%s' at offset %zu\n"),
+		     phndx, (uint32_t) nhdr.n_type,
+		     (char *) data->d_buf + name_offset, offset);
 	    else
 	      ERROR (gettext ("\
 section [%2d] '%s': unknown object file note type %" PRIu32
-			      " at offset %zu\n"),
+			      " with owner name '%s' at offset %zu\n"),
 		     shndx, section_name (ebl, shndx),
-		     (uint32_t) nhdr.n_type, offset);
+		     (uint32_t) nhdr.n_type,
+		     (char *) data->d_buf + name_offset, offset);
+	    }
 	  }
     }
 
@@ -4374,7 +4405,8 @@ phdr[%d]: no note entries defined for the type of file\n"),
   GElf_Off notes_size = 0;
   Elf_Data *data = elf_getdata_rawchunk (ebl->elf,
 					 phdr->p_offset, phdr->p_filesz,
-					 ELF_T_NHDR);
+					 (phdr->p_align == 8
+					  ? ELF_T_NHDR8 : ELF_T_NHDR));
   if (data != NULL && data->d_buf != NULL)
     notes_size = check_note_data (ebl, ehdr, data, 0, cnt, phdr->p_offset);
 
@@ -4601,8 +4633,10 @@ program header offset in ELF header and PHDR entry do not match"));
 	      any = true;
 	      shdr = gelf_getshdr (scn, &shdr_mem);
 	      if (shdr != NULL
-		  && shdr->sh_type == (is_debuginfo
-				       ? SHT_NOBITS : SHT_PROGBITS)
+		  && ((is_debuginfo && shdr->sh_type == SHT_NOBITS)
+		      || (! is_debuginfo
+			  && (shdr->sh_type == SHT_PROGBITS
+			      || shdr->sh_type == SHT_X86_64_UNWIND)))
 		  && elf_strptr (ebl->elf, shstrndx, shdr->sh_name) != NULL
 		  && ! strcmp (".eh_frame_hdr",
 			       elf_strptr (ebl->elf, shstrndx, shdr->sh_name)))

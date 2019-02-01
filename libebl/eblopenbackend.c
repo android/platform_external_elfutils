@@ -32,7 +32,6 @@
 
 #include <assert.h>
 #include <dlfcn.h>
-#include <error.h>
 #include <libelfP.h>
 #include <dwarf.h>
 #include <stdlib.h>
@@ -146,7 +145,7 @@ static const struct
 static const char *default_reloc_type_name (int ignore, char *buf, size_t len);
 static bool default_reloc_type_check (int ignore);
 static bool default_reloc_valid_use (Elf *elf, int ignore);
-static Elf_Type default_reloc_simple_type (Ebl *ebl, int ignore);
+static Elf_Type default_reloc_simple_type (Ebl *ebl, int ignore, int *addsub);
 static bool default_gotpc_reloc_check (Elf *elf, int ignore);
 static const char *default_segment_type_name (int ignore, char *buf,
 					      size_t len);
@@ -182,7 +181,7 @@ static bool default_debugscn_p (const char *name);
 static bool default_copy_reloc_p (int reloc);
 static bool default_none_reloc_p (int reloc);
 static bool default_relative_reloc_p (int reloc);
-static bool default_check_special_symbol (Elf *elf, GElf_Ehdr *ehdr,
+static bool default_check_special_symbol (Elf *elf,
 					  const GElf_Sym *sym,
 					  const char *name,
 					  const GElf_Shdr *destshdr);
@@ -453,7 +452,8 @@ default_reloc_valid_use (Elf *elf __attribute__ ((unused)),
 
 static Elf_Type
 default_reloc_simple_type (Ebl *eh __attribute__ ((unused)),
-			   int ignore __attribute__ ((unused)))
+			   int ignore __attribute__ ((unused)),
+			   int *addsub __attribute__ ((unused)))
 {
   return ELF_T_NUM;
 }
@@ -674,7 +674,6 @@ strong_alias (default_copy_reloc_p, default_relative_reloc_p)
 
 static bool
 default_check_special_symbol (Elf *elf __attribute__ ((unused)),
-			      GElf_Ehdr *ehdr __attribute__ ((unused)),
 			      const GElf_Sym *sym __attribute__ ((unused)),
 			      const char *name __attribute__ ((unused)),
 			      const GElf_Shdr *destshdr __attribute__ ((unused)))
