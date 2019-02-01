@@ -17,7 +17,7 @@ dnl  GNU General Public License for more details.
 dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-AC_INIT([elfutils],[0.173],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
+AC_INIT([elfutils],[0.175],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
 
 dnl Workaround for older autoconf < 2.64
 m4_ifndef([AC_PACKAGE_URL],
@@ -323,6 +323,11 @@ if test "$use_valgrind" = yes; then
 fi
 AM_CONDITIONAL(USE_VALGRIND, test "$use_valgrind" = yes)
 
+AC_ARG_ENABLE([install-elfh],
+AS_HELP_STRING([--enable-install-elfh],[install elf.h in include dir]),
+               [install_elfh=$enableval], [install_elfh=no])
+AM_CONDITIONAL(INSTALL_ELFH, test "$install_elfh" = yes)
+
 AM_CONDITIONAL(BUILD_STATIC, [dnl
 test "$use_gprof" = yes -o "$use_gcov" = yes])
 
@@ -618,6 +623,10 @@ if test "x$enable_maintainer_mode" = xyes; then
   if test "$HAVE_BISON" = "no"; then
     AC_MSG_ERROR([bison needed in maintainer mode])
   fi
+  AC_CHECK_PROG(HAVE_GAWK, gawk, yes, no)
+  if test "$HAVE_GAWK" = "no"; then
+    AC_MSG_ERROR([gawk needed in maintainer mode])
+  fi
 else
   if test ! -f ${srcdir}/libdw/known-dwarf.h; then
     AC_MSG_ERROR([No libdw/known-dwarf.h. configure --enable-maintainer-mode])
@@ -654,6 +663,7 @@ AC_MSG_NOTICE([
 
   NOT RECOMMENDED FEATURES (should all be no)
     Experimental thread safety         : ${use_locks}
+    install elf.h                      : ${install_elfh}
 
   OTHER FEATURES
     Deterministic archives by default  : ${default_ar_deterministic}
@@ -669,3 +679,9 @@ AC_MSG_NOTICE([
     use rpath in tests                 : ${tests_use_rpath}
     test biarch                        : ${utrace_cv_cc_biarch}
 ])
+
+if test "$install_elfh" = yes; then
+  if test "${prefix}" = "/usr/local" -o "${prefix}" = "/usr"; then
+    AC_MSG_WARN([installing elf.h in ${includedir} might conflict with glibc/system elf.h])
+  fi
+fi

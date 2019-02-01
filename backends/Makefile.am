@@ -115,7 +115,7 @@ libebl_tilegx_pic_a_SOURCES = $(tilegx_SRCS)
 am_libebl_tilegx_pic_a_OBJECTS = $(tilegx_SRCS:.c=.os)
 
 m68k_SRCS = m68k_init.c m68k_symbol.c m68k_regs.c \
-	    m68k_retval.c m68k_corenote.c
+	    m68k_retval.c m68k_corenote.c m68k_cfi.c m68k_initreg.c
 libebl_m68k_pic_a_SOURCES = $(m68k_SRCS)
 am_libebl_m68k_pic_a_OBJECTS = $(m68k_SRCS:.c=.os)
 
@@ -131,7 +131,8 @@ cpu_bpf = ../libcpu/libcpu_bpf.a
 libebl_bpf_pic_a_SOURCES = $(bpf_SRCS)
 am_libebl_bpf_pic_a_OBJECTS = $(bpf_SRCS:.c=.os)
 
-riscv_SRCS = riscv_init.c riscv_symbol.c riscv_cfi.c riscv_regs.c
+riscv_SRCS = riscv_init.c riscv_symbol.c riscv_cfi.c riscv_regs.c \
+	     riscv_initreg.c riscv_corenote.c riscv64_corenote.c riscv_retval.c
 libebl_riscv_pic_a_SOURCES = $(riscv_SRCS)
 am_libebl_riscv_pic_a_OBJECTS = $(riscv_SRCS:.c=.os)
 

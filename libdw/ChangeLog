@@ -1,3 +1,52 @@
+2019-02-02  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_nextcu.c (__libdw_next_unit): Define bytes_end.
+	Check there are enough bytes to read extended lenght, version
+	and unit.
+
+2019-01-20  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getsrclines.c (read_srclines): Check terminating NUL byte
+	for dir and file lists.
+
+2018-10-23  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_child.c (__libdw_find_attr): Initialize readp to NULL.
+	* dwarf_getattrs.c (dwarf_getattrs): Initialize die_addr to NULL.
+
+2018-10-20  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.map (ELFUTILS_0.175): New section. Add dwelf_elf_begin.
+
+2018-10-29  Milian Wolff  <milian.wolff@kdab.com>
+
+	* dwarf_getcfi_elf.c (getcfi_shdr): Check sh_type != SHT_NOBITS.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_begin_elf.c (check_section): Drop ehdr argument, add and
+	use shstrndx argument.
+	(global_read): Likewise.
+	(scngrp_read): Likewise.
+	(dwarf_begin_elf): Call elf_getshdrstrndx. Pass shstrndx to
+	global_read or scngrp_read.
+
+2018-08-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getabbrev.c (__libdw_getabbrev): Continue until both name
+	and form are zero.
+	* dwarf_hasattr.c (dwarf_hasattr): Stop when both name and form
+	are zero.
+
+2018-08-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getaranges.c (dwarf_getaranges.c): Make sure there is enough
+	data to read the address and segment size.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* libdw_alloc.c: Remove error.h include.
+
 2018-06-28  Mark Wielaard  <mark@klomp.org>
 
 	* dwarf_next_cfi.c (dwarf_next_cfi): Check whether length is zero.

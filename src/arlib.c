@@ -21,7 +21,6 @@
 #endif
 
 #include <assert.h>
-#include <error.h>
 #include <gelf.h>
 #include <inttypes.h>
 #include <libintl.h>
@@ -31,6 +30,7 @@
 
 #include <libeu.h>
 
+#include "system.h"
 #include "arlib.h"
 
 
@@ -250,6 +250,9 @@ arlib_add_symbols (Elf *elf, const char *arfname, const char *membername,
 
       Elf_Data *data = elf_getdata (scn, NULL);
       if (data == NULL)
+	continue;
+
+      if (shdr->sh_entsize == 0)
 	continue;
 
       int nsyms = shdr->sh_size / shdr->sh_entsize;

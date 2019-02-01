@@ -1,3 +1,265 @@
+2019-01-24  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Fix check test for SHN_XINDEX symbol.
+
+2019-01-22  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_line_section): Check we are not at end of
+	line data when reading parameters for unknown opcodes.
+
+2019-01-20  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_line_section): Check terminating NUL byte
+	for dir and file tables.
+
+2019-01-16  Mark Wielaard  <mark@klomp.org>
+
+	* readelf (handle_core_note): Pass desc to ebl_core_note.
+
+2018-11-10  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_program_header): Allow PT_GNU_EH_FRAME segment
+	to be matched against SHT_X86_64_UNWIND section.
+
+2018-11-09  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (remove_debug_relocations): Check if section is gnu
+	compressed and decompress and recompress it.
+
+2018-11-12  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_note_data): Recognize NT_GNU_BUILD_ATTRIBUTE_OPEN
+	and NT_GNU_BUILD_ATTRIBUTE_OPEN.
+	* readelf.c (handle_notes_data): Handle
+	ELF_NOTE_GNU_BUILD_ATTRIBUTE_PREFIX. Pass nhdr.n_namesz to
+	ebl_object_note.
+
+2018-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (handle_notes_data): Pass n_descsz to
+	ebl_object_note_type_name.
+	* elflint.c (check_note_data): Recognize NT_VERSION, add owner
+	name to unknown note error.
+
+2018-10-20  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (process_elf_file): Use dwelf_elf_begin to open pure_elf.
+
+2018-10-26  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (OPT_RELOC_DEBUG_ONLY): New define.
+	(options): Add reloc-debug-sections-only.
+	(reloc_debug_only): New static bool.
+	(main): Check reloc_debug_only is the only strip option used.
+	(parse_opt): Handle OPT_RELOC_DEBUG_ONLY.
+	(handle_debug_relocs): New function.
+	(handle_elf): Add local variables lastsec_offset and lastsec_size.
+	Handle reloc_debug_only.
+
+2018-10-24  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Extract code to update shdrstrndx into...
+	(update_shdrstrndx): ... this new function.
+
+2018-10-24  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Extract code into separate functions...
+	(secndx_name): ... new function.
+	(get_xndxdata): Likewise.
+	(remove_debug_relocations): Likewise.
+
+2018-10-24  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Always copy over phdrs if there are any
+	and check phnum instead of e_type to determine whether to move
+	allocated sections.
+
+2018-11-02  Mark Wielaard  <mark@klomp.org>
+
+	* unstrip.c (copy_elf): Add ELF_CHECK to make sure gelf_getehdr ()
+	doesn't return NULL.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_note_data): Recognize NT_GNU_PROPERTY_TYPE_0.
+	(check_note): Use p_align to pass either ELF_T_NHDR or ELF_T_NHDR8 to
+	elf_getdata_rawchunk.
+	* readelf (handle_notes): Likewise.
+
+2018-10-24  Mark Wielaard  <mark@klomp.org>
+
+	* addr2line.c (print_addrsym): Use elf_getshdrstrndx instead of
+	Ehdr field.
+
+2018-10-24  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (section_name): Remove ehdr argument, lookup shstrndx.
+	(print_debug_abbrev_section): Don't pass ehdr.
+	(print_debug_addr_section): Likewise.
+	(print_decoded_aranges_section): Likewise.
+	(print_debug_aranges_section): Likewise.
+	(print_debug_rnglists_section): Likewise.
+	(print_debug_ranges_section): Likewise.
+	(print_debug_units): Likewise.
+	(print_decoded_line_section): Likewise.
+	(print_debug_line_section): Likewise.
+	(print_debug_loclists_section): Likewise.
+	(print_debug_loc_section): Likewise.
+	(print_debug_macinfo_section): Likewise.
+	(print_debug_macro_section): Likewise.
+	(print_debug_pubnames_section): Likewise.
+	(print_debug_str_section): Liekwise.
+	(print_debug_str_offsets_section): Likewise.
+	(print_gdb_index_section): Likewise.
+
+2018-10-16  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_frame_section): Make sure readp is never
+	greater than cieend.
+
+2018-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_module_getdwarf.c (adjust_relocs): Check sh_entsize is not
+	zero.
+	(add_new_section_symbols): Likewise.
+	(copy_elided_sections): Likewise.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* size.c (handle_ar): Only close elf if prefix was NULL.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* arlib.c (arlib_add_symbols): Check that sh_entsize is not zero.
+
+2018-10-14  Mark Wielaard  <mark@klomp.org>
+
+	* ar.c (do_oper_extract): Assume epoch if ar_date is bogus.
+
+2018-10-14  Mark Wielaard  <mark@klomp.org>
+
+	* findtextrel.c (process_file): Check that sh_entsize is not zero.
+
+2018-10-13  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_macro_section): Use elf_getdata. Print
+	decoded flag string.
+
+2018-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* unstrip.c (copy_elided_sections): Renumber group section indexes.
+
+2018-10-12  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Don't remove SHF_GROUP flag from sections.
+	Skip group section flag when renumbering section indexes.
+	* unstrip.c (struct section): Add sig field.
+	(compare_unalloc_sections): Take and use sig1 and sig2 as arguments.
+	(compare_sections): Pass signatures to compare_unalloc_sections.
+	(get_group_sig): New function.
+	(find_alloc_sections_prelink): Set signature.
+	(copy_elided_sections): Likewise and pass them on.
+	(find_unalloc_section): Take and pass signatures.
+
+2018-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* strip.c (handle_elf): Handle ADD/SUB relocation.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_shdr): Get number of section with elf_getshdrnum.
+	(print_phdr): Likewise.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Check against shstrndx, not e_shstrndx.
+	Explicitly set shdrstrndx for debug file.
+	* unstrip.c (copy_elf): Explicitly copy shstrndx.
+	(find_alloc_sections_prelink): Document shnum usage.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_elf_header): Use shnum instead of e_shnum for all
+	checks.
+	(check_symtab): Use shstrndx instead of e_shstrndx to get section
+	names.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* elfcmp.c (main): Get, check and shdrstrndx for section names.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* elfcmp.c (main): Call ebl_section_strip_p without ehdr.
+	* strip.c (handle_elf): Likewise.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_symtab): Call ebl_check_special_symbol without
+	ehdr.
+
+2018-07-30  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Track allocated/unallocated sections seen. Set
+	section offset of unallocated sections after handling all allocated
+	sections.
+
+2018-08-18  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_aranges_section): Make sure there is enough
+	data to read the header segment size.
+
+2018-08-18  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_sysv_hash): Calculate needed size using unsigned
+	long long int to prevent overflow.
+	(check_sysv_hash64): Calculate maxwords used separately before
+	comparison to prevent overflow.
+
+2018-07-24  Mark Wielaard  <mark@klomp.org>
+
+	* unstrip.c (compare_unalloc_sections): Also compare sh_size.
+
+2018-07-21  Mark Wielaard  <mark@klomp.org>
+
+	* unstrip.c (adjust_all_relocs): Skip SHT_GROUP sections.
+
+2018-07-21  Mark Wielaard  <mark@klomp.org>
+
+	* elfcompress.c (get_sections): New function.
+	(process_file): Check whether section needs to change. Don't rewrite
+	file if no section data needs changing.
+	(main): Update 'force' help text.
+
+2018-07-21  Mark Wielaard  <mark@klomp.org>
+
+	* elfcompress.c (process_file): Swap fchmod and fchown calls.
+
+2018-07-04  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_addr_section): Rename index var to uidx.
+	(attr_callback): Rename index var to word.
+	(print_debug_str_offsets_section): Rename index var to uidx.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* addr2line.c: Remove error.h include.
+	* ar.c: Likewise.
+	* arlib.c: Likewise and add system.h include.
+	* arlib2.c: Likewise.
+	* elfcmp.c: Likewise.
+	* elfcompress.c: Likewise.
+	* elflint.c: Likewise.
+	* findtextrel.c: Likewise.
+	* nm.c: Likewise.
+	* objdump.c: Likewise.
+	* ranlib.c: Likewise.
+	* readelf.c: Likewise.
+	* stack.c: Likewise.
+	* strings.c: Likewise.
+	* strip.c: Likewise.
+	* unstrip.c: Likewise.
+
 2018-06-25  Mark Wielaard  <mark@klomp.org>
 
 	* readelf.c (print_decoded_line_section): Use dwarf_next_lines

@@ -42,7 +42,8 @@
 
 /* Check for the simple reloc types.  */
 Elf_Type
-ppc_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type)
+ppc_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type,
+		       int *addsub __attribute__ ((unused)))
 {
   switch (type)
     {
@@ -135,7 +136,7 @@ find_dyn_got (Elf *elf, GElf_Addr *addr)
 /* Check whether given symbol's st_value and st_size are OK despite failing
    normal checks.  */
 bool
-ppc_check_special_symbol (Elf *elf, GElf_Ehdr *ehdr, const GElf_Sym *sym,
+ppc_check_special_symbol (Elf *elf, const GElf_Sym *sym,
 			  const char *name, const GElf_Shdr *destshdr)
 {
   if (name == NULL)
@@ -152,7 +153,10 @@ ppc_check_special_symbol (Elf *elf, GElf_Ehdr *ehdr, const GElf_Sym *sym,
       return true;
     }
 
-  const char *sname = elf_strptr (elf, ehdr->e_shstrndx, destshdr->sh_name);
+  size_t shstrndx;
+  if (elf_getshdrstrndx (elf, &shstrndx) != 0)
+    return false;
+  const char *sname = elf_strptr (elf, shstrndx, destshdr->sh_name);
   if (sname == NULL)
     return false;
 
