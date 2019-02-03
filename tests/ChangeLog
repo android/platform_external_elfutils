@@ -1,3 +1,253 @@
+2019-01-24  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (system_elf_libelf_test_CPPFLAGS): Guard by
+	!INSTALL_ELFH.
+
+2019-01-31  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-child.c (stdarg): Remove assert (errno == 0).
+	(main): Likewise.
+	* backtrace-data.c (maps_lookup): Likewise.
+	(set_initial_registers): Likewise.
+	(main): Likewise.
+	* backtrace.c (prepare_thread): Likewise.
+	(exec_dump): Likewise.
+
+2019-01-29  Yonghong Song  <yhs@fb.com>
+
+	* backtrace-data.c (maps_lookup): Use %*u, not %*x, to parse
+	inode number.
+
+2019-01-18  Ulf Hermann <ulf.hermann@qt.io>
+
+	* run-annobingroup.sh: Use different files for strip output.
+	* run-strip-test-many.sh: Use different files for strip output,
+	check results of strip, unstrip, elflint.
+
+2019-01-24  Mark Wielaard  <mark@klomp.org>
+
+	* addsections.c (add_sections): Change the name of the old shstrtab
+	section to ".old_shstrtab" and give the old shstrtab name to the
+	new shstrtab section.
+
+2019-01-09  Ulf Hermann <ulf.hermann@qt.io>
+
+	* run-readelf-compressed.sh: Skip if USE_BZIP2 not found.
+
+2018-12-27  Jim Wilson  <jimw@sifive.com>
+
+	* run-readelf-mixed-corenote.sh: Update with new riscv64 output.
+
+2018-12-02  Mark Wielaard  <mark@klomp.org>
+
+	* testfile_gnu_props.32le.o.bz2: New testfile.
+	* testfile_gnu_props.64le.o.bz2: Likewise.
+	* testfile_gnu_props.32be.o.bz2: Likewise.
+	* testfile_gnu_props.64be.o.bz2: Likewise.
+	* Makefile (EXTRA_DIST): Add new testfiles.
+	* run-readelf-n.sh: Run tests on new testfiles.
+
+2018-11-28  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-data.c (main): Improve error message.
+	* run-backtrace-data.sh: Skip exit 77 return.
+
+2018-11-21  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-subr.sh (check_unsupported): Call test_cleanup before
+	exit.
+
+2018-11-17  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-version.sh: New test.
+	* testfile-version.bz2: New test file.
+	* Makefile.am (TESTS): Add run-strip-version.sh.
+	(EXTRA_DIST): Add run-strip-version.sh and testfile-version.bz2.
+
+2018-11-09  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-reloc.sh: Also test testfile-debug-rel-ppc64-z.o
+	testfile-debug-rel-ppc64-g.o.
+
+2018-11-12  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-n.sh: Add testfile-annobingroup.o test.
+
+2018-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-n.sh: Fix NT_GNU_ABI_TAG type. Add testfile11 test
+	for NT_VERSION.
+
+2018-11-04  Mark Wielaard  <mark@klomp.org>
+
+	* testfile-bpf-reloc.expect.bz2: Update with new expected jump
+	variants.
+
+2018-10-20  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-compressed.sh: New test.
+	* Makefile.am (TESTS): Add run-readelf-compressed.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-11-09  Mark Wielaard  <mark@klomp.org>
+
+	* testfile-debug-rel-ppc64-g.o.bz2: New test file.
+	* testfile-debug-rel-ppc64-z.o.bz2: Likewise.
+	* testfile-debug-rel-ppc64.o.bz2: Likewise.
+	* Makefile.am (EXTRA_DIST): Add testfile-debug-rel-ppc64-g.o.bz2,
+	testfile-debug-rel-ppc64-z.o.bz2 and testfile-debug-rel-ppc64.o.bz2.
+	* run-strip-reloc.sh: Also test on testfile-debug-rel-ppc64.o.
+	* run-readelf-zdebug-rel.sh: Also test on testfile-debug-rel-ppc64*.o.
+
+2018-10-26  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-reloc.sh: Add a test for --reloc-debug-sections-only.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-n.sh: New test.
+	* testfile-gnu-property-note.bz2: New testfile.
+	* testfile-gnu-property-note.o.bz2: Likewise.
+	* Makefile.am (TESTS): Add run-readelf-n.sh.
+	(EXTRA_DIST): Likewise and testfile-gnu-property-note.bz2,
+	testfile-gnu-property-note.o.bz2.
+
+2018-10-12  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-zdebug.sh: Adjust flags output.
+	* run-readelf-macro.sh: Likewise.
+	* run-readelf-macros.sh: New test.
+	* testfile-macros-object.o.bz2: New test file.
+	* Makefile.am (TESTS): Add run-readelf-macros.sh.
+	(EXTRA_DIST): Add run-readelf-macros.sh and
+	testfile-macros-object.o.bz2.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* run-annobingroup.sh: Add x86_64 ET_REL testcase.
+	* testfile-annobingroup-x86_64.o.bz2: New test file.
+	* Makefile.am (EXTRA_DIST): Add testfile-annobingroup-x86_64.o.bz2.
+
+2018-09-18  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-dwarf.c (thread_callback): Only error when
+	dwfl_thread_getframes returns an error.
+	(main): Don't call abort or assert but print an error when
+	something unexpected happens.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* run-strip-test-many.sh: New test.
+	* Makefile.am (TESTS): Add run-strip-test-many.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* run-typeiter-many.sh: New test.
+	* Makefile.am (TESTS): Add run-typeiter-many.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* run-copymany-sections.sh: New test.
+	* Makefile.am (TESTS): Add run-copymany-sections.sh.
+	(EXTRA_DIST): Likewise.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (check_PROGRAMS): Add elfcopy and addsections.
+	(TESTS): Add run-copyadd-sections.sh.
+	(EXTRA_DIST): Likewise.
+	(elfcopy_LDADD): New variable.
+	(addsections_LDADD): Likewise.
+	* addsections.c: New file.
+	* elfcopy.c: Likewise.
+	* run-copyadd-sections.sh: New test.
+
+2018-09-11  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-dwarf.c (main): Add section attribute.
+
+2018-07-24  Mark Wielaard  <mark@klomp.org>
+
+	* run-annobingroup.sh: Add testfile-annobingroup-i386.o tests.
+	* testfile-annobingroup-i386.o.bz2: New test file.
+	* Makefile.am (EXTRA_DIST): Add testfile-annobingroup-i386.o.bz2.
+
+2018-07-21  Mark Wielaard  <mark@klomp.org>
+
+	* run-annobingroup.sh: New test.
+	* testfile-annobingroup.o.bz2: New test file.
+	* Makefile.am (TESTS): Add run-annobingroup.sh.
+	(EXTRA_DIST): Add run-annobingroup.sh and
+	testfile-annobingroup.o.bz2.
+
+2018-07-19  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.am (TESTS): Add run-strip-test12.sh.
+	(EXTRA_DIST): Add run-strip-test12.sh, testfile-riscv64.bz2,
+	testfile-riscv64-s.bz2, testfile-riscv64-core.bz2.
+	(run-strip-test11.sh): New file.
+	(testfile-riscv64.bz2): New file.
+	(testfile-riscv64-s.bz2): New file.
+	(testfile-riscv64-core.bz2): New file.
+	* run-allregs.sh: Add test for testfile-riscv64-core.
+	* run-readelf-mixed-corenote.sh: Likewise.
+
+2018-07-16  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* run-strip-reloc.sh: Remove previous testfiles before running the
+	next test.
+
+2018-07-17  Mark Wielaard  <mark@klomp.org>
+
+	* hello_riscv64.ko.bz2: Updated with debuginfo.
+	* run-strip-reloc.sh: Add documentation on CONFIG_DEBUG_INFO=y.
+
+2018-07-05  Mark Wielaard  <mark@klomp.org>
+
+	* next_cfi.c (handle_section): Take a new argument name. Check
+	whether the section is compressed and uncompress if so.
+	(main): Check also for .zdebug_frame and pass the name of the
+	section to handle_section.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* addrscopes.c: Remove error.h include, add system.h include.
+	* allregs.c: Likewise.
+	* backtrace-data.c: Likewise.
+	* backtrace-dwarf.c: Likewise.
+	* backtrace.c: Likewise.
+	* buildid.c: Likewise.
+	* debugaltlink.c: Likewise.
+	* debuglink.c: Likewise.
+	* deleted.c : Likewise.
+	* dwarfcfi.c: Likewise.
+	* dwfl-addr-sect.c: Likewise.
+	* dwfl-bug-addr-overflow.c: Likewise.
+	* dwfl-bug-fd-leak.c: Likewise.
+	* dwfl-bug-getmodules.c: Likewise.
+	* dwfl-proc-attach.c: Likewise.
+	* dwfl-report-elf-align.c: Likewise.
+	* dwfllines.c: Likewise.
+	* dwflmodtest.c: Likewise.
+	* dwflsyms.c: Likewise.
+	* early-offscn.c: Likewise
+	* ecp.c: Likewise.
+	* elfstrmerge.c: Likewise.
+	* find-prologues.c: Likewise.
+	* funcretval.c: Likewise.
+	* funcscopes.c: Likewise.
+	* getsrc_die.c: Likewise.
+	* line2addr.c: Likewise.
+	* low_high_pc.c: Likewise.
+	* next_cfi.c: Likewise.
+	* rdwrmmap.c: Likewise.
+	* saridx.c: Likewise.
+	* sectiondump.c: Likewise.
+	* varlocs.c: Likewise.
+	* vdsosyms.c: Likewise.
+
 2018-06-28  Mark Wielaard  <mark@klomp.org>
 
 	* next_cfi.c: New file.

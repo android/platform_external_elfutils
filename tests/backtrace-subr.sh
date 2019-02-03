@@ -85,6 +85,7 @@ check_unsupported()
   testname=$2
   if grep -q ': Unwinding not supported for this architecture$' $err; then
     echo >&2 $testname: arch not supported
+    test_cleanup
     exit 77
   fi
 }

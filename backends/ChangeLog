@@ -1,3 +1,95 @@
+2018-12-27  Jim Wilson  <jimw@sifive.com>
+
+	* Makefile.am (riscv_SRCS): Add riscv64_corenote.c.
+	* riscv64_corenote.c: New file.
+	* riscv_corenote.c (BITS): New.
+	(BACKEND): Conditional on BITS.
+	(ULONG, UID_T, GID_T, ALIGN_ULONG, ALIGN_UID_T, ALIGN_GID_T): Likewise.
+	(TYPE_ULONG, TYPE_UID_T, TYPE_GID_T): Likewise.
+	(prstatus_regs): Use BITS/8 instead of 8.
+	(PRSTATUS_REGS_SIZE): Likewise.
+	* riscv_init.c (riscv64_core_note): Declare.
+	(riscv_init): If ELFCLASS64 then use riscv64_core_note hook.
+
+	* Makefile.am (riscv_SRCS): Add riscv_retval.c.
+	* riscv_init.c: Include libelfP.h.
+	(riscv_return_value_location_lp64d): Declare.
+	(riscv_init): Delete unused attribute from elf parameter.  Register
+	riscv_return_value_location_lp64d hook if 64-bit ELF and 64-bit FP
+	registers.
+	* riscv_retval.c: New file.
+
+	* riscv_corenote.c (prstatus_regs): Change offset from 1 to 8.
+	(PRSTATUS_REGSET_ITEMS): New.
+
+2018-11-06  Mark Wielaard  <mark@klomp.org>
+
+	* x86_64_symbol.c (x86_64_section_type_name): New function.
+	* x86_64_init.c (x86_64_int): Hook section_type_name.
+
+2018-10-20  Mark Wielaard  <mark@klomp.org>
+
+	* ppc_initreg.c (ppc_set_initial_registers_tid): Use define instead of
+	const for size of dwarf_regs array.
+
+2018-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* riscv_symbol.c (riscv_reloc_simple_type): Add parameter addsub.
+	Set it for ADD and SUB relocations.
+	* aarch64_symbol.c (aarch64_reloc_simple_type): Add and ignore
+	third parameter.
+	* alpha_symbol.c (alpha_reloc_simple_type): Likewise.
+	* arm_symbol.c (arm_reloc_simple_type): Likewise.
+	* bpf_symbol.c (bpf_reloc_simple_type): Likewise.
+	* i386_symbol.c (i386_reloc_simple_type): Likewise.
+	* ia64_symbol.c (ia64_reloc_simple_type): Likewise.
+	* m68k_symbol.c (m68k_reloc_simple_type): Likewise.
+	* ppc64_symbol.c (ppc64_reloc_simple_type): Likewise.
+	* ppc_symbol.c (ppc_reloc_simple_type): Likewise.
+	* s390_symbol.c (s390_reloc_simple_type): Likewise.
+	* sh_symbol.c (sh_reloc_simple_type): Likewise.
+	* sparc_symbol.c (sparc_reloc_simple_type): Likewise.
+	* tilegx_symbol.c (tilegx_reloc_simple_type): Likewise.
+	* x86_64_symbol.c (x86_64_reloc_simple_type): Likewise.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* ppc64_init.c (ppc64_init): Use elf_getshdrstrndx.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* aarch64_symbol.c (aarch64_check_special_symbol): Drop ehdr argument,
+	use elf_getshdrstrndx.
+	* alpha_symbol.c (alpha_check_special_symbol): Drop ehdr argument.
+	* ppc64_symbol.c (ppc64_check_special_symbol): Likewise and use
+	elf_getshdrstrndx.
+	* ppc_symbol.c (ppc_check_special_symbol): Likewise.
+	* riscv_symbol.c (riscv_check_special_symbol): Likewise.
+
+2018-07-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.am (m68k_SRCS): Add m68k_cfi.c and m68k_initreg.c.
+	* m68k_cfi.c: New file.
+	* m68k_initreg.c: New file.
+	* m68k_init.c (m68k_init): Hook abi_cfi and
+	set_initial_registers_tid.
+
+2018-07-19  Andreas Schwab  <schwab@suse.de>
+
+	* riscv_regs.c (riscv_register_info): Fix typo.
+
+2018-07-17  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.am (riscv_SRCS): Add riscv_corenote.c.
+	* riscv_corenote.c: New file.
+	* riscv_init.c (riscv_init): Hook core_note.
+
+2018-07-11  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.am (riscv_SRCS): Add riscv_initreg.c.
+	* riscv_initreg.c: New file.
+	* riscv_init.c (riscv_init): Hook set_initial_registers_tid.
+
 2018-06-16  Yonghong Song  <yhs@fb.com>
 
 	* Makefile.am (bpf_SRCS): Add bpf_symbol.c.

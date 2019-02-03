@@ -36,11 +36,13 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 #include <libeblP.h>
 
 
 int
 ebl_core_note (Ebl *ebl, const GElf_Nhdr *nhdr, const char *name,
+	       const char *desc,
 	       GElf_Word *regs_offset, size_t *nregloc,
 	       const Ebl_Register_Location **reglocs, size_t *nitems,
 	       const Ebl_Core_Item **items)
@@ -51,28 +53,25 @@ ebl_core_note (Ebl *ebl, const GElf_Nhdr *nhdr, const char *name,
     {
       /* The machine specific function did not know this type.  */
 
-      *regs_offset = 0;
-      *nregloc = 0;
-      *reglocs = NULL;
-      switch (nhdr->n_type)
+      /* NT_PLATFORM is kind of special since it needs a zero terminated
+         string (other notes often have a fixed size string).  */
+      static const Ebl_Core_Item platform[] =
 	{
-#define ITEMS(type, table)				\
-	  case type:					\
-	    *items = table;				\
-	    *nitems = sizeof table / sizeof table[0];	\
-	    result = 1;					\
-	    break
+	  {
+	    .name = "Platform",
+	    .type = ELF_T_BYTE, .count = 0, .format = 's'
+	  }
+	};
 
-	  static const Ebl_Core_Item platform[] =
-	    {
-	      {
-		.name = "Platform",
-		.type = ELF_T_BYTE, .count = 0, .format = 's'
-	      }
-	    };
-	  ITEMS (NT_PLATFORM, platform);
-
-#undef	ITEMS
+      if (nhdr->n_type == NT_PLATFORM
+	  && memchr (desc, '\0', nhdr->n_descsz) != NULL)
+        {
+	  *regs_offset = 0;
+	  *nregloc = 0;
+	  *reglocs = NULL;
+	  *items = platform;
+	  *nitems = 1;
+	  result = 1;
 	}
     }
 

@@ -55,6 +55,10 @@ m68k_init (Elf *elf __attribute__ ((unused)),
   HOOK (eh, return_value_location);
   HOOK (eh, register_info);
   HOOK (eh, core_note);
+  HOOK (eh, abi_cfi);
+  /* gcc/config/ #define DWARF_FRAME_REGISTERS.  */
+  eh->frame_nregs = 25;
+  HOOK (eh, set_initial_registers_tid);
 
   return MODVERSION;
 }

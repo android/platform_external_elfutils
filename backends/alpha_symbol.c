@@ -61,7 +61,8 @@ alpha_dynamic_tag_check (int64_t tag)
 
 /* Check for the simple reloc types.  */
 Elf_Type
-alpha_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type)
+alpha_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type,
+			 int *addsub __attribute__ ((unused)))
 {
   switch (type)
     {
@@ -130,7 +131,6 @@ alpha_check_special_section (Ebl *ebl,
    normal checks.  */
 bool
 alpha_check_special_symbol (Elf *elf __attribute__ ((unused)),
-			    GElf_Ehdr *ehdr __attribute__ ((unused)),
 			    const GElf_Sym *sym __attribute__ ((unused)),
 			    const char *name,
 			    const GElf_Shdr *destshdr __attribute__ ((unused)))

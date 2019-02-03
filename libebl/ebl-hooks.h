@@ -33,7 +33,7 @@ const char *EBLHOOK(reloc_type_name) (int, char *, size_t);
 bool EBLHOOK(reloc_type_check) (int);
 
 /* Check if relocation type is for simple absolute relocations.  */
-Elf_Type EBLHOOK(reloc_simple_type) (Ebl *, int);
+Elf_Type EBLHOOK(reloc_simple_type) (Ebl *, int, int *);
 
 /* Check relocation type use.  */
 bool EBLHOOK(reloc_valid_use) (Elf *, int);
@@ -118,7 +118,7 @@ bool EBLHOOK(none_reloc_p) (int);
 bool EBLHOOK(relative_reloc_p) (int);
 
 /* Check whether given symbol's value is ok despite normal checks.  */
-bool EBLHOOK(check_special_symbol) (Elf *, GElf_Ehdr *, const GElf_Sym *,
+bool EBLHOOK(check_special_symbol) (Elf *, const GElf_Sym *,
 			      const char *, const GElf_Shdr *);
 
 /* Check if this is a data marker symbol.  e.g. '$d' symbols for ARM.  */

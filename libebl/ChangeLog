@@ -1,3 +1,75 @@
+2019-01-29  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): Check pr_datasz padding doesn't
+	overflow descsz.
+
+2019-01-16  Mark Wielaard  <mark@klomp.org>
+
+	* libebl.h (ebl_core_note): Add desc as argument.
+	* eblcorenote.c (ebl_core_note): Take desc as an argument, check
+	it contains a zero terminated string if it is an NT_PLATFORM note.
+
+2019-01-16  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnte.c (ebl_object_note): Check pr_datasz isn't too large.
+
+2018-12-02  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnte.c (ebl_object_note): For GNU_PROPERTY_STACK_SIZE use
+	an Elf32_Addr or Elf64_Addr to read and print the size.
+
+2018-11-15  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnotetypename.c (ebl_object_note_type_name): Don't update
+	w, t and len unnecessarily.
+
+2018-11-12  Mark Wielaard  <mark@klomp.org>
+
+	* libebl.h (ebl_object_note): Add new argument namesz.
+	* eblobjnote.c (ebl_object_note): Likewise and handle GNU Build
+	Attribute notes.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Handle GNU
+	Build Attribute notes.
+
+2018-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): Recognize NT_VERSION with zero
+	descriptor. Add explicit "GNU" name check.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Add extra
+	argument descsz. Recognize NT_VERSION using descsz. With "GNU"
+	name it is  NT_GNU_ABI_TAG.
+	* libebl.h (ebl_object_note_type_name): Add extra argument descsz.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): Handle NT_GNU_PROPERTY_TYPE_0.
+	* eblobjnotetypename.c (ebl_object_note_type_name): Add
+	GNU_PROPERTY_TYPE_0.
+
+2018-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* ebl-hooks.h (EBLHOOK(reloc_simple_type)): Add third parameter.
+	* libebl.h (ebl_reloc_simple_type): Likewise.
+	* eblopenbackend.c (default_reloc_simple_type): Likewise.
+	* eblrelocsimpletype.c (ebl_reloc_simple_type): Pass it down.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* eblsectionstripp.c (ebl_section_strip_p): Drop ehdr argument.
+	Use elf_getshdrstrndx.
+	* libebl.h (ebl_section_strip_p): Drop ehdr argument.
+
+2018-09-12  Mark Wielaard  <mark@klomp.org>
+
+	* ebl-hooks.h (check_special_symbol): Drop ehdr argument.
+	* ebl_check_special_symbol.c (ebl_check_special_symbol): Likewise.
+	* eblopenbackend.c (default_check_special_symbol): Likewise.
+	* libebl.h (ebl_check_special_symbol): Likewise.
+
+2018-07-04  Ross Burton <ross.burton@intel.com>
+
+	* eblopenbackend.c: Remove error.h include.
+
 2018-04-25  Mark Wielaard  <mark@klomp.org>
 
 	* eblopenbackend.c (default_debugscn_p): Add new DWARF5 sections

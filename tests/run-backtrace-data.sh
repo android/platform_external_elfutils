@@ -22,7 +22,11 @@
 unset VALGRIND_CMD
 
 tempfiles data.{bt,err}
-(set +ex; testrun ${abs_builddir}/backtrace-data 1>data.bt 2>data.err; true)
+(set +ex;
+ testrun ${abs_builddir}/backtrace-data 1>data.bt 2>data.err;
+ if test $? == 77; then cat data.{bt,err}; exit 77; fi
+ true)
+
 cat data.{bt,err}
 check_unsupported data.err data
 check_all data.{bt,err} data

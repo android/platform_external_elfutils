@@ -1,5 +1,5 @@
 /* Relocate debug information.
-   Copyright (C) 2005-2011, 2014, 2016 Red Hat, Inc.
+   Copyright (C) 2005-2011, 2014, 2016, 2018 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 # include <config.h>
 #endif
 
+#include "libelfP.h"
 #include "libdwflP.h"
 
 typedef uint8_t GElf_Byte;
@@ -338,7 +339,8 @@ relocate (Dwfl_Module * const mod,
 	 So we just pretend it's OK without further relocation.  */
       return DWFL_E_NOERROR;
 
-    Elf_Type type = ebl_reloc_simple_type (mod->ebl, rtype);
+    int addsub = 0;
+    Elf_Type type = ebl_reloc_simple_type (mod->ebl, rtype, &addsub);
     if (unlikely (type == ELF_T_NUM))
       return DWFL_E_BADRELTYPE;
 
@@ -383,6 +385,9 @@ relocate (Dwfl_Module * const mod,
       {
 #define DO_TYPE(NAME, Name)			\
 	case ELF_T_##NAME:			\
+	  if (addsub != 0 && addend == NULL)	\
+	    /* These do not make sense with SHT_REL.  */ \
+	    return DWFL_E_BADRELTYPE;		\
 	  size = sizeof (GElf_##Name);		\
 	break
 	TYPES;
@@ -417,11 +422,24 @@ relocate (Dwfl_Module * const mod,
       {
 	/* For the addend form, we have the value already.  */
 	value += *addend;
+	/* For ADD/SUB relocations we need to fetch the section
+	   contents.  */
+	if (addsub != 0)
+	  {
+	    Elf_Data *d = gelf_xlatetom (relocated, &tmpdata, &rdata,
+					 ehdr->e_ident[EI_DATA]);
+	    if (d == NULL)
+	      return DWFL_E_LIBELF;
+	    assert (d == &tmpdata);
+	  }
 	switch (type)
 	  {
 #define DO_TYPE(NAME, Name)			\
 	    case ELF_T_##NAME:			\
-	      tmpbuf.Name = value;		\
+	      if (addsub != 0)			\
+		tmpbuf.Name += value * addsub;	\
+	      else				\
+		tmpbuf.Name = value;		\
 	    break
 	    TYPES;
 #undef DO_TYPE
@@ -544,39 +562,54 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
      shdrs or phdrs data then we refuse to do the relocations.  It
      isn't illegal for ELF section data to overlap the header data,
      but updating the (relocation) data might corrupt the in-memory
-     libelf headers causing strange corruptions or errors.  */
-  size_t ehsize = gelf_fsize (relocated, ELF_T_EHDR, 1, EV_CURRENT);
-  if (unlikely (shdr->sh_offset < ehsize
-		|| tshdr->sh_offset < ehsize))
-    return DWFL_E_BADELF;
+     libelf headers causing strange corruptions or errors.
 
-  GElf_Off shdrs_start = ehdr->e_shoff;
-  size_t shnums;
-  if (elf_getshdrnum (relocated, &shnums) < 0)
-    return DWFL_E_LIBELF;
-  /* Overflows will have been checked by elf_getshdrnum/get|rawdata.  */
-  size_t shentsize = gelf_fsize (relocated, ELF_T_SHDR, 1, EV_CURRENT);
-  GElf_Off shdrs_end = shdrs_start + shnums * shentsize;
-  if (unlikely ((shdrs_start < shdr->sh_offset + shdr->sh_size
-		 && shdr->sh_offset < shdrs_end)
-		|| (shdrs_start < tshdr->sh_offset + tshdr->sh_size
-		    && tshdr->sh_offset < shdrs_end)))
-    return DWFL_E_BADELF;
-
-  GElf_Off phdrs_start = ehdr->e_phoff;
-  size_t phnums;
-  if (elf_getphdrnum (relocated, &phnums) < 0)
-    return DWFL_E_LIBELF;
-  if (phdrs_start != 0 && phnums != 0)
+     This is only an issue if the ELF is mmapped and the section data
+     comes from the mmapped region (is not malloced or decompressed).
+  */
+  if (relocated->map_address != NULL)
     {
-      /* Overflows will have been checked by elf_getphdrnum/get|rawdata.  */
-      size_t phentsize = gelf_fsize (relocated, ELF_T_PHDR, 1, EV_CURRENT);
-      GElf_Off phdrs_end = phdrs_start + phnums * phentsize;
-      if (unlikely ((phdrs_start < shdr->sh_offset + shdr->sh_size
-		     && shdr->sh_offset < phdrs_end)
-		    || (phdrs_start < tshdr->sh_offset + tshdr->sh_size
-			&& tshdr->sh_offset < phdrs_end)))
+      size_t ehsize = gelf_fsize (relocated, ELF_T_EHDR, 1, EV_CURRENT);
+      if (unlikely (shdr->sh_offset < ehsize
+		    || tshdr->sh_offset < ehsize))
 	return DWFL_E_BADELF;
+
+      GElf_Off shdrs_start = ehdr->e_shoff;
+      size_t shnums;
+      if (elf_getshdrnum (relocated, &shnums) < 0)
+	return DWFL_E_LIBELF;
+      /* Overflows will have been checked by elf_getshdrnum/get|rawdata.  */
+      size_t shentsize = gelf_fsize (relocated, ELF_T_SHDR, 1, EV_CURRENT);
+      GElf_Off shdrs_end = shdrs_start + shnums * shentsize;
+      if (unlikely (shdrs_start < shdr->sh_offset + shdr->sh_size
+		    && shdr->sh_offset < shdrs_end))
+	if ((scn->flags & ELF_F_MALLOCED) == 0)
+	  return DWFL_E_BADELF;
+
+      if (unlikely (shdrs_start < tshdr->sh_offset + tshdr->sh_size
+		    && tshdr->sh_offset < shdrs_end))
+	if ((tscn->flags & ELF_F_MALLOCED) == 0)
+	  return DWFL_E_BADELF;
+
+      GElf_Off phdrs_start = ehdr->e_phoff;
+      size_t phnums;
+      if (elf_getphdrnum (relocated, &phnums) < 0)
+	return DWFL_E_LIBELF;
+      if (phdrs_start != 0 && phnums != 0)
+	{
+	  /* Overflows will have been checked by elf_getphdrnum/get|rawdata.  */
+	  size_t phentsize = gelf_fsize (relocated, ELF_T_PHDR, 1, EV_CURRENT);
+	  GElf_Off phdrs_end = phdrs_start + phnums * phentsize;
+	  if (unlikely (phdrs_start < shdr->sh_offset + shdr->sh_size
+			&& shdr->sh_offset < phdrs_end))
+	    if ((scn->flags & ELF_F_MALLOCED) == 0)
+	      return DWFL_E_BADELF;
+
+	  if (unlikely (phdrs_start < tshdr->sh_offset + tshdr->sh_size
+			&& tshdr->sh_offset < phdrs_end))
+	    if ((tscn->flags & ELF_F_MALLOCED) == 0)
+	      return DWFL_E_BADELF;
+	}
     }
 
   /* Fetch the relocation section and apply each reloc in it.  */
