@@ -117,6 +117,8 @@ typedef enum
   ELF_T_GNUHASH,		/* GNU-style hash section.  */
   ELF_T_AUXV,			/* Elf32_auxv_t, Elf64_auxv_t, ... */
   ELF_T_CHDR,			/* Compressed, Elf32_Chdr, Elf64_Chdr, ... */
+  ELF_T_NHDR8,			/* Special GNU Properties note.  Same as Nhdr,
+				   except padding.  */
   /* Keep this the last entry.  */
   ELF_T_NUM
 } Elf_Type;
@@ -310,13 +312,13 @@ extern int elf_getshnum (Elf *__elf, size_t *__dst)
 
 
 /* Get the section index of the section header string table in the ELF
-   file.  If the index cannot be represented in the e_shnum field of
+   file.  If the index cannot be represented in the e_shstrndx field of
    the ELF header the information from the sh_link field in the zeroth
    section header is used.  */
 extern int elf_getshdrstrndx (Elf *__elf, size_t *__dst);
-/* Sun messed up the implementation of 'elf_getshnum' in their implementation.
-   It was agreed to make the same functionality available under a different
-   name and obsolete the old name.  */
+/* Sun messed up the implementation of 'elf_getshstrndx' in their
+   implementation.  It was agreed to make the same functionality available
+   under a different name and obsolete the old name.  */
 extern int elf_getshstrndx (Elf *__elf, size_t *__dst)
      __deprecated_attribute__;
 
@@ -366,6 +368,11 @@ extern Elf64_Chdr *elf64_getchdr (Elf_Scn *__scn);
    It is an error to request compression for a section that already
    has SHF_COMPRESSED set, or (for elf_compress) to request
    decompression for an section that doesn't have SHF_COMPRESSED set.
+   If a section has SHF_COMPRESSED set then calling elf_compress_gnu
+   will result in an error.  The section has to be decompressed first
+   using elf_compress.  Calling elf_compress on a section compressed
+   with elf_compress_gnu is fine, but probably useless.
+
    It is always an error to call these functions on SHT_NOBITS
    sections or if the section has the SHF_ALLOC flag set.
    elf_compress_gnu will not check whether the section name starts

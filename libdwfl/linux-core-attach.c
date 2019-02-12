@@ -137,7 +137,7 @@ core_next_thread (Dwfl *dwfl __attribute__ ((unused)), void *dwfl_arg,
       const Ebl_Register_Location *reglocs;
       size_t nitems;
       const Ebl_Core_Item *items;
-      if (! ebl_core_note (core_arg->ebl, &nhdr, name,
+      if (! ebl_core_note (core_arg->ebl, &nhdr, name, desc,
 			   &regs_offset, &nregloc, &reglocs, &nitems, &items))
 	{
 	  /* This note may be just not recognized, skip it.  */
@@ -191,8 +191,9 @@ core_set_initial_registers (Dwfl_Thread *thread, void *thread_arg_voidp)
   const Ebl_Register_Location *reglocs;
   size_t nitems;
   const Ebl_Core_Item *items;
-  int core_note_err = ebl_core_note (core_arg->ebl, &nhdr, name, &regs_offset,
-				     &nregloc, &reglocs, &nitems, &items);
+  int core_note_err = ebl_core_note (core_arg->ebl, &nhdr, name, desc,
+				     &regs_offset, &nregloc, &reglocs,
+				     &nitems, &items);
   /* __libdwfl_attach_state_for_core already verified the note is there.  */
   assert (core_note_err != 0);
   assert (nhdr.n_type == NT_PRSTATUS);
@@ -355,7 +356,9 @@ dwfl_core_file_attach (Dwfl *dwfl, Elf *core)
       if (phdr != NULL && phdr->p_type == PT_NOTE)
 	{
 	  note_data = elf_getdata_rawchunk (core, phdr->p_offset,
-					    phdr->p_filesz, ELF_T_NHDR);
+					    phdr->p_filesz, (phdr->p_align == 8
+							     ? ELF_T_NHDR8
+							     : ELF_T_NHDR));
 	  break;
 	}
     }
@@ -381,7 +384,7 @@ dwfl_core_file_attach (Dwfl *dwfl, Elf *core)
       const Ebl_Register_Location *reglocs;
       size_t nitems;
       const Ebl_Core_Item *items;
-      if (! ebl_core_note (ebl, &nhdr, name,
+      if (! ebl_core_note (ebl, &nhdr, name, desc,
 			   &regs_offset, &nregloc, &reglocs, &nitems, &items))
 	{
 	  /* This note may be just not recognized, skip it.  */

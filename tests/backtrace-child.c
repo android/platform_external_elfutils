@@ -164,7 +164,6 @@ stdarg (int f UNUSED, ...)
   if (ptraceme)
     {
       long l = ptrace (PTRACE_TRACEME, 0, NULL, NULL);
-      assert (errno == 0);
       assert (l == 0);
     }
 #ifdef RAISE_JMP_PATCHING
@@ -236,7 +235,6 @@ main (int argc UNUSED, char **argv)
     {
       errno = 0;
       long l = ptrace (PTRACE_TRACEME, 0, NULL, NULL);
-      assert (errno == 0);
       assert (l == 0);
     }
   if (gencore)

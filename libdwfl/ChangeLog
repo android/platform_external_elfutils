@@ -1,3 +1,66 @@
+2019-01-25  Yonghong Song  <yhs@fb.com>
+
+	* linux-proc-maps.c (proc_maps_report): Use PRIu64, not PRIi64, to
+	read the inode number.
+
+2019-01-20  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Check
+	dyn_filesz vs dyn_data_size after read_portion call.
+
+2019-01-16  Mark Wielaard  <mark@klomp.org>
+
+	* linux-core-attach.c (core_next_thread): Pass desc to ebl_core_note.
+	(core_set_initial_registers): Likewise.
+
+2018-10-23  Mark Wielaard  <mark@klomp.org>
+
+	* relocate.c (relocate_section): Only sanity check mmapped Elf files
+	for overlap. Don't error when section data was malloced, not mmapped.
+
+2018-10-20  Mark Wielaard  <mark@klomp.org>
+
+	* libdwflP.h (__libdw_open_elf): New internal function declaration.
+	* open.c (what_kind): Rename close_fd to may_close_fd.
+	(__libdw_open_file): Replaced (and renamed) by a call to ...
+	(libdw_open_elf): this. And add never_close_fd argument.
+	(__libdw_open_elf): New function that calls libdw_open_elf.
+
+2018-10-18  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (consider_note): Take align as new
+	argument.  Use align to set d_type and calculate padding.
+	(dwfl_segment_report_module): Pass align to consider_notes.
+	* core-file.c (dwfl_core_file_report): Check p_align to set ELF
+	type.
+	* linux-kernel-modules.c (check_notes): Check name and type of note
+	to determine padding.
+
+2018-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_module_getdwarf.c (find_aux_sym): Check sh_entsize is not zero.
+
+2018-10-14  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (read_portion): Check requested
+	filesz isn't larger than buffer_available.
+	(dwfl_segment_report_module): Check data_size vs filesz after
+	read_portion call.
+
+2018-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* relocate.c (relocate): Handle ADD/SUB relocations.
+
+2018-09-13  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module):
+	Document why we use e_shnum directly.
+	* elf-from-memory.c (elf_from_remote_memory): Likewise.
+
+2018-07-17  Ulf Hermann  <ulf.hermann@qt.io>
+
+	* linux-pid-attach.c: Include sys/uio.h only on linux.
+
 2018-06-04  Mark Wielaard  <mark@klomp.org>
 
 	* libdwflP.h (__libdwfl_addrsym): Remove function declaration.

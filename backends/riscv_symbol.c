@@ -40,13 +40,37 @@
 
 /* Check for the simple reloc types.  */
 Elf_Type
-riscv_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type)
+riscv_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type,
+			 int *addsub)
 {
   switch (type)
     {
+    case R_RISCV_SET8:
+      return ELF_T_BYTE;
+    case R_RISCV_SET16:
+      return ELF_T_HALF;
     case R_RISCV_32:
+    case R_RISCV_SET32:
       return ELF_T_WORD;
     case R_RISCV_64:
+      return ELF_T_XWORD;
+    case R_RISCV_ADD16:
+      *addsub = 1;
+      return ELF_T_HALF;
+    case R_RISCV_SUB16:
+      *addsub = -1;
+      return ELF_T_HALF;
+    case R_RISCV_ADD32:
+      *addsub = 1;
+      return ELF_T_WORD;
+    case R_RISCV_SUB32:
+      *addsub = -1;
+      return ELF_T_WORD;
+    case R_RISCV_ADD64:
+      *addsub = 1;
+      return ELF_T_XWORD;
+    case R_RISCV_SUB64:
+      *addsub = -1;
       return ELF_T_XWORD;
     default:
       return ELF_T_NUM;
@@ -64,13 +88,16 @@ riscv_machine_flag_check (GElf_Word flags)
 /* Check whether given symbol's st_value and st_size are OK despite failing
    normal checks.  */
 bool
-riscv_check_special_symbol (Elf *elf, GElf_Ehdr *ehdr, const GElf_Sym *sym,
+riscv_check_special_symbol (Elf *elf, const GElf_Sym *sym,
 			    const char *name, const GElf_Shdr *destshdr)
 {
   if (name == NULL)
     return false;
 
-  const char *sname = elf_strptr (elf, ehdr->e_shstrndx, destshdr->sh_name);
+  size_t shstrndx;
+  if (elf_getshdrstrndx (elf, &shstrndx) != 0)
+    return false;
+  const char *sname = elf_strptr (elf, shstrndx, destshdr->sh_name);
   if (sname == NULL)
     return false;
 
