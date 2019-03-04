@@ -1,3 +1,7 @@
+2019-03-04  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace.c (tgkill): Remove define.
+
 2019-01-24  Mark Wielaard  <mark@klomp.org>
 
 	* Makefile.am (system_elf_libelf_test_CPPFLAGS): Guard by

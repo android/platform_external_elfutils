@@ -50,10 +50,8 @@
       : 0))
 
 /* Associate section types with libelf types.  */
-static const Elf_Type shtype_map[EV_NUM - 1][TYPEIDX (SHT_HISUNW) + 1] =
+static const Elf_Type shtype_map[TYPEIDX (SHT_HISUNW) + 1] =
   {
-    [EV_CURRENT - 1] =
-    {
       [SHT_SYMTAB] = ELF_T_SYM,
       [SHT_RELA] = ELF_T_RELA,
       [SHT_HASH] = ELF_T_WORD,
@@ -73,11 +71,10 @@ static const Elf_Type shtype_map[EV_NUM - 1][TYPEIDX (SHT_HISUNW) + 1] =
       [TYPEIDX (SHT_SUNW_move)] = ELF_T_MOVE,
       [TYPEIDX (SHT_GNU_LIBLIST)] = ELF_T_LIB,
       [TYPEIDX (SHT_GNU_HASH)] = ELF_T_GNUHASH,
-    }
   };
 
 /* Associate libelf types with their internal alignment requirements.  */
-const uint_fast8_t __libelf_type_aligns[EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] =
+const uint_fast8_t __libelf_type_aligns[ELFCLASSNUM - 1][ELF_T_NUM] =
   {
 # define TYPE_ALIGNS(Bits)						      \
     {									      \
@@ -108,11 +105,8 @@ const uint_fast8_t __libelf_type_aligns[EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] 
       [ELF_T_CHDR] = __alignof__ (ElfW2(Bits,Chdr)),			      \
       [ELF_T_NHDR8] = 8 /* Special case for GNU Property note.  */	      \
     }
-    [EV_CURRENT - 1] =
-    {
       [ELFCLASS32 - 1] = TYPE_ALIGNS (32),
       [ELFCLASS64 - 1] = TYPE_ALIGNS (64),
-    }
 # undef TYPE_ALIGNS
   };
 
@@ -131,7 +125,7 @@ __libelf_data_type (Elf *elf, int sh_type, GElf_Xword align)
     }
   else
     {
-      Elf_Type t = shtype_map[LIBELF_EV_IDX][TYPEIDX (sh_type)];
+      Elf_Type t = shtype_map[TYPEIDX (sh_type)];
       /* Special case for GNU Property notes.  */
       if (t == ELF_T_NHDR && align == 8)
 	t = ELF_T_NHDR8;
@@ -141,7 +135,7 @@ __libelf_data_type (Elf *elf, int sh_type, GElf_Xword align)
 
 /* Convert the data in the current section.  */
 static void
-convert_data (Elf_Scn *scn, int version __attribute__ ((unused)), int eclass,
+convert_data (Elf_Scn *scn, int eclass,
 	      int data, size_t size, Elf_Type type)
 {
   const size_t align = __libelf_type_align (eclass, type);
@@ -195,11 +189,7 @@ convert_data (Elf_Scn *scn, int version __attribute__ ((unused)), int eclass,
 	}
 
       /* Get the conversion function.  */
-#if EV_NUM != 2
-      fp = __elf_xfctstom[version - 1][__libelf_version - 1][eclass - 1][type];
-#else
-      fp = __elf_xfctstom[0][0][eclass - 1][type];
-#endif
+      fp = __elf_xfctstom[eclass - 1][type];
 
       fp (scn->data_base, rawdata_source, size, 0);
 
@@ -285,14 +275,14 @@ __libelf_set_rawdata_wrlock (Elf_Scn *scn)
 	}
       else
 	{
-	  Elf_Type t = shtype_map[LIBELF_EV_IDX][TYPEIDX (type)];
+	  Elf_Type t = shtype_map[TYPEIDX (type)];
 	  if (t == ELF_T_NHDR && align == 8)
 	    t = ELF_T_NHDR8;
 	  if (t == ELF_T_VDEF || t == ELF_T_NHDR || t == ELF_T_NHDR8
 	      || (t == ELF_T_GNUHASH && elf->class == ELFCLASS64))
 	    entsize = 1;
 	  else
-	    entsize = __libelf_type_sizes[LIBELF_EV_IDX][elf->class - 1][t];
+	    entsize = __libelf_type_sizes[elf->class - 1][t];
 	}
 
       /* We assume it is an array of bytes if it is none of the structured
@@ -444,7 +434,7 @@ __libelf_set_data_list_rdlock (Elf_Scn *scn, int wrlocked)
 	}
 
       /* Convert according to the version and the type.   */
-      convert_data (scn, __libelf_version, elf->class,
+      convert_data (scn, elf->class,
 		    (elf->class == ELFCLASS32
 		     || (offsetof (struct Elf, state.elf32.ehdr)
 			 == offsetof (struct Elf, state.elf64.ehdr))

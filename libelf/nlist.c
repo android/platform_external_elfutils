@@ -80,9 +80,8 @@ nlist (const char *filename, struct nlist *nl)
 
   /* For compatibility reasons (`nlist' existed before ELF and libelf)
      we don't expect the caller to set the ELF version.  Do this here
-     if it hasn't happened yet.  */
-  if (__libelf_version_initialized == 0)
-    INTUSE(elf_version) (EV_CURRENT);
+     as if it hasn't happened yet.  */
+  INTUSE(elf_version) (EV_CURRENT);
 
   /* Now get an ELF descriptor.  */
   elf = INTUSE(elf_begin) (fd, ELF_C_READ_MMAP, NULL);

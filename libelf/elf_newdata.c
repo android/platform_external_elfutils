@@ -117,7 +117,7 @@ elf_newdata (Elf_Scn *scn)
     }
 
   /* Set the predefined values.  */
-  result->data.d.d_version = __libelf_version;
+  result->data.d.d_version = EV_CURRENT;
 
   result->data.s = scn;
 

@@ -296,7 +296,6 @@ prepare_thread (pid_t pid2 __attribute__ ((unused)),
 
 #include <asm/unistd.h>
 #include <unistd.h>
-#define tgkill(pid, tid, sig) syscall (__NR_tgkill, (pid), (tid), (sig))
 
 static void
 report_pid (Dwfl *dwfl, pid_t pid)

@@ -34,32 +34,25 @@
 #include <libelfP.h>
 
 
-/* Is the version initialized?  */
-int __libelf_version_initialized;
-
-/* Currently selected version.  */
-unsigned int __libelf_version = EV_CURRENT;
-
+/* Currently selected version.  Should be EV_CURRENT.
+   Will be EV_NONE if elf_version () has not been called yet.  */
+unsigned int __libelf_version = EV_NONE;
 
 unsigned int
 elf_version (unsigned int version)
 {
   if (version == EV_NONE)
-    return __libelf_version;
+    return EV_CURRENT;
 
-  if (likely (version < EV_NUM))
+  if (likely (version == EV_CURRENT))
     {
       /* Phew, we know this version.  */
-      unsigned int last_version = __libelf_version;
-
-      /* Store the new version.  */
-      __libelf_version = version;
 
       /* Signal that the version is now initialized.  */
-      __libelf_version_initialized = 1;
+      __libelf_version = EV_CURRENT;
 
-      /* And return the last version.  */
-      return last_version;
+      /* And return the last (or initial) version.  */
+      return EV_CURRENT;
     }
 
   /* We cannot handle this version.  */

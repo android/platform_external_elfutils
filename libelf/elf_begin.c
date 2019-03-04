@@ -736,12 +736,29 @@ read_long_names (Elf *elf)
 	  hdr = &hdrm;
 	}
 
-      len = atol (hdr->ar_size);
+      /* The ar_size is given as a fixed size decimal string, right
+	 padded with spaces.  Make sure we read it properly even if
+	 there is no terminating space.  */
+      char buf[sizeof (hdr->ar_size) + 1];
+      const char *string = hdr->ar_size;
+      if (hdr->ar_size[sizeof (hdr->ar_size) - 1] != ' ')
+	{
+	  *((char *) mempcpy (buf, hdr->ar_size, sizeof (hdr->ar_size))) = '\0';
+	  string = buf;
+	}
+      len = atol (string);
 
       if (memcmp (hdr->ar_name, "//              ", 16) == 0)
 	break;
 
       offset += sizeof (struct ar_hdr) + ((len + 1) & ~1l);
+    }
+
+  /* Sanity check len early if we can.  */
+  if (elf->map_address != NULL)
+    {
+      if (len > elf->maximum_size - offset - sizeof (struct ar_hdr))
+	return NULL;
     }
 
   /* Due to the stupid format of the long name table entry (which are not
@@ -754,8 +771,6 @@ read_long_names (Elf *elf)
 
       if (elf->map_address != NULL)
 	{
-	  if (len > elf->maximum_size - offset - sizeof (struct ar_hdr))
-	    goto too_much;
 	  /* Simply copy it over.  */
 	  elf->state.ar.long_names = (char *) memcpy (newp,
 						      elf->map_address + offset
@@ -769,7 +784,6 @@ read_long_names (Elf *elf)
 					      + sizeof (struct ar_hdr))
 			!= len))
 	    {
-	    too_much:
 	      /* We were not able to read all data.  */
 	      free (newp);
 	      elf->state.ar.long_names = NULL;
@@ -1094,7 +1108,7 @@ elf_begin (int fildes, Elf_Cmd cmd, Elf *ref)
 {
   Elf *retval;
 
-  if (unlikely (! __libelf_version_initialized))
+  if (unlikely (__libelf_version != EV_CURRENT))
     {
       /* Version wasn't set so far.  */
       __libelf_seterrno (ELF_E_NO_VERSION);

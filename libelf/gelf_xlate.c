@@ -170,10 +170,8 @@ union unaligned
 
 
 /* Now the externally visible table with the function pointers.  */
-const xfct_t __elf_xfctstom[EV_NUM - 1][EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] =
+const xfct_t __elf_xfctstom[ELFCLASSNUM - 1][ELF_T_NUM] =
 {
-  [EV_CURRENT - 1] = {
-    [EV_CURRENT - 1] = {
       [ELFCLASS32 - 1] = {
 #define define_xfcts(Bits) \
 	[ELF_T_BYTE]	= elf_cvt_Byte,					      \
@@ -209,10 +207,4 @@ const xfct_t __elf_xfctstom[EV_NUM - 1][EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] 
 	define_xfcts (64),
 	[ELF_T_GNUHASH] = elf_cvt_gnuhash
       }
-    }
-  }
 };
-/* For now we only handle the case where the memory representation is the
-   same as the file representation.  Should this change we have to define
-   separate functions.  For now reuse them.  */
-strong_alias (__elf_xfctstom, __elf_xfctstof)

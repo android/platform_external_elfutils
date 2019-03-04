@@ -493,13 +493,13 @@ intuit_kernel_bounds (Dwarf_Addr *start, Dwarf_Addr *end, Dwarf_Addr *notes)
 {
   struct read_address_state state = { NULL, NULL, 0, 0, NULL, NULL };
 
+  *notes = 0;
+
   state.f = fopen (KSYMSFILE, "r");
   if (state.f == NULL)
     return errno;
 
   (void) __fsetlocking (state.f, FSETLOCKING_BYCALLER);
-
-  *notes = 0;
 
   int result;
   do
@@ -695,9 +695,6 @@ dwfl_linux_kernel_report_kernel (Dwfl *dwfl)
   /* Try to figure out the bounds of the kernel image without
      looking for any vmlinux file.  */
   Dwarf_Addr notes;
-  /* The compiler cannot deduce that if intuit_kernel_bounds returns
-     zero NOTES will be initialized.  Fake the initialization.  */
-  asm ("" : "=m" (notes));
   int result = intuit_kernel_bounds (&start, &end, &notes);
   if (result == 0)
     {

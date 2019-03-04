@@ -89,7 +89,7 @@ ELFW(default_ehdr,LIBELFBITS) (Elf *elf, ElfW2(LIBELFBITS,Ehdr) *ehdr,
       ehdr->e_version = EV_CURRENT;
       elf->state.ELFW(elf,LIBELFBITS).ehdr_flags |= ELF_F_DIRTY;
     }
-  else if (unlikely (ehdr->e_version >= EV_NUM))
+  else if (unlikely (ehdr->e_version != EV_CURRENT))
     {
       __libelf_seterrno (ELF_E_UNKNOWN_VERSION);
       return 1;
@@ -280,8 +280,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 			  && scn->rawdata.d.d_buf != NULL)
 			data = &scn->rawdata.d;
 
-		      if (unlikely (data->d_version == EV_NONE)
-			  || unlikely (data->d_version >= EV_NUM))
+		      if (unlikely (data->d_version != EV_CURRENT))
 			{
 			  __libelf_seterrno (ELF_E_UNKNOWN_VERSION);
 			  return -1;
