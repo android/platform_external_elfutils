@@ -1,0 +1,7 @@
+Presubmit-Verified+1: Treehugger Robot <treehugger-gerrit@google.com>
+Code-Review+2: Elliott Hughes <enh@google.com>
+Submitted-by: Haibo Huang <hhb@google.com>
+Submitted-at: Thu, 14 Mar 2019 05:13:26 +0000
+Reviewed-on: https://android-review.googlesource.com/c/platform/external/elfutils/+/917939
+Project: platform/external/elfutils
+Branch: refs/heads/master
