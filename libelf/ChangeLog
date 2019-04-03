@@ -1,3 +1,13 @@
+2019-03-07  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatefile.c (updatemmap): Use posix_memalign instead of
+	aligned_alloc.
+
+2019-03-06  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatefile.c (updatemmap): Free scns before returning
+	allocation failure.
+
 2019-02-24  Mark Wielaard  <mark@klomp.org>
 
 	* gelf_xlate.c (__elf_xfctstof): Remove alias.

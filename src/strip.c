@@ -1975,6 +1975,7 @@ handle_elf (int fd, Elf *elf, const char *prefix, const char *fname,
 				  && shndxdata->d_buf != NULL);
 		    size_t sidx = (sym->st_shndx != SHN_XINDEX
 				   ? sym->st_shndx : xshndx);
+		    elf_assert (sidx < shnum);
 		    sec = shdr_info[sidx].idx;
 
 		    if (sec != 0)

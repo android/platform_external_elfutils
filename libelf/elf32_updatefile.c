@@ -360,15 +360,30 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 			else
 			  {
 			    /* We have to do the conversion on properly
-			       aligned memory first.  */
+			       aligned memory first.  align is a power of 2,
+			       but posix_memalign only works for alignments
+			       which are a multiple of sizeof (void *).
+			       So use normal malloc for smaller alignments.  */
 			    size_t size = dl->data.d.d_size;
-			    char *converted = aligned_alloc (align, size);
+			    void *converted;
+			    if (align < sizeof (void *))
+			      converted = malloc (size);
+			    else
+			      {
+				int res;
+				res = posix_memalign (&converted, align, size);
+				if (res != 0)
+				  converted = NULL;
+			      }
+
 			    if (converted == NULL)
 			      {
+				free (scns);
 				__libelf_seterrno (ELF_E_NOMEM);
 				return 1;
 			      }
-                            (*fctp) (converted, dl->data.d.d_buf, size, 1);
+
+			    (*fctp) (converted, dl->data.d.d_buf, size, 1);
 
 			    /* And then write it to the mmapped file.  */
 			    memcpy (last_position, converted, size);
