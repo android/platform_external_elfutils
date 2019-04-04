@@ -460,7 +460,11 @@ binary_end (AsmCtx_t *ctx)
   else
     ehdr->e_shstrndx = elf_ndxscn (shstrscn);
 
-  gelf_update_ehdr (ctx->out.elf, ehdr);
+  if (unlikely (gelf_update_ehdr (ctx->out.elf, ehdr) == 0))
+    {
+      __libasm_seterrno (ASM_E_LIBELF);
+      result = -1;
+    }
 
   /* Write out the ELF file.  */
   if (unlikely (elf_update (ctx->out.elf, ELF_C_WRITE_MMAP) < 0))

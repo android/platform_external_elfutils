@@ -412,6 +412,12 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
 		    start + phoff, xlatefrom.d_size))
     return finish ();
 
+  /* ph_buffer_size will be zero if we got everything from the initial
+     buffer, otherwise it will be the size of the new buffer that
+     could be read.  */
+  if (ph_buffer_size != 0)
+    xlatefrom.d_size = ph_buffer_size;
+
   xlatefrom.d_buf = ph_buffer;
 
   bool class32 = ei_class == ELFCLASS32;
