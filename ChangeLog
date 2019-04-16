@@ -1,3 +1,10 @@
+2019-02-14  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.176.
+	* NEWS: Mention riscv backend updates, new --enable-install-elfh
+	configure flag and fixed CVEs.
+	* GPG-KEY: Update.
+
 2019-01-18  Mark Wielaard  <mark@klomp.org>
 
 	* configure.ac: Add new --enable-install-elfh.

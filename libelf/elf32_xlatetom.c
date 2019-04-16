@@ -50,11 +50,7 @@ elfw2(LIBELFBITS, xlatetom) (Elf_Data *dest, const Elf_Data *src,
      type.  This means, whether there is an integer number of records.
      Note that for this implementation the memory and file size of the
      data types are identical.  */
-#if EV_NUM != 2
-  size_t recsize = __libelf_type_sizes[src->d_version - 1][ELFW(ELFCLASS,LIBELFBITS) - 1][src->d_type];
-#else
-  size_t recsize = __libelf_type_sizes[0][ELFW(ELFCLASS,LIBELFBITS) - 1][src->d_type];
-#endif
+  size_t recsize = __libelf_type_sizes[ELFW(ELFCLASS,LIBELFBITS) - 1][src->d_type];
 
 
   /* We shouldn't require integer number of records when processing
@@ -102,15 +98,7 @@ elfw2(LIBELFBITS, xlatetom) (Elf_Data *dest, const Elf_Data *src,
   else
     {
       xfct_t fctp;
-
-      /* Get a pointer to the transformation functions.  The `#ifdef' is
-	 a small optimization since we don't anticipate another ELF
-	 version and so would waste "precious" code.  */
-#if EV_NUM != 2
-      fctp = __elf_xfctstom[src->d_version - 1][dest->d_version - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][src->d_type];
-#else
-      fctp = __elf_xfctstom[0][0][ELFW(ELFCLASS, LIBELFBITS) - 1][src->d_type];
-#endif
+      fctp = __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][src->d_type];
 
       /* Do the real work.  */
       (*fctp) (dest->d_buf, src->d_buf, src->d_size, 0);

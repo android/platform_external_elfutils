@@ -1,3 +1,8 @@
+2019-02-15  Mark Wielaard  <mark@klomp.org>
+
+	* s390_init.c (s390_init): Hook check_special_symbol.
+	* s390_symbol.c (s390_check_sepcial_symbol): New function.
+
 2018-12-27  Jim Wilson  <jimw@sifive.com>
 
 	* Makefile.am (riscv_SRCS): Add riscv64_corenote.c.

@@ -32,6 +32,7 @@
 
 #include <elf.h>
 #include <stddef.h>
+#include <string.h>
 
 #define BACKEND		s390_
 #include "libebl_CPU.h"
@@ -54,4 +55,41 @@ s390_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type,
     default:
       return ELF_T_NUM;
     }
+}
+
+/* The _GLOBAL_OFFSET_TABLE_ symbol might point to the DT_PLTGOT,
+   which is in the .got section, even if the symbol itself is
+   associated with the is a .got.plt section.
+   https://sourceware.org/ml/binutils/2018-07/msg00200.html  */
+bool
+s390_check_special_symbol (Elf *elf, const GElf_Sym *sym,
+                              const char *name, const GElf_Shdr *destshdr)
+{
+  if (name != NULL
+      && strcmp (name, "_GLOBAL_OFFSET_TABLE_") == 0)
+    {
+      size_t shstrndx;
+      if (elf_getshdrstrndx (elf, &shstrndx) != 0)
+	return false;
+      const char *sname = elf_strptr (elf, shstrndx, destshdr->sh_name);
+      if (sname != NULL
+	  && (strcmp (sname, ".got") == 0 || strcmp (sname, ".got.plt") == 0))
+	{
+	  Elf_Scn *scn = NULL;
+	  while ((scn = elf_nextscn (elf, scn)) != NULL)
+	    {
+	      GElf_Shdr shdr_mem;
+	      GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
+	      if (shdr != NULL)
+		{
+		  sname = elf_strptr (elf, shstrndx, shdr->sh_name);
+		  if (sname != NULL && strcmp (sname, ".got") == 0)
+		    return (sym->st_value >= shdr->sh_addr
+			    && sym->st_value < shdr->sh_addr + shdr->sh_size);
+		}
+	    }
+	}
+    }
+
+  return false;
 }

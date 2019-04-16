@@ -56,7 +56,7 @@ determine_kind (void *buf, size_t len)
 
       if (eclass > ELFCLASSNONE && eclass < ELFCLASSNUM
 	  && data > ELFDATANONE && data < ELFDATANUM
-	  && version > EV_NONE && version < EV_NUM)
+	  && version == EV_CURRENT)
 	return ELF_K_ELF;
     }
 

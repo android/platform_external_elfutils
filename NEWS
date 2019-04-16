@@ -1,3 +1,13 @@
+Version 0.176
+
+build: Add new --enable-install-elfh option.
+       Do NOT use this for system installs (it overrides glibc elf.h).
+
+backends: riscv improved core file and return value location support.
+
+Fixes CVE-2019-7146, CVE-2019-7148, CVE-2019-7149, CVE-2019-7150,
+      CVE-2019-7664, CVE-2019-7665
+
 Version 0.175
 
 readelf: Handle mutliple .debug_macro sections.

@@ -54,6 +54,7 @@ s390_init (Elf *elf __attribute__ ((unused)),
   eh->name = "IBM S/390";
   s390_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
+  HOOK (eh, check_special_symbol);
   HOOK (eh, register_info);
   HOOK (eh, return_value_location);
   if (eh->class == ELFCLASS64)

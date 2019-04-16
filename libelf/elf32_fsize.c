@@ -44,7 +44,7 @@ elfw2(LIBELFBITS, fsize) (Elf_Type type, size_t count, unsigned int version)
 {
   /* We do not have differences between file and memory sizes.  Better
      not since otherwise `mmap' would not work.  */
-  if (unlikely (version == EV_NONE) || unlikely (version >= EV_NUM))
+  if (unlikely (version != EV_CURRENT))
     {
       __libelf_seterrno (ELF_E_UNKNOWN_VERSION);
       return 0;
@@ -56,13 +56,5 @@ elfw2(LIBELFBITS, fsize) (Elf_Type type, size_t count, unsigned int version)
       return 0;
     }
 
-#if EV_NUM != 2
-  return (count
-	  * __libelf_type_sizes[version - 1][ELFW(ELFCLASS,LIBELFBITS) - 1][type]);
-#else
-  return (count
-	  * __libelf_type_sizes[0][ELFW(ELFCLASS,LIBELFBITS) - 1][type]);
-#endif
+  return (count * __libelf_type_sizes[ELFW(ELFCLASS,LIBELFBITS) - 1][type]);
 }
-#define local_strong_alias(n1, n2) strong_alias (n1, n2)
-local_strong_alias (elfw2(LIBELFBITS, fsize), __elfw2(LIBELFBITS, msize))

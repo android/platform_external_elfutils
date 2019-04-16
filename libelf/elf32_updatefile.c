@@ -143,13 +143,8 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
       if (unlikely (change_bo))
 	{
 	  /* Today there is only one version of the ELF header.  */
-#if EV_NUM != 2
-	  xfct_t fctp;
-	  fctp = __elf_xfctstom[__libelf_version - 1][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_EHDR];
-#else
-# undef fctp
-# define fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_EHDR]
-#endif
+#undef fctp
+#define fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_EHDR]
 
 	  /* Do the real work.  */
 	  (*fctp) ((char *) elf->map_address + elf->start_offset, ehdr,
@@ -189,13 +184,8 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
       if (unlikely (change_bo))
 	{
 	  /* Today there is only one version of the ELF header.  */
-#if EV_NUM != 2
-	  xfct_t fctp;
-	  fctp = __elf_xfctstom[__libelf_version - 1][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_PHDR];
-#else
-# undef fctp
-# define fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_PHDR]
-#endif
+#undef fctp
+#define fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_PHDR]
 
 	  /* Do the real work.  */
 	  (*fctp) (elf->map_address + elf->start_offset + ehdr->e_phoff,
@@ -238,12 +228,8 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 				+ ehdr->e_shoff);
       char *const shdr_end = shdr_start + shnum * ehdr->e_shentsize;
 
-#if EV_NUM != 2
-      xfct_t shdr_fctp = __elf_xfctstom[__libelf_version - 1][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_SHDR];
-#else
-# undef shdr_fctp
-# define shdr_fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_SHDR]
-#endif
+#undef shdr_fctp
+#define shdr_fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_SHDR]
 #define shdr_dest ((ElfW2(LIBELFBITS,Shdr) *) shdr_start)
 
       /* Get all sections into the array and sort them.  */
@@ -358,13 +344,8 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 				  && dl->data.d.d_size != 0
 				  && dl->data.d.d_type != ELF_T_BYTE))
 		      {
-#if EV_NUM != 2
-			xfct_t fctp;
-			fctp = __elf_xfctstom[__libelf_version - 1][dl->data.d.d_version - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][dl->data.d.d_type];
-#else
-# undef fctp
-# define fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][dl->data.d.d_type]
-#endif
+#undef fctp
+#define fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][dl->data.d.d_type]
 
 			size_t align;
 			align = __libelf_type_align (ELFW(ELFCLASS,LIBELFBITS),
@@ -379,15 +360,30 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 			else
 			  {
 			    /* We have to do the conversion on properly
-			       aligned memory first.  */
+			       aligned memory first.  align is a power of 2,
+			       but posix_memalign only works for alignments
+			       which are a multiple of sizeof (void *).
+			       So use normal malloc for smaller alignments.  */
 			    size_t size = dl->data.d.d_size;
-			    char *converted = aligned_alloc (align, size);
+			    void *converted;
+			    if (align < sizeof (void *))
+			      converted = malloc (size);
+			    else
+			      {
+				int res;
+				res = posix_memalign (&converted, align, size);
+				if (res != 0)
+				  converted = NULL;
+			      }
+
 			    if (converted == NULL)
 			      {
+				free (scns);
 				__libelf_seterrno (ELF_E_NOMEM);
 				return 1;
 			      }
-                            (*fctp) (converted, dl->data.d.d_buf, size, 1);
+
+			    (*fctp) (converted, dl->data.d.d_buf, size, 1);
 
 			    /* And then write it to the mmapped file.  */
 			    memcpy (last_position, converted, size);
@@ -559,13 +555,8 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
       if (unlikely (change_bo))
 	{
 	  /* Today there is only one version of the ELF header.  */
-#if EV_NUM != 2
-	  xfct_t fctp;
-	  fctp = __elf_xfctstom[__libelf_version - 1][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_EHDR];
-#else
-# undef fctp
-# define fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_EHDR]
-#endif
+#undef fctp
+#define fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_EHDR]
 
 	  /* Write the converted ELF header in a temporary buffer.  */
 	  (*fctp) (&tmp_ehdr, ehdr, sizeof (ElfW2(LIBELFBITS,Ehdr)), 1);
@@ -618,13 +609,8 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
       if (unlikely (change_bo))
 	{
 	  /* Today there is only one version of the ELF header.  */
-#if EV_NUM != 2
-	  xfct_t fctp;
-	  fctp = __elf_xfctstom[__libelf_version - 1][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_PHDR];
-#else
-# undef fctp
-# define fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_PHDR]
-#endif
+#undef fctp
+#define fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_PHDR]
 
 	  /* Allocate sufficient memory.  */
 	  tmp_phdr = (ElfW2(LIBELFBITS,Phdr) *)
@@ -679,12 +665,8 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
 	return 1;
 
       off_t shdr_offset = elf->start_offset + ehdr->e_shoff;
-#if EV_NUM != 2
-      xfct_t shdr_fctp = __elf_xfctstom[__libelf_version - 1][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_SHDR];
-#else
-# undef shdr_fctp
-# define shdr_fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_SHDR]
-#endif
+#undef shdr_fctp
+#define shdr_fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_SHDR]
 
       ElfW2(LIBELFBITS,Shdr) *shdr_data;
       ElfW2(LIBELFBITS,Shdr) *shdr_data_mem = NULL;
@@ -769,13 +751,8 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
 
 		    if (unlikely (change_bo))
 		      {
-#if EV_NUM != 2
-			xfct_t fctp;
-			fctp = __elf_xfctstom[__libelf_version - 1][dl->data.d.d_version - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][dl->data.d.d_type];
-#else
-# undef fctp
-# define fctp __elf_xfctstom[0][EV_CURRENT - 1][ELFW(ELFCLASS, LIBELFBITS) - 1][dl->data.d.d_type]
-#endif
+#undef fctp
+#define fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][dl->data.d.d_type]
 
 			buf = tmpbuf;
 			if (dl->data.d.d_size > MAX_TMPBUF)

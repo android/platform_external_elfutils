@@ -1,3 +1,14 @@
+2019-03-27  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Check
+	ph_buffer_size vs xlatefrom.d_size after read_portion call.
+
+2019-02-24  Mark Wielaard  <mark@klomp.org>
+
+	* linux-kernel-modules.c (intuit_kernel_bounds): Init *notes before
+	fopen.
+	(dwfl_linux_kernel_report_kernel): Remove fake note init empty asm.
+
 2019-01-25  Yonghong Song  <yhs@fb.com>
 
 	* linux-proc-maps.c (proc_maps_report): Use PRIu64, not PRIi64, to

@@ -411,59 +411,36 @@ struct Elf
 typedef void (*xfct_t) (void *, const void *, size_t, int);
 
 /* The table with the function pointers.  */
-extern const xfct_t __elf_xfctstom[EV_NUM - 1][EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] attribute_hidden;
-extern const xfct_t __elf_xfctstof[EV_NUM - 1][EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] attribute_hidden;
+extern const xfct_t __elf_xfctstom[ELFCLASSNUM - 1][ELF_T_NUM]
+  attribute_hidden;
 
 
 /* Array with sizes of the external types indexed by ELF version, binary
    class, and type. */
-extern const size_t __libelf_type_sizes[EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] attribute_hidden;
+extern const size_t __libelf_type_sizes[ELFCLASSNUM - 1][ELF_T_NUM]
+  attribute_hidden;
 /* We often have to access the size for a type in the current version.  */
-#if EV_NUM != 2
 # define elf_typesize(class,type,n) \
-  elfw2(class,fsize) (type, n, __libelf_version)
-#else
-# define elf_typesize(class,type,n) \
-  (__libelf_type_sizes[EV_CURRENT - 1][ELFW(ELFCLASS,class) - 1][type] * n)
-#endif
-
-/* Currently selected version of the ELF specification.  */
-extern unsigned int __libelf_version attribute_hidden;
+  (__libelf_type_sizes[ELFW(ELFCLASS,class) - 1][type] * n)
 
 /* The byte value used for filling gaps.  */
 extern int __libelf_fill_byte attribute_hidden;
 
-/* Nonzero if the version was set.  */
-extern int __libelf_version_initialized attribute_hidden;
+/* EV_CURRENT if the version was set, EV_NONE otherwise.  */
+extern unsigned int __libelf_version attribute_hidden;
 
-/* Index for __libelf_type_sizes et al.  */
-#if EV_NUM == 2
-# define LIBELF_EV_IDX	0
-#else
-# define LIBELF_EV_IDX	(__libelf_version - 1)
-#endif
-
-/* Array with alignment requirements of the internal types indexed by ELF
-   version, binary class, and type. */
-extern const uint_fast8_t __libelf_type_aligns[EV_NUM - 1][ELFCLASSNUM - 1][ELF_T_NUM] attribute_hidden;
+/* Array with alignment requirements of the internal types indexed by
+   binary class, and type. */
+extern const uint_fast8_t __libelf_type_aligns[ELFCLASSNUM - 1][ELF_T_NUM]
+  attribute_hidden;
 # define __libelf_type_align(class, type)	\
-    (__libelf_type_aligns[LIBELF_EV_IDX][class - 1][type] ?: 1)
+    (__libelf_type_aligns[class - 1][type] ?: 1)
 
 /* Given an Elf handle and a section type returns the Elf_Data d_type.
    Should not be called when SHF_COMPRESSED is set, the d_type should
    be ELF_T_BYTE.  */
 extern Elf_Type __libelf_data_type (Elf *elf, int sh_type, GElf_Xword align)
   internal_function;
-
-/* The libelf API does not have such a function but it is still useful.
-   Get the memory size for the given type.
-
-   These functions cannot be marked internal since they are aliases
-   of the export elfXX_fsize functions.*/
-extern size_t __elf32_msize (Elf_Type __type, size_t __count,
-			     unsigned int __version) __const_attribute__;
-extern size_t __elf64_msize (Elf_Type __type, size_t __count,
-			     unsigned int __version) __const_attribute__;
 
 
 /* Create Elf descriptor from memory image.  */
