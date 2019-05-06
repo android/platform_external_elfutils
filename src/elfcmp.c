@@ -269,7 +269,7 @@ main (int argc, char *argv[])
 	  if (shdr1 != NULL)
 	    sname1 = elf_strptr (elf1, shstrndx1, shdr1->sh_name);
 	}
-      while (scn1 != NULL
+      while (scn1 != NULL && shdr1 != NULL
 	     && ebl_section_strip_p (ebl1, shdr1, sname1, true, false));
 
       GElf_Shdr shdr2_mem;
@@ -282,10 +282,10 @@ main (int argc, char *argv[])
 	  if (shdr2 != NULL)
 	    sname2 = elf_strptr (elf2, shstrndx2, shdr2->sh_name);
 	}
-      while (scn2 != NULL
+      while (scn2 != NULL && shdr2 != NULL
 	     && ebl_section_strip_p (ebl2, shdr2, sname2, true, false));
 
-      if (scn1 == NULL || scn2 == NULL)
+      if (scn1 == NULL || scn2 == NULL || shdr1 == NULL || shdr2 == NULL)
 	break;
 
       if (gaps != gaps_ignore && (shdr1->sh_flags & SHF_ALLOC) != 0)

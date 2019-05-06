@@ -101,7 +101,7 @@ frame_callback (Dwfl_Frame *state, void *frame_arg)
   if (mod)
     symname = dwfl_module_addrname (mod, pc_adjusted);
 
-  printf ("%#" PRIx64 "\t%s\n", (uint64_t) pc, symname);
+  printf ("%#" PRIx64 "\t%s\n", (uint64_t) pc, symname ?: "<null>");
 
   if (symname && (strcmp (symname, "main") == 0
 		  || strcmp (symname, ".main") == 0))

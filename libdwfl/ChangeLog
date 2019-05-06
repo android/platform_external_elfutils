@@ -1,3 +1,12 @@
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* frame_unwind.c (expr_eval): Make sure we left shift a unsigned
+	64bit value.
+
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* cu.c (addrarange): Only call realloc when naranges is not zero.
+
 2019-03-27  Mark Wielaard  <mark@klomp.org>
 
 	* dwfl_segment_report_module.c (dwfl_segment_report_module): Check

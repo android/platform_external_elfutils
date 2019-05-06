@@ -7092,7 +7092,7 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
 		  || (form != DW_FORM_data4 && form != DW_FORM_data8)))
 	    {
 	      if (!cbargs->silent)
-		printf ("           %*s%-20s (%s) %" PRIxMAX "\n",
+		printf ("           %*s%-20s (%s) %" PRIuMAX "\n",
 			(int) (level * 2), "", dwarf_attr_name (attr),
 			dwarf_form_name (form), (uintmax_t) num);
 	      return DWARF_CB_OK;

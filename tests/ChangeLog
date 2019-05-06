@@ -1,3 +1,21 @@
+2019-04-30  Mark Wielaard  <mark@klomp.org>
+
+	* xlate_notes.c: New file.
+	* run-xlate-note.sh: New test.
+	* Makefile.am (check_PROGRAMS): Add xlate_notes.
+	(TESTS): Add run-xlate-note.sh.
+	(EXTRA_DIST): Likewise.
+	(xlate_notes_LDADD): New variable.
+
+2019-04-30  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace-dwarf.c (frame_callback): Explicitly check symname is
+	NULL.
+
+2019-04-30  Mark Wielaard  <mark@klomp.org>
+
+	* backtrace.c (frame_callback): Explicitly check symname is NULL.
+
 2019-03-04  Mark Wielaard  <mark@klomp.org>
 
 	* backtrace.c (tgkill): Remove define.

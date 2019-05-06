@@ -644,6 +644,7 @@ add_new_section_symbols (Elf_Scn *old_symscn, size_t old_shnum,
       GElf_Word shndx = SHN_UNDEF;
       GElf_Sym *sym = gelf_getsymshndx (old_symdata, shndxdata,
 					i, &sym_mem, &shndx);
+      ELF_CHECK (sym != NULL, _("cannot get symbol table entry: %s"));
       ELF_CHECK (gelf_update_symshndx (symdata, shndxdata, i,
 				       sym, shndx),
 		 _("cannot update symbol table: %s"));
@@ -677,6 +678,7 @@ add_new_section_symbols (Elf_Scn *old_symscn, size_t old_shnum,
       GElf_Word shndx = SHN_UNDEF;
       GElf_Sym *sym = gelf_getsymshndx (old_symdata, shndxdata,
 					i, &sym_mem, &shndx);
+      ELF_CHECK (sym != NULL, _("cannot get symbol table entry: %s"));
       ELF_CHECK (gelf_update_symshndx (symdata, shndxdata,
 				       i + added, sym, shndx),
 		 _("cannot update symbol table: %s"));
@@ -1326,6 +1328,7 @@ new_shstrtab (Elf *unstripped, size_t unstripped_shnum,
 	Elf_Scn *scn = elf_getscn (unstripped, i + 1);
 	GElf_Shdr shdr_mem;
 	GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
+	ELF_CHECK (shdr != NULL, _("cannot get section header: %s"));
 	const char *name = get_section_name (i + 1, shdr, shstrtab);
 	unstripped_strent[i] = dwelf_strtab_add (strtab, name);
 	ELF_CHECK (unstripped_strent[i] != NULL,
@@ -1349,6 +1352,7 @@ new_shstrtab (Elf *unstripped, size_t unstripped_shnum,
 	Elf_Scn *scn = elf_getscn (unstripped, i + 1);
 	GElf_Shdr shdr_mem;
 	GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
+	ELF_CHECK (shdr != NULL, _("cannot get section header: %s"));
 	shdr->sh_name = dwelf_strent_off (unstripped_strent[i]);
 	if (i + 1 == unstripped_shstrndx)
 	  shdr->sh_size = strtab_data->d_size;

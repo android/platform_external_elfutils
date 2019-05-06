@@ -132,7 +132,7 @@ valid arguments are:\n\
   - 'auto', 'tty', 'if-tty'\n"),
 		     program_invocation_short_name, arg);
 	      argp_help (&color_argp, stderr, ARGP_HELP_SEE,
-			 program_invocation_short_name);
+			 (char *) program_invocation_short_name);
 	      exit (EXIT_FAILURE);
 	    }
 	}
