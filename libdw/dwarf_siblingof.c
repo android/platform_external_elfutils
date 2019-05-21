@@ -57,7 +57,7 @@ dwarf_siblingof (Dwarf_Die *die, Dwarf_Die *result)
   /* Copy of the CU in the request.  */
   sibattr.cu = this_die.cu;
   /* That's the address we start looking.  */
-  unsigned char *addr = this_die.addr;
+  unsigned char *addr;
 
   /* Search for the beginning of the next die on this level.  We
      must not return the dies for children of the given die.  */

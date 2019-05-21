@@ -751,19 +751,17 @@ show_symbols_sysv (Ebl *ebl, GElf_Word strndx, const char *fullname,
   while ((scn = elf_nextscn (ebl->elf, scn)) != NULL)
     {
       GElf_Shdr shdr_mem;
+      GElf_Shdr *shdr;
 
       assert (elf_ndxscn (scn) == cnt);
       cnt++;
 
-      char *name = elf_strptr (ebl->elf, shstrndx,
-			       gelf_getshdr (scn, &shdr_mem)->sh_name);
+      char *name = NULL;
+      shdr = gelf_getshdr (scn, &shdr_mem);
+      if (shdr != NULL)
+	name = elf_strptr (ebl->elf, shstrndx, shdr->sh_name);
       if (unlikely (name == NULL))
-	{
-	  const size_t bufsz = sizeof "[invalid sh_name 0x12345678]";
-	  name = alloca (bufsz);
-	  snprintf (name, bufsz, "[invalid sh_name %#" PRIx32 "]",
-		    gelf_getshdr (scn, &shdr_mem)->sh_name);
-	}
+	name = "[invalid section name]";
       scnnames[elf_ndxscn (scn)] = name;
     }
 

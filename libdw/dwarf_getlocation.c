@@ -125,6 +125,8 @@ loc_compare (const void *p1, const void *p2)
 static int
 store_implicit_value (Dwarf *dbg, void **cache, Dwarf_Op *op)
 {
+  if (dbg == NULL)
+    return -1;
   struct loc_block_s *block = libdw_alloc (dbg, struct loc_block_s,
 					   sizeof (struct loc_block_s), 1);
   const unsigned char *data = (const unsigned char *) (uintptr_t) op->number2;
@@ -896,7 +898,7 @@ dwarf_getlocation_addr (Dwarf_Attribute *attr, Dwarf_Addr address,
 	}
     }
 
-  int result = check_constant_offset (attr, &llbufs[0], &listlens[0]);
+  int result = check_constant_offset (attr, llbufs, listlens);
   if (result != 1)
     return result ?: 1;
 

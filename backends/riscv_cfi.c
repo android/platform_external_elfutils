@@ -31,7 +31,7 @@
 
 #include <dwarf.h>
 
-#define BACKEND aarch64_
+#define BACKEND riscv64_
 #include "libebl_CPU.h"
 
 

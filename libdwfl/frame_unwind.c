@@ -336,7 +336,7 @@ expr_eval (Dwfl_Frame *state, Dwarf_Frame *frame, const Dwarf_Op *ops,
 		val1 >>= (addr_bytes - op->number) * 8;
 #else
 	      if (op->number < 8)
-		val1 &= (1 << (op->number * 8)) - 1;
+		val1 &= (1ULL << (op->number * 8)) - 1;
 #endif
 	    }
 	  if (! push (val1))
