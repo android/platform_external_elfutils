@@ -4,6 +4,7 @@ cc_library_static {
     vendor_available: true,
     export_include_dirs: [
         ".",
+        "include",
         "lib",
     ],
     target: {
