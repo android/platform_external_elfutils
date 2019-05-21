@@ -4,6 +4,7 @@ cc_library_static {
     vendor_available: true,
     export_include_dirs: [
         ".",
+        "include",
         "lib",
     ],
     target: {
@@ -11,7 +12,10 @@ cc_library_static {
             export_include_dirs: ["bionic-fixup"],
         },
     },
-    visibility: [":__subpackages__"],
+    visibility: [
+        ":__subpackages__",
+        "//external/igt-gpu-tools",
+    ],
 }
 
 subdirs = ["libelf"]
