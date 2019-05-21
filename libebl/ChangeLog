@@ -1,3 +1,10 @@
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* eblsymbolbindingname.c (ebl_symbol_binding_name): Check ebl is
+	not NULL for STB_GNU_UNIQUE.
+	* eblsymboltypename.c (ebl_symbol_type_name): Check ebl is not
+	NULL for STT_GNU_IFUNC.
+
 2019-01-29  Mark Wielaard  <mark@klomp.org>
 
 	* eblobjnote.c (ebl_object_note): Check pr_datasz padding doesn't

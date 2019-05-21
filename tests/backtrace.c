@@ -185,7 +185,7 @@ frame_callback (Dwfl_Frame *state, void *frame_arg)
     symname = dwfl_module_addrname (mod, pc_adjusted);
 
   printf ("#%2d %#" PRIx64 "%4s\t%s\n", *framenop, (uint64_t) pc,
-	  ! isactivation ? "- 1" : "", symname);
+	  ! isactivation ? "- 1" : "", symname ?: "<null>");
   pid_t tid = dwfl_thread_tid (thread);
   callback_verify (tid, *framenop, pc, symname, dwfl);
   (*framenop)++;

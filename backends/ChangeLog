@@ -1,3 +1,7 @@
+2019-04-14  Mark Wielaard  <mark@klomp.org>
+
+	* riscv_cfi.c: Fix BACKEND define.
+
 2019-02-15  Mark Wielaard  <mark@klomp.org>
 
 	* s390_init.c (s390_init): Hook check_special_symbol.

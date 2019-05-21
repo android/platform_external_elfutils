@@ -60,7 +60,7 @@ check_PROGRAMS = arextract arsymtest newfile saridx scnnames sectiondump \
 		  fillfile dwarf_default_lower_bound dwarf-die-addr-die \
 		  get-units-invalid get-units-split attr-integrate-skel \
 		  all-dwarf-ranges unit-info next_cfi \
-		  elfcopy addsections
+		  elfcopy addsections xlate_notes
 
 asm_TESTS = asm-tst1 asm-tst2 asm-tst3 asm-tst4 asm-tst5 \
 	    asm-tst6 asm-tst7 asm-tst8 asm-tst9
@@ -159,7 +159,7 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-next-cfi.sh run-next-cfi-self.sh \
 	run-copyadd-sections.sh run-copymany-sections.sh \
 	run-typeiter-many.sh run-strip-test-many.sh \
-	run-strip-version.sh
+	run-strip-version.sh run-xlate-note.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -423,7 +423,8 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     testfile-debug-rel-ppc64-g.o.bz2 \
 	     testfile-debug-rel-ppc64-z.o.bz2 \
 	     testfile-debug-rel-ppc64.o.bz2 \
-	     run-strip-version.sh testfile-version.bz2
+	     run-strip-version.sh testfile-version.bz2 \
+	     run-xlate-note.sh
 
 if USE_VALGRIND
 valgrind_cmd='valgrind -q --leak-check=full --error-exitcode=1'
@@ -593,6 +594,7 @@ unit_info_LDADD = $(libdw)
 next_cfi_LDADD = $(libelf) $(libdw)
 elfcopy_LDADD = $(libelf)
 addsections_LDADD = $(libelf)
+xlate_notes_LDADD = $(libelf)
 
 # We want to test the libelf header against the system elf.h header.
 # Don't include any -I CPPFLAGS. Except when we install our own elf.h.

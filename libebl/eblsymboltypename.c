@@ -64,6 +64,7 @@ ebl_symbol_type_name (Ebl *ebl, int symbol, char *buf, size_t len)
 	  if (symbol >= STT_LOPROC && symbol <= STT_HIPROC)
 	    snprintf (buf, len, "LOPROC+%d", symbol - STT_LOPROC);
 	  else if (symbol == STT_GNU_IFUNC
+		   && ebl != NULL
 		   && (ident = elf_getident (ebl->elf, NULL)) != NULL
 		   && ident[EI_OSABI] == ELFOSABI_LINUX)
 	    return "GNU_IFUNC";

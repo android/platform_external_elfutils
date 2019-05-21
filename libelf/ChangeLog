@@ -1,3 +1,17 @@
+2019-05-01  Mark Wielaard  <mark@klomp.org>
+
+	* gelf_getnote.c (gelf_getnote): Check n_namesz doesn't overflow
+	offset.
+
+2019-04-30  Mark Wielaard  <mark@klomp.org>
+
+	* note_xlate.h (elf_cvt_note): Indicate we only translated the note
+	header if we ran out of data by updating len, src and dest.
+
+2019-04-01  Mao Han  <han_mao@c-sky.com>
+
+	* elf.h: Update from glibc.
+
 2019-03-07  Mark Wielaard  <mark@klomp.org>
 
 	* elf32_updatefile.c (updatemmap): Use posix_memalign instead of

@@ -428,6 +428,9 @@ show_sysv (Elf *elf, const char *prefix, const char *fname,
       GElf_Shdr shdr_mem;
       GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
 
+      if (shdr == NULL)
+	INTERNAL_ERROR (fullname);
+
       /* Ignore all sections which are not used at runtime.  */
       if ((shdr->sh_flags & SHF_ALLOC) != 0)
 	{
@@ -474,6 +477,9 @@ show_sysv_one_line (Elf *elf)
     {
       GElf_Shdr shdr_mem;
       GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
+
+      if (unlikely (shdr == NULL))
+	error (EXIT_FAILURE, 0, gettext ("cannot get section header"));
 
       /* Ignore all sections which are not used at runtime.  */
       if ((shdr->sh_flags & SHF_ALLOC) == 0)

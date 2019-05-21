@@ -165,4 +165,10 @@ cc_library {
             },
         },
     },
+
+    visibility: [
+        "//device/google/contexthub/util/nanoapp_postprocess",
+        "//external/mesa3d",
+        "//external/perf_data_converter",
+    ],
 }

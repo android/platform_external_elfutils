@@ -1,3 +1,30 @@
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* unstrip.c (add_new_section_symbols): Call ELF_CHECK after
+	gelf_getsymshndx.
+	(new_shstrtab): Call ELF_CHECK after gelf_getshdr.
+
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* size.c (show_sysv): Call INTERNAL_ERROR if gelf_getshdr
+	returns NULL.
+	(show_sysv_one_line): Call error with EXIT_FAILURE if
+	gelf_getshdr returns NULL.
+
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* nm.c (show_symbols_sysv): Check gelf_getshdr doesn't return
+	NULL. Simplify naming of invalid sections, don't use alloca.
+
+2019-04-28  Mark Wielaard  <mark@klomp.org>
+
+	* elfcmp.c (main): Check shdr1 and shdr2 are not NULL.
+
+2019-04-03  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (attr_callback): Print DW_AT_data_member_location as
+	decimal offset, not hex number.
+
 2019-03-29  Mark Wielaard  <mark@klomp.org>
 
 	* readelf.c (print_debug_macinfo_section): Check cus[0] is not the
