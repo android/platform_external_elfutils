@@ -1,3 +1,8 @@
+2019-05-16  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_AT_GNU_numerator, DW_AT_GNU_denominator and
+	DW_AT_GNU_bias.
+
 2019-04-28  Mark Wielaard  <mark@klomp.org>
 
 	* dwarf_siblingof.c (dwarf_siblingof): Don't initialize addr.

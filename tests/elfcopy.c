@@ -69,9 +69,11 @@ setshstrndx (Elf *elf, size_t ndx)
 
 /* Copies all elements of an ELF file either using mmap or read.  */
 static void
-copy_elf (const char *in, const char *out, bool use_mmap)
+copy_elf (const char *in, const char *out, bool use_mmap, bool reverse_offs)
 {
-  printf ("\ncopy_elf: %s -> %s (%s)\n", in, out, use_mmap ? "mmap" : "read");
+  printf ("\ncopy_elf: %s -> %s (%s,%s)\n", in, out,
+	  use_mmap ? "mmap" : "read",
+	  reverse_offs ? "reverse" : "same");
 
   /* Existing ELF file.  */
   int fda = open (in, O_RDONLY);
@@ -182,8 +184,28 @@ copy_elf (const char *in, const char *out, bool use_mmap)
 	}
     }
 
+  GElf_Off *offs = NULL;
+  size_t shnum;
+  if (reverse_offs)
+    {
+      if (elf_getshdrnum (elfa, &shnum) < 0)
+	{
+	  printf ("couldn't get shdrnum: %s\n", elf_errmsg (-1));
+	  exit (1);
+	}
+
+      offs = (GElf_Off *) malloc (shnum * sizeof (GElf_Off));
+      if (offs == NULL)
+	{
+	  printf ("couldn't allocate memory for offs\n");
+	  exit (1);
+	}
+    }
+
   /* Copy all sections, headers and data.  */
   Elf_Scn *scn = NULL;
+  size_t last_off = 0;
+  GElf_Shdr last_shdr = { .sh_type = SHT_NULL };
   while ((scn = elf_nextscn (elfa, scn)) != NULL)
     {
       /* Get the header.  */
@@ -192,6 +214,35 @@ copy_elf (const char *in, const char *out, bool use_mmap)
 	{
 	  printf ("couldn't get shdr: %s\n", elf_errmsg (-1));
 	  exit (1);
+	}
+
+      if (reverse_offs)
+	{
+	  offs[last_off] = shdr.sh_offset;
+
+	  if (last_shdr.sh_type != SHT_NULL
+	      && last_shdr.sh_addralign == shdr.sh_addralign
+	      && shdr.sh_addralign == 1
+	      && last_shdr.sh_type != SHT_NOBITS
+	      && shdr.sh_type != SHT_NOBITS
+	      && last_shdr.sh_offset + last_shdr.sh_size == shdr.sh_offset
+	      && (phnum == 0
+		  || ((shdr.sh_flags & SHF_ALLOC) == 0
+		      && (last_shdr.sh_flags & SHF_ALLOC) == 0)))
+	    {
+	      printf ("Swapping offsets of section %zd and %zd\n",
+		      last_off, last_off + 1);
+	      GElf_Word off = offs[last_off - 1];
+	      offs[last_off - 1] = off + shdr.sh_size;
+	      offs[last_off] = off;
+	      last_shdr.sh_type = SHT_NULL;
+	    }
+	  else
+	    {
+	      last_shdr = shdr;
+	      offs[last_off] = shdr.sh_offset;
+	    }
+	  last_off++;
 	}
 
       /* Create new section.  */
@@ -223,9 +274,34 @@ copy_elf (const char *in, const char *out, bool use_mmap)
 	}
     }
 
-  /* Write everything to disk.  If there are any phdrs then we want
-     the exact same layout.  Do we want ELF_F_PERMISSIVE?  */
-  if (phnum > 0)
+  if (reverse_offs)
+    {
+      last_off = 0;
+      scn = NULL;
+      while ((scn = elf_nextscn (elfb, scn)) != NULL)
+	{
+	  GElf_Shdr shdr;
+	  if (gelf_getshdr (scn, &shdr) == NULL)
+	    {
+	      printf ("couldn't get shdr for updating: %s\n", elf_errmsg (-1));
+	      exit (1);
+	    }
+
+	  shdr.sh_offset = offs[last_off++];
+
+	  if (gelf_update_shdr (scn, &shdr) == 0)
+	    {
+	      printf ("couldn't update shdr sh_off: %s\n", elf_errmsg (-1));
+	      exit (1);
+	    }
+	}
+      free (offs);
+    }
+
+  /* Write everything to disk.  If there are any phdrs, or we want to
+     update the offsets, then we want the exact same layout.  Do we
+     want ELF_F_PERMISSIVE?  */
+  if (phnum > 0 || reverse_offs)
     elf_flagelf (elfb, ELF_C_SET, ELF_F_LAYOUT);
   if (elf_update (elfb, ELF_C_WRITE) < 0)
     {
@@ -264,9 +340,9 @@ main (int argc, const char *argv[])
   elf_version (EV_CURRENT);
 
   /* Takes the given file, and create a new identical one.  */
-  if (argc < 3 || argc > 4)
+  if (argc < 3 || argc > 5)
     {
-      fprintf (stderr, "elfcopy [--mmap] in.elf out.elf\n");
+      fprintf (stderr, "elfcopy [--mmap] [--reverse-offs] in.elf out.elf\n");
       exit (1);
     }
 
@@ -278,9 +354,16 @@ main (int argc, const char *argv[])
       argn++;
     }
 
+  bool reverse_offs = false;
+  if (strcmp (argv[argn], "--reverse-offs") == 0)
+    {
+      reverse_offs = true;
+      argn++;
+    }
+
   const char *in = argv[argn++];
   const char *out = argv[argn];
-  copy_elf (in, out, use_mmap);
+  copy_elf (in, out, use_mmap, reverse_offs);
 
   return 0;
 }

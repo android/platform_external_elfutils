@@ -1,3 +1,8 @@
+2019-05-12  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatenull.c (updatenull_wrlock): Mark shdr_flags dirty if
+	either offset or size changed.
+
 2019-05-01  Mark Wielaard  <mark@klomp.org>
 
 	* gelf_getnote.c (gelf_getnote): Check n_namesz doesn't overflow

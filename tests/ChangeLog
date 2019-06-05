@@ -1,3 +1,32 @@
+2019-06-03  Mark Wielaard  <mark@klomp.org>
+
+	* elfcopy.c (copy_elf): When swapping the sh_offsets of two sections,
+	make sure they are actually next to each other.
+
+2019-05-12  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (check_PROGRAMS): Add elfrdwrnop.
+	(TESTS): Add run-reverse-sections.sh and
+	run-reverse-sections-self.sh.
+	(EXTRA_DIST): Likewise.
+	(elfrdwrnop): New variable.
+	* elfcopy.c (copy_elf): Add reverse_off argument. Record offsets
+	of sections and swap them when possible.
+	(main): Check for --reverse-off argument. Pass reverse_offs to
+	copy_elf.
+	* run-reverse-sections.sh: New test.
+	* run-reverse-sections-self.sh: Likewise.
+	* elfrdwrnop.c: New file.
+
+2019-05-10  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (TESTS): Add run-readelf-discr.sh.
+	(EXTRA_DIST): Likewise and add testfile-rng.debug.bz2 and
+	testfile-urng.debug.bz2.
+	* run-readelf-discr.sh: New test.
+	* testfile-rng.debug.bz2: New test file.
+	* testfile-urng.debug.bz2: Likewise.
+
 2019-04-30  Mark Wielaard  <mark@klomp.org>
 
 	* xlate_notes.c: New file.

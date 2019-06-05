@@ -366,12 +366,15 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 		    }
 
 		  /* See whether the section size is correct.  */
+		  int size_changed = 0;
 		  update_if_changed (shdr->sh_size, (GElf_Word) offset,
-				     changed);
+				     size_changed);
+		  changed |= size_changed;
 
 		  if (shdr->sh_type != SHT_NOBITS)
 		    size += offset;
 
+		  scn->shdr_flags |= (offset_changed | size_changed);
 		  scn->flags |= changed;
 		}
 
