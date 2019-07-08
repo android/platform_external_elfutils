@@ -1,3 +1,12 @@
+2019-06-25  Mark Wielaard  <mark@klomp.org>
+
+	* stack.c (parse_opt): Fix dwfl_core_file_attach error message.
+
+2019-06-18  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Use elf_begin ELF_C_WRITE, instead of
+	ELF_C_WRITE_MMAP.
+
 2019-05-10  Mark Wielaard  <mark@klomp.org>
 
 	* readelf.c (struct attrcb_args): Rename die to dies.

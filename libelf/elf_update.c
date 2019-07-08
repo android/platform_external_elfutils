@@ -40,8 +40,8 @@
 #include "libelfP.h"
 
 
-static off_t
-write_file (Elf *elf, off_t size, int change_bo, size_t shnum)
+static int64_t
+write_file (Elf *elf, int64_t size, int change_bo, size_t shnum)
 {
   int class = elf->class;
 
@@ -164,11 +164,11 @@ write_file (Elf *elf, off_t size, int change_bo, size_t shnum)
 }
 
 
-off_t
+int64_t
 elf_update (Elf *elf, Elf_Cmd cmd)
 {
   size_t shnum;
-  off_t size;
+  int64_t size;
   int change_bo = 0;
 
   if (cmd != ELF_C_NULL

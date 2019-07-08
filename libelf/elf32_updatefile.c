@@ -498,7 +498,7 @@ __elfw2(LIBELFBITS,updatemmap) (Elf *elf, int change_bo, size_t shnum)
 
 /* Helper function to write out fill bytes.  */
 static int
-fill (int fd, off_t pos, size_t len, char *fillbuf, size_t *filledp)
+fill (int fd, int64_t pos, size_t len, char *fillbuf, size_t *filledp)
 {
   size_t filled = *filledp;
   size_t fill_len = MIN (len, FILLBUFSIZE);
@@ -651,7 +651,7 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
 
   /* From now on we have to keep track of the last position to eventually
      fill the gaps with the prescribed fill byte.  */
-  off_t last_offset;
+  int64_t last_offset;
   if (elf->state.ELFW(elf,LIBELFBITS).phdr == NULL)
     last_offset = elf_typesize (LIBELFBITS, ELF_T_EHDR, 1);
   else
@@ -664,7 +664,7 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
 					+ sizeof (ElfW2(LIBELFBITS,Shdr)))))
 	return 1;
 
-      off_t shdr_offset = elf->start_offset + ehdr->e_shoff;
+      int64_t shdr_offset = elf->start_offset + ehdr->e_shoff;
 #undef shdr_fctp
 #define shdr_fctp __elf_xfctstom[ELFW(ELFCLASS, LIBELFBITS) - 1][ELF_T_SHDR]
 
@@ -712,7 +712,7 @@ __elfw2(LIBELFBITS,updatefile) (Elf *elf, int change_bo, size_t shnum)
 	  if (shdr->sh_type == SHT_NOBITS)
 	    goto next;
 
-	  off_t scn_start = elf->start_offset + shdr->sh_offset;
+	  int64_t scn_start = elf->start_offset + shdr->sh_offset;
 	  Elf_Data_List *dl = &scn->data_list;
 	  bool scn_changed = false;
 

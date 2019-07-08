@@ -56,6 +56,9 @@ elfw2(LIBELFBITS,newphdr) (Elf *elf, size_t count)
       return NULL;
     }
 
+  /* This check is correct, it is for sh_info, which is either
+     Elf32_Word or Elf64_Word, both being 32 bits.  But count is size_t
+     so might not fit on 32bit ELF files.  */
   if (unlikely ((ElfW2(LIBELFBITS,Word)) count != count))
     {
       __libelf_seterrno (ELF_E_INVALID_OPERAND);

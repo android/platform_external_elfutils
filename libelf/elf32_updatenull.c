@@ -45,6 +45,10 @@
 # define LIBELFBITS 32
 #endif
 
+/* Some fields contain 32/64 sizes.  We cannot use Elf32/64_Word for those,
+   since those are both 32bits.  Elf32/64_Xword is always 64bits.  */
+#define Elf32_SizeWord Elf32_Word
+#define Elf64_SizeWord Elf64_Xword
 
 
 static int
@@ -122,7 +126,7 @@ ELFW(default_ehdr,LIBELFBITS) (Elf *elf, ElfW2(LIBELFBITS,Ehdr) *ehdr,
 }
 
 
-off_t
+int64_t
 internal_function
 __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 {
@@ -137,7 +141,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
     return -1;
 
   /* At least the ELF header is there.  */
-  off_t size = elf_typesize (LIBELFBITS, ELF_T_EHDR, 1);
+  ElfW2(LIBELFBITS,SizeWord) size = elf_typesize (LIBELFBITS, ELF_T_EHDR, 1);
 
   /* Set the program header position.  */
   if (elf->state.ELFW(elf,LIBELFBITS).phdr == NULL)
@@ -152,7 +156,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 	{
 	  /* The user is supposed to fill out e_phoff.  Use it and
 	     e_phnum to determine the maximum extend.  */
-	  size = MAX ((size_t) size,
+	  size = MAX (size,
 		      ehdr->e_phoff
 		      + elf_typesize (LIBELFBITS, ELF_T_PHDR, phnum));
 	}
@@ -205,11 +209,11 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 	    {
 	      Elf_Scn *scn = &list->data[cnt];
 	      ElfW2(LIBELFBITS,Shdr) *shdr = scn->shdr.ELFW(e,LIBELFBITS);
-	      off_t offset = 0;
+	      int64_t offset = 0;
 
 	      assert (shdr != NULL);
-	      ElfW2(LIBELFBITS,Word) sh_entsize = shdr->sh_entsize;
-	      ElfW2(LIBELFBITS,Word) sh_align = shdr->sh_addralign ?: 1;
+	      ElfW2(LIBELFBITS,SizeWord) sh_entsize = shdr->sh_entsize;
+	      ElfW2(LIBELFBITS,SizeWord) sh_align = shdr->sh_addralign ?: 1;
 	      if (unlikely (! powerof2 (sh_align)))
 		{
 		  __libelf_seterrno (ELF_E_INVALID_ALIGN);
@@ -299,8 +303,8 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 			  /* The user specified the offset and the size.
 			     All we have to do is check whether this block
 			     fits in the size specified for the section.  */
-			  if (unlikely ((GElf_Word) (data->d_off
-						     + data->d_size)
+			  if (unlikely ((ElfW2(LIBELFBITS,SizeWord))
+					(data->d_off + data->d_size)
 					> shdr->sh_size))
 			    {
 			      __libelf_seterrno (ELF_E_SECTION_TOO_SMALL);
@@ -329,7 +333,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 
 	      if (elf->flags & ELF_F_LAYOUT)
 		{
-		  size = MAX ((GElf_Word) size,
+		  size = MAX (size,
 			      (shdr->sh_type != SHT_NOBITS
 			       ? shdr->sh_offset + shdr->sh_size : 0));
 
@@ -353,8 +357,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 
 		  size = (size + sh_align - 1) & ~(sh_align - 1);
 		  int offset_changed = 0;
-		  update_if_changed (shdr->sh_offset, (GElf_Word) size,
-				     offset_changed);
+		  update_if_changed (shdr->sh_offset, size, offset_changed);
 		  changed |= offset_changed;
 
 		  if (offset_changed && scn->data_list_rear == NULL)
@@ -367,7 +370,8 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 
 		  /* See whether the section size is correct.  */
 		  int size_changed = 0;
-		  update_if_changed (shdr->sh_size, (GElf_Word) offset,
+		  update_if_changed (shdr->sh_size,
+				     (ElfW2(LIBELFBITS,SizeWord)) offset,
 				     size_changed);
 		  changed |= size_changed;
 
@@ -384,7 +388,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 		  && (elf->flags & ELF_F_PERMISSIVE) == 0)
 		{
 		  /* For compressed sections check the uncompressed size.  */
-		  ElfW2(LIBELFBITS,Word) sh_size;
+		  ElfW2(LIBELFBITS,SizeWord) sh_size;
 		  if ((shdr->sh_flags & SHF_COMPRESSED) == 0)
 		    sh_size = shdr->sh_size;
 		  else
@@ -418,7 +422,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 	  /* The user is supposed to fill out e_shoff.  Use it and
 	     e_shnum (or sh_size of the dummy, first section header)
 	     to determine the maximum extend.  */
-	  size = MAX ((GElf_Word) size,
+	  size = MAX (size,
 		      (ehdr->e_shoff
 		       + (elf_typesize (LIBELFBITS, ELF_T_SHDR, shnum))));
 	}
@@ -432,7 +436,7 @@ __elfw2(LIBELFBITS,updatenull_wrlock) (Elf *elf, int *change_bop, size_t shnum)
 #define SHDR_ALIGN sizeof (ElfW2(LIBELFBITS,Off))
 	  size = (size + SHDR_ALIGN - 1) & ~(SHDR_ALIGN - 1);
 
-	  update_if_changed (ehdr->e_shoff, (GElf_Word) size, elf->flags);
+	  update_if_changed (ehdr->e_shoff, size, elf->flags);
 
 	  /* Account for the section header size.  */
 	  size += elf_typesize (LIBELFBITS, ELF_T_SHDR, shnum);

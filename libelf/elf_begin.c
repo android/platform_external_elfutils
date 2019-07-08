@@ -71,8 +71,8 @@ file_read_ar (int fildes, void *map_address, off_t offset, size_t maxsize,
 
 
 static size_t
-get_shnum (void *map_address, unsigned char *e_ident, int fildes, off_t offset,
-	   size_t maxsize)
+get_shnum (void *map_address, unsigned char *e_ident, int fildes,
+	   int64_t offset, size_t maxsize)
 {
   size_t result;
   union
@@ -243,6 +243,9 @@ get_shnum (void *map_address, unsigned char *e_ident, int fildes, off_t offset,
 		CONVERT (size);
 	    }
 
+	  /* Although sh_size is an Elf64_Xword and can contain a 64bit
+	     value, we only expect an 32bit value max.  GElf_Word is
+	     32bit unsigned.  */
 	  if (size > ~((GElf_Word) 0))
 	    {
 	      /* Invalid value, it is too large.  */
@@ -266,7 +269,7 @@ get_shnum (void *map_address, unsigned char *e_ident, int fildes, off_t offset,
 /* Create descriptor for ELF file in memory.  */
 static Elf *
 file_read_elf (int fildes, void *map_address, unsigned char *e_ident,
-	       off_t offset, size_t maxsize, Elf_Cmd cmd, Elf *parent)
+	       int64_t offset, size_t maxsize, Elf_Cmd cmd, Elf *parent)
 {
   /* Verify the binary is of the class we can handle.  */
   if (unlikely ((e_ident[EI_CLASS] != ELFCLASS32
@@ -531,7 +534,7 @@ file_read_elf (int fildes, void *map_address, unsigned char *e_ident,
 
 Elf *
 internal_function
-__libelf_read_mmaped_file (int fildes, void *map_address,  off_t offset,
+__libelf_read_mmaped_file (int fildes, void *map_address,  int64_t offset,
 			   size_t maxsize, Elf_Cmd cmd, Elf *parent)
 {
   /* We have to find out what kind of file this is.  We handle ELF
@@ -564,7 +567,7 @@ __libelf_read_mmaped_file (int fildes, void *map_address,  off_t offset,
 
 
 static Elf *
-read_unmmaped_file (int fildes, off_t offset, size_t maxsize, Elf_Cmd cmd,
+read_unmmaped_file (int fildes, int64_t offset, size_t maxsize, Elf_Cmd cmd,
 		    Elf *parent)
 {
   /* We have to find out what kind of file this is.  We handle ELF
@@ -626,7 +629,7 @@ read_unmmaped_file (int fildes, off_t offset, size_t maxsize, Elf_Cmd cmd,
 
 /* Open a file for reading.  If possible we will try to mmap() the file.  */
 static struct Elf *
-read_file (int fildes, off_t offset, size_t maxsize,
+read_file (int fildes, int64_t offset, size_t maxsize,
 	   Elf_Cmd cmd, Elf *parent)
 {
   void *map_address = NULL;

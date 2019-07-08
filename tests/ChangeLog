@@ -1,3 +1,17 @@
+2019-07-01  Mark Wielaard  <mark@klomp.org>
+
+	* run-large-elf-file.sh: Add 2GB to mem_needed when running under
+	valgrind.
+
+2019-06-18  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (TESTS): Add run-large-elf-file.sh.
+	(EXTRA_DIST): Likewise.
+	* addsections.c (add_sections): Add sec_size argument, use it
+	as the size of the section data.
+	(main): Handle extra sec_size argument. Pass to add_sections.
+	* run-large-elf-file.sh: New test.
+
 2019-06-03  Mark Wielaard  <mark@klomp.org>
 
 	* elfcopy.c (copy_elf): When swapping the sh_offsets of two sections,

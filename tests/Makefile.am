@@ -83,6 +83,7 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-next-files.sh run-next-lines.sh \
 	run-get-pubnames.sh run-get-aranges.sh run-allfcts.sh \
 	run-show-abbrev.sh run-line2addr.sh hash \
+	run-large-elf-file.sh \
 	newscn run-strip-test.sh run-strip-test2.sh \
 	run-strip-test3.sh run-strip-test4.sh run-strip-test5.sh \
 	run-strip-test6.sh run-strip-test7.sh run-strip-test8.sh \
@@ -422,6 +423,7 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     testfile-riscv64-core.bz2 \
 	     run-reverse-sections.sh run-reverse-sections-self.sh \
 	     run-copyadd-sections.sh run-copymany-sections.sh \
+	     run-large-elf-file.sh \
 	     run-typeiter-many.sh run-strip-test-many.sh \
 	     testfile-debug-rel-ppc64-g.o.bz2 \
 	     testfile-debug-rel-ppc64-z.o.bz2 \

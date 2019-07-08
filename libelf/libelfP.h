@@ -296,7 +296,7 @@ struct Elf
   int fildes;
 
   /* Offset in the archive this file starts or zero.  */
-  off_t start_offset;
+  int64_t start_offset;
 
   /* Size of the file in the archive or the entire file size, or ~0
      for an (yet) unknown size.  */
@@ -350,7 +350,7 @@ struct Elf
       int ehdr_flags;		/* Flags (dirty) for ELF header.  */
       int phdr_flags;		/* Flags (dirty|malloc) for program header.  */
       int shdr_malloced;	/* Nonzero if shdr array was allocated.  */
-      off_t sizestr_offset;	/* Offset of the size string in the parent
+      int64_t sizestr_offset;	/* Offset of the size string in the parent
 				   if this is an archive member.  */
       Elf32_Ehdr ehdr_mem;	/* Memory used for ELF header when not
 				   mmaped.  */
@@ -375,7 +375,7 @@ struct Elf
       int ehdr_flags;		/* Flags (dirty) for ELF header.  */
       int phdr_flags;		/* Flags (dirty|malloc) for program header.  */
       int shdr_malloced;	/* Nonzero if shdr array was allocated.  */
-      off_t sizestr_offset;	/* Offset of the size string in the parent
+      int64_t sizestr_offset;	/* Offset of the size string in the parent
 				   if this is an archive member.  */
       Elf64_Ehdr ehdr_mem;	/* Memory used for ELF header when not
 				   mmaped.  */
@@ -392,7 +392,7 @@ struct Elf
       char *long_names;		/* If no index is available but long names
 				   are used this elements points to the data.*/
       size_t long_names_len;	/* Length of the long name table.  */
-      off_t offset;		/* Offset in file we are currently at.
+      int64_t offset;		/* Offset in file we are currently at.
 				   elf_next() advances this to the next
 				   member of the archive.  */
       Elf_Arhdr elf_ar_hdr;	/* Structure returned by 'elf_getarhdr'.  */
@@ -445,7 +445,7 @@ extern Elf_Type __libelf_data_type (Elf *elf, int sh_type, GElf_Xword align)
 
 /* Create Elf descriptor from memory image.  */
 extern Elf *__libelf_read_mmaped_file (int fildes, void *map_address,
-				       off_t offset, size_t maxsize,
+				       int64_t offset, size_t maxsize,
 				       Elf_Cmd cmd, Elf *parent)
      internal_function;
 
@@ -467,10 +467,10 @@ extern int __libelf_set_rawdata_wrlock (Elf_Scn *scn) internal_function;
 
 
 /* Helper functions for elf_update.  */
-extern off_t __elf32_updatenull_wrlock (Elf *elf, int *change_bop,
-					size_t shnum) internal_function;
-extern off_t __elf64_updatenull_wrlock (Elf *elf, int *change_bop,
-					size_t shnum) internal_function;
+extern int64_t __elf32_updatenull_wrlock (Elf *elf, int *change_bop,
+					  size_t shnum) internal_function;
+extern int64_t __elf64_updatenull_wrlock (Elf *elf, int *change_bop,
+					  size_t shnum) internal_function;
 
 extern int __elf32_updatemmap (Elf *elf, int change_bo, size_t shnum)
      internal_function;
