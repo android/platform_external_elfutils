@@ -351,6 +351,12 @@ enum
     DW_AT_GNU_pubnames = 0x2134,
     DW_AT_GNU_pubtypes = 0x2135,
 
+    /* https://gcc.gnu.org/wiki/DW_AT_GNU_numerator_denominator  */
+    DW_AT_GNU_numerator = 0x2303,
+    DW_AT_GNU_denominator = 0x2304,
+    /* https://gcc.gnu.org/wiki/DW_AT_GNU_bias  */
+    DW_AT_GNU_bias = 0x2305,
+
     DW_AT_hi_user = 0x3fff
   };
 

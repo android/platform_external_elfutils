@@ -1,3 +1,40 @@
+2019-06-18  Mark Wielaard  <mark@klomp.org>
+
+	* common.h (allocate_elf): Use int64_t instead of off_t for offset.
+	* elf32_newphdr.c (newphdr): Document why Elf32/64_Word is correct.
+	* elf32_updatefile.c (fill): Use int64_t instead of off_t for pos.
+	(updatefile): Define last_offset, shdr_offset and scn_start as
+	int64_t instead of off_t.
+	* elf32_updatenull.c: Define Elf32_SizeWord and Elf64_SizeWord.
+	(updatenull_wrlock): Return int64_t instead of off_t. Define size,
+	sh_entsize, sh_align and sh_size as SizeWords. Define offset as
+	int64_t.  Cast data->d_off to SizeWord instead of GElf_Word. Drop
+	size GElf_Word cast. Cast offset to SizeWord instead of GElf_Word
+	when comparing with sh_size.
+	* elf_begin.c (get_shnum): Define offset as int64_t instead of
+	off_t. Document why use GElf_Word is correct.
+	(file_read_elf): Define offset as int64_t instead of off_t.
+	(__libelf_read_mmaped_file): Likewise.
+	(read_unmmaped_file): Likewise.
+	(read_file): Likewise.
+	* elf_getaroff.c (elf_getaroff): Return int64_t.
+	* elf_getbase.c (elf_getbase): Likewise.
+	* elf_getdata_rawchunk.c (elf_getdata_rawchunk): Define offset as
+	int64_t instead of off_t.
+	* elf_update.c (write_file): Return int64_t instead of off_t,
+	define size as int64_t instead of off_t.
+	(elf_update): Likewise.
+	* libelfP.h (struct Elf): Define start_offset, sizestr_offset and
+	offset as int64_t.
+	(__libelf_read_mmaped_file): Define offset as int64_t.
+	(__elf32_updatenull_wrlock): Return int64_t.
+	(__elf64_updatenull_wrlock): Return int64_t.
+
+2019-05-12  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatenull.c (updatenull_wrlock): Mark shdr_flags dirty if
+	either offset or size changed.
+
 2019-05-01  Mark Wielaard  <mark@klomp.org>
 
 	* gelf_getnote.c (gelf_getnote): Check n_namesz doesn't overflow

@@ -60,7 +60,7 @@ check_PROGRAMS = arextract arsymtest newfile saridx scnnames sectiondump \
 		  fillfile dwarf_default_lower_bound dwarf-die-addr-die \
 		  get-units-invalid get-units-split attr-integrate-skel \
 		  all-dwarf-ranges unit-info next_cfi \
-		  elfcopy addsections xlate_notes
+		  elfcopy addsections xlate_notes elfrdwrnop
 
 asm_TESTS = asm-tst1 asm-tst2 asm-tst3 asm-tst4 asm-tst5 \
 	    asm-tst6 asm-tst7 asm-tst8 asm-tst9
@@ -83,6 +83,7 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-next-files.sh run-next-lines.sh \
 	run-get-pubnames.sh run-get-aranges.sh run-allfcts.sh \
 	run-show-abbrev.sh run-line2addr.sh hash \
+	run-large-elf-file.sh \
 	newscn run-strip-test.sh run-strip-test2.sh \
 	run-strip-test3.sh run-strip-test4.sh run-strip-test5.sh \
 	run-strip-test6.sh run-strip-test7.sh run-strip-test8.sh \
@@ -157,9 +158,11 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-all-dwarf-ranges.sh run-unit-info.sh \
 	run-reloc-bpf.sh \
 	run-next-cfi.sh run-next-cfi-self.sh \
+	run-reverse-sections.sh run-reverse-sections-self.sh \
 	run-copyadd-sections.sh run-copymany-sections.sh \
 	run-typeiter-many.sh run-strip-test-many.sh \
-	run-strip-version.sh run-xlate-note.sh
+	run-strip-version.sh run-xlate-note.sh \
+	run-readelf-discr.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -418,13 +421,17 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-unit-info.sh run-next-cfi.sh run-next-cfi-self.sh \
 	     testfile-riscv64.bz2 testfile-riscv64-s.bz2 \
 	     testfile-riscv64-core.bz2 \
+	     run-reverse-sections.sh run-reverse-sections-self.sh \
 	     run-copyadd-sections.sh run-copymany-sections.sh \
+	     run-large-elf-file.sh \
 	     run-typeiter-many.sh run-strip-test-many.sh \
 	     testfile-debug-rel-ppc64-g.o.bz2 \
 	     testfile-debug-rel-ppc64-z.o.bz2 \
 	     testfile-debug-rel-ppc64.o.bz2 \
 	     run-strip-version.sh testfile-version.bz2 \
-	     run-xlate-note.sh
+	     run-xlate-note.sh \
+	     run-readelf-discr.sh \
+	     testfile-rng.debug.bz2 testfile-urng.debug.bz2
 
 if USE_VALGRIND
 valgrind_cmd='valgrind -q --leak-check=full --error-exitcode=1'
@@ -595,6 +602,7 @@ next_cfi_LDADD = $(libelf) $(libdw)
 elfcopy_LDADD = $(libelf)
 addsections_LDADD = $(libelf)
 xlate_notes_LDADD = $(libelf)
+elfrdwrnop_LDADD = $(libelf)
 
 # We want to test the libelf header against the system elf.h header.
 # Don't include any -I CPPFLAGS. Except when we install our own elf.h.
