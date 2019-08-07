@@ -52,7 +52,6 @@ x86_64_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  eh->name = "AMD x86-64";
   x86_64_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
   HOOK (eh, section_type_name);

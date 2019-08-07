@@ -38,9 +38,6 @@
 /* Backend handle.  */
 struct ebl
 {
-  /* Machine name.  */
-  const char *name;
-
   /* Emulation name.  */
   const char *emulation;
 

@@ -3747,3 +3747,46 @@ testrun_compare ${abs_builddir}/addrcfi -e testfile-x32 0x00400390 <<\EOF
 	control reg66 (%fsw): undefined
 handle_cfi no CFI (.debug_frame): no error
 EOF
+
+# EM_CSKY (function bar 0x8440)
+testfiles testfilecsky
+testrun_compare ${abs_builddir}/addrcfi -e testfilecsky 0x8440 <<\EOF
+dwarf_cfi_addrframe (.eh_frame): no matching address range
+.debug_frame has 0x8440 => [0x8440, 0x844a):
+	return address in reg15
+	CFA location expression: bregx(14)
+	integer reg0 (r0): undefined
+	integer reg1 (r1): undefined
+	integer reg2 (r2): undefined
+	integer reg3 (r3): undefined
+	integer reg4 (r4): same_value
+	integer reg5 (r5): same_value
+	integer reg6 (r6): same_value
+	integer reg7 (r7): same_value
+	integer reg8 (r8): same_value
+	integer reg9 (r9): same_value
+	integer reg10 (r10): same_value
+	integer reg11 (r11): same_value
+	integer reg12 (r12): undefined
+	integer reg13 (r13): undefined
+	integer reg14 (sp): location expression: call_frame_cfa stack_value
+	integer reg15 (lr): same_value
+	integer reg16 (r16): same_value
+	integer reg17 (r17): same_value
+	integer reg18 (r18): undefined
+	integer reg19 (r19): undefined
+	integer reg20 (r20): undefined
+	integer reg21 (r21): undefined
+	integer reg22 (r22): undefined
+	integer reg23 (r23): undefined
+	integer reg24 (r24): undefined
+	integer reg25 (r25): undefined
+	integer reg26 (r26): undefined
+	integer reg27 (r27): undefined
+	integer reg28 (r28): undefined
+	integer reg29 (r29): undefined
+	integer reg30 (r30): undefined
+	integer reg31 (tls): undefined
+	integer reg36 (hi): undefined
+	integer reg37 (lo): undefined
+EOF

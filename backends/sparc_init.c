@@ -55,12 +55,6 @@ sparc_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  if (machine == EM_SPARCV9)
-    eh->name = "SPARC v9";
-  else if (machine == EM_SPARC32PLUS)
-    eh->name = "SPARC v8+";
-  else
-    eh->name = "SPARC";
   sparc_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
   HOOK (eh, machine_flag_check);

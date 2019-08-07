@@ -50,7 +50,6 @@ sh_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  eh->name = "Hitachi SH";
   sh_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
   HOOK (eh, gotpc_reloc_check);

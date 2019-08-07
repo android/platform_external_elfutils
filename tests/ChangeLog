@@ -1,3 +1,21 @@
+2019-07-16  Mao Han  <han_mao@c-sky.com>
+
+	* hello_csky.ko.bz2: New testfile.
+	* run-addrcfi.sh: Add C-SKY testfile.
+	* run-strip-reloc.sh: Likewise.
+	* testfilecsky.bz2: New testfile.
+	* Makefile.am (EXTRA_DIST): Add hello_csky.ko.bz2 and
+	testfilecsky.bz2.
+
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (check_PROGRAMS): Add dwelf_elf_e_machine_string.
+	(TESTS): Add run-dwelf_elf_e_machine_string.sh.
+	(EXTRA_DIST): Likewise.
+	(dwelf_elf_e_machine_string_LDADD): New variable.
+	* dwelf_elf_e_machine_string.c: New file.
+	* run-dwelf_elf_e_machine_string.sh: New test.
+
 2019-07-01  Mark Wielaard  <mark@klomp.org>
 
 	* run-large-elf-file.sh: Add 2GB to mem_needed when running under

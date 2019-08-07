@@ -1,3 +1,9 @@
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libdwelf_a_SOURCES): Add dwelf_elf_e_machine_string.c.
+	* libdwelf.h (dwelf_elf_e_machine_string): Define new function.
+	* dwelf_elf_e_machine_string.c: New file.
+
 2018-10-21  Mark Wielaard  <mark@klomp.org>
 
 	* libdwelf.h (dwelf_elf_begin): Add function declaration.
