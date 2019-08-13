@@ -1,3 +1,13 @@
+2019-04-29 Mao Han <han_mao@c-sky.com>
+
+	* eblopenbackend.c: Add C-SKY.
+
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (try_dlopen): Remove result->name check.
+	(openbackend): Remove result->name assignment.
+	(struct ebl): Remove name.
+
 2019-05-30  Mark Wielaard  <mark@klomp.org>
 
 	* eblopenbackend.c (try_dlopen): New function extracted from

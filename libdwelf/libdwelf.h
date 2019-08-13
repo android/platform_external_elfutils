@@ -133,6 +133,10 @@ extern void dwelf_strtab_free (Dwelf_Strtab *st)
    file handle will not be closed.  Does not return ELF_K_NONE handles.  */
 extern Elf *dwelf_elf_begin (int fd);
 
+/* Returns a human readable string for the given ELF header e_machine
+   value, or NULL if the given number isn't currently known.  */
+extern const char *dwelf_elf_e_machine_string (int machine);
+
 #ifdef __cplusplus
 }
 #endif

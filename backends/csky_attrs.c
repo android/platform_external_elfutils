@@ -1,4 +1,5 @@
-/* Initialization of M68K specific backend library.
+/* C-SKY ABI-specified defaults for DWARF CFI.
+   Copyright (C) 2019 Hangzhou C-SKY Microsystems co.,ltd.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -29,35 +30,38 @@
 # include <config.h>
 #endif
 
-#define BACKEND		m68k_
-#define RELOC_PREFIX	R_68K_
+#include <string.h>
+#include <dwarf.h>
+
+#define BACKEND csky_
 #include "libebl_CPU.h"
 
-/* This defines the common reloc hooks based on m68k_reloc.def.  */
-#include "common-reloc.c"
-
-
-const char *
-m68k_init (Elf *elf __attribute__ ((unused)),
-	   GElf_Half machine __attribute__ ((unused)),
-	   Ebl *eh,
-	   size_t ehlen)
+bool
+csky_check_object_attribute (Ebl *ebl __attribute__ ((unused)),
+			    const char *vendor, int tag,
+			    uint64_t value __attribute__ ((unused)),
+			    const char **tag_name,
+			    const char **value_name __attribute__ ((unused)))
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
+  if (!strcmp (vendor, "csky"))
+    switch (tag)
+      {
+      case 4:
+	*tag_name = "CSKY_ARCH_NAME";
+	return true;
 
-  /* We handle it.  */
-  m68k_init_reloc (eh);
-  HOOK (eh, gotpc_reloc_check);
-  HOOK (eh, reloc_simple_type);
-  HOOK (eh, return_value_location);
-  HOOK (eh, register_info);
-  HOOK (eh, core_note);
-  HOOK (eh, abi_cfi);
-  /* gcc/config/ #define DWARF_FRAME_REGISTERS.  */
-  eh->frame_nregs = 25;
-  HOOK (eh, set_initial_registers_tid);
+      case 5:
+	*tag_name = "CSKY_CPU_NAME";
+	return true;
 
-  return MODVERSION;
+      case 6:
+        *tag_name = "CSKY_ISA_FLAGS";
+        return true;
+
+      case 7:
+        *tag_name = "CSKY_ISA_EXT_FLAGS";
+        return true;
+      }
+
+  return false;
 }

@@ -49,7 +49,6 @@ ia64_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  eh->name = "Intel IA-64";
   ia64_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
   HOOK (eh, segment_type_name);

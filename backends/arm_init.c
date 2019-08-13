@@ -50,7 +50,6 @@ arm_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  eh->name = "ARM";
   arm_init_reloc (eh);
   HOOK (eh, segment_type_name);
   HOOK (eh, section_type_name);
