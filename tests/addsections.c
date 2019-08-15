@@ -70,9 +70,9 @@ setshstrndx (Elf *elf, size_t ndx)
 /* Will add nr new '.extra' sections and a new '.new_shstrtab' section
    at the end.  */
 static void
-add_sections (const char *name, size_t nr, int use_mmap)
+add_sections (const char *name, size_t nr, int use_mmap, size_t sec_size)
 {
-  printf ("add_sections '%s': %zd\n", name, nr);
+  printf ("add_sections '%s': %zd (sec_size: %zd)\n", name, nr, sec_size);
 
   int fd = open (name, O_RDWR);
   if (fd < 0)
@@ -149,6 +149,25 @@ add_sections (const char *name, size_t nr, int use_mmap)
       exit (1);
     }
 
+  void *buf;
+  size_t bufsz;
+  if (sec_size == 0)
+    {
+      buf = strdup ("extra");
+      bufsz = strlen ("extra") + 1;
+    }
+  else
+    {
+      buf = malloc (sec_size);
+      if (buf == NULL)
+	{
+	  printf ("cannot allocate buffer data of %zd bytes\n", sec_size);
+	  exit (1);
+	}
+      memset (buf, 0xAA, sec_size);
+      bufsz = sec_size;
+    }
+
   // Add lots of .extra sections...
   size_t cnt = 0;
   while (cnt++ < nr)
@@ -169,8 +188,8 @@ add_sections (const char *name, size_t nr, int use_mmap)
 	  exit (1);
 	}
 
-      data->d_size = strlen ("extra") + 1;
-      data->d_buf = "extra";
+      data->d_size = bufsz;
+      data->d_buf = buf;
       data->d_type = ELF_T_BYTE;
       data->d_align = 1;
 
@@ -274,6 +293,7 @@ add_sections (const char *name, size_t nr, int use_mmap)
       exit (1);
     }
 
+  free (buf);
   free (new_shstrtab_buf);
 }
 
@@ -282,10 +302,11 @@ main (int argc, char *argv[])
 {
   elf_version (EV_CURRENT);
 
-  /* Takes the given file, and adds the given number of sections.  */
-  if (argc < 3 || argc > 4)
+  /* Takes the given file, and adds the given number of sections.
+     Optionally using mmap and optionally using a given section size.  */
+  if (argc < 3 || argc > 5)
     {
-      fprintf (stderr, "addsections [--mmap] nr elf.file\n");
+      fprintf (stderr, "addsections [--mmap] nr elf.file [sec_size]\n");
       exit (1);
     }
 
@@ -298,8 +319,13 @@ main (int argc, char *argv[])
     }
 
   size_t nr = atoi (argv[argn++]);
-  const char *file = argv[argn];
-  add_sections (file, nr, use_mmap);
+  const char *file = argv[argn++];
+
+  size_t sec_size = 0;
+  if (argn < argc)
+    sec_size = atol (argv[argn++]);
+
+  add_sections (file, nr, use_mmap, sec_size);
 
   return 0;
 }

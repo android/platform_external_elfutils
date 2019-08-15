@@ -68,7 +68,7 @@ determine_kind (void *buf, size_t len)
 /* Allocate an Elf descriptor and fill in the generic information.  */
 static inline Elf *
 __attribute__ ((unused))
-allocate_elf (int fildes, void *map_address, off_t offset, size_t maxsize,
+allocate_elf (int fildes, void *map_address, int64_t offset, size_t maxsize,
               Elf_Cmd cmd, Elf *parent, Elf_Kind kind, size_t extra)
 {
   Elf *result = (Elf *) calloc (1, sizeof (Elf) + extra);

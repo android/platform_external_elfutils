@@ -48,7 +48,6 @@ tilegx_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  eh->name = "TILE-Gx";
   tilegx_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
   HOOK (eh, return_value_location);

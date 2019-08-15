@@ -1,3 +1,33 @@
+2019-07-13 Mao Han <han_mao@c-sky.com>
+
+	* Makefile.am: Add C-SKY.
+	* csky_attrs.c: New file.
+	* csky_cfi.c: New file.
+	* csky_corenote.c: Likewise.
+	* csky_init.c: Likewise.
+	* csky_initreg.c: Likewise.
+	* csky_regs.c: Likewise.
+	* csky_reloc.def: Likewise.
+	* csky_symbol.c: Likewise.
+
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* aarch64_init.c (aarch64_init.c): Remove eh->name;
+	* alpha_init.c (alpha_init.c): Remove eh->name;
+	* arm_init.c (arm_init.c): Remove eh->name;
+	* bpf_init.c (bpf_init.c): Remove eh->name;
+	* i386_init.c (i386_init.c): Remove eh->name;
+	* ia64_init.c (ia64_init.c): Remove eh->name;
+	* m68k_init.c (m68k_init.c): Remove eh->name;
+	* ppc64_init.c (ppc64_init.c): Remove eh->name;
+	* ppc_init.c (ppc_init.c): Remove eh->name;
+	* riscv_init.c (riscv_init.c): Remove eh->name;
+	* s390_init.c (s390_init.c): Remove eh->name;
+	* sh_init.c (sh_init.c): Remove eh->name;
+	* sparc_init.c (sparc_init.c): Remove eh->name;
+	* tilegx_init.c (tilegx_init.c): Remove eh->name;
+	* x86_64_init.c (x86_64_init.c): Remove eh->name;
+
 2019-04-14  Mark Wielaard  <mark@klomp.org>
 
 	* riscv_cfi.c: Fix BACKEND define.

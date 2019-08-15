@@ -135,6 +135,7 @@ static const struct
   { "bpf", "elf_bpf", "bpf", 3, EM_BPF, 0, 0 },
   { "riscv", "elf_riscv", "riscv", 5, EM_RISCV, ELFCLASS64, ELFDATA2LSB },
   { "riscv", "elf_riscv", "riscv", 5, EM_RISCV, ELFCLASS32, ELFDATA2LSB },
+  { "csky", "elf_csky", "csky", 4, EM_CSKY, ELFCLASS32, ELFDATA2LSB },
 };
 #define nmachines (sizeof (machines) / sizeof (machines[0]))
 
@@ -251,6 +252,49 @@ fill_defaults (Ebl *result)
   result->sysvhash_entrysize = sizeof (Elf32_Word);
 }
 
+static Ebl *
+try_dlopen (const char *dsoname, Elf *elf, GElf_Half machine, size_t cnt,
+	    Ebl *result)
+{
+  void *h = dlopen (dsoname, RTLD_LAZY);
+
+  if (h != NULL)
+    {
+      /* We managed to load the object.  Now see whether the
+	 initialization function likes our file.  */
+      static const char version[] = MODVERSION;
+      const char *modversion;
+      ebl_bhinit_t initp;
+
+      // We use a static number to help the compiler see we don't
+      // overflow the stack with an arbitrary number.
+      assert (machines[cnt].prefix_len <= MAX_PREFIX_LEN);
+      char symname[MAX_PREFIX_LEN + sizeof "_init"];
+
+      strcpy (mempcpy (symname, machines[cnt].prefix,
+		       machines[cnt].prefix_len), "_init");
+
+      initp = (ebl_bhinit_t) dlsym (h, symname);
+      if (initp != NULL
+	  && (modversion = initp (elf, machine, result, sizeof (Ebl)))
+	  && strcmp (version, modversion) == 0)
+	{
+	  /* We found a module to handle our file.  */
+	  result->dlhandle = h;
+	  result->elf = elf;
+
+	  /* A few entries are mandatory.  */
+	  assert (result->destr != NULL);
+
+	  return result;
+	}
+
+      /* Not the module we need.  */
+      (void) dlclose (h);
+    }
+
+  return NULL;
+}
 
 /* Find an appropriate backend for the file associated with ELF.  */
 static Ebl *
@@ -316,66 +360,44 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
 #ifndef LIBEBL_SUBDIR
 # define LIBEBL_SUBDIR PACKAGE
 #endif
-#define ORIGINDIR "$ORIGIN/../$LIB/" LIBEBL_SUBDIR "/"
+
+/* This works if libebl has been staticly linked into a binary.
+   It might also work for shared libraries when installed in
+   ${prefix}/lib/ or ${prefix}/lib64/, but not for multiarch
+   library installs like ${prefix}/lib/i386-linux-gnu/  */
+#define BINORIGINDIR "$ORIGIN/../$LIB/" LIBEBL_SUBDIR "/"
+
+/* This works if libebl has been linked into a shared library,
+   just look in the subdir.  */
+#define LIBORIGINDIR "$ORIGIN/" LIBEBL_SUBDIR "/"
 
 	/* Give it a try.  At least the machine type matches.  First
-           try to load the module.  */
+           try to load the module from the (bin) origin path.  */
 	char dsoname[100];
-	strcpy (stpcpy (stpcpy (dsoname, ORIGINDIR "libebl_"),
+	strcpy (stpcpy (stpcpy (dsoname, BINORIGINDIR "libebl_"),
 			machines[cnt].dsoname),
 		".so");
+	if (try_dlopen (dsoname, elf, machine, cnt, result) != NULL)
+	  return result;
 
-	void *h = dlopen (dsoname, RTLD_LAZY);
-	if (h == NULL)
-	  {
-	    strcpy (stpcpy (stpcpy (dsoname, "libebl_"),
-			    machines[cnt].dsoname),
-		    ".so");
-	    h = dlopen (dsoname, RTLD_LAZY);
-	  }
+	/* Retry with the (lib) origin path.  */
+	strcpy (stpcpy (stpcpy (dsoname, LIBORIGINDIR "libebl_"),
+			machines[cnt].dsoname),
+		".so");
+	if (try_dlopen (dsoname, elf, machine, cnt, result) != NULL)
+	  return result;
 
-	  /* Try without an explicit path.  */
-	if (h != NULL)
-	  {
-	    /* We managed to load the object.  Now see whether the
-	       initialization function likes our file.  */
-	    static const char version[] = MODVERSION;
-	    const char *modversion;
-	    ebl_bhinit_t initp;
-
-	    // We use a static number to help the compiler see we don't
-	    // overflow the stack with an arbitrary number.
-	    assert (machines[cnt].prefix_len <= MAX_PREFIX_LEN);
-	    char symname[MAX_PREFIX_LEN + sizeof "_init"];
-
-	    strcpy (mempcpy (symname, machines[cnt].prefix,
-			     machines[cnt].prefix_len), "_init");
-
-	    initp = (ebl_bhinit_t) dlsym (h, symname);
-	    if (initp != NULL
-		&& (modversion = initp (elf, machine, result, sizeof (Ebl)))
-		&& strcmp (version, modversion) == 0)
-	      {
-		/* We found a module to handle our file.  */
-		result->dlhandle = h;
-		result->elf = elf;
-
-		/* A few entries are mandatory.  */
-		assert (result->name != NULL);
-		assert (result->destr != NULL);
-
-		return result;
-	      }
-
-	    /* Not the module we need.  */
-	    (void) dlclose (h);
-	  }
+	/* Try without an explicit path (LD_LIBRARY_PATH or RPATH).  */
+	strcpy (stpcpy (stpcpy (dsoname, "libebl_"),
+			machines[cnt].dsoname),
+		".so");
+	if (try_dlopen (dsoname, elf, machine, cnt, result) != NULL)
+	  return result;
 
 	/* We cannot find a DSO but the emulation/machine ID matches.
 	   Return that information.  */
 	result->dlhandle = NULL;
 	result->elf = elf;
-	result->name = machines[cnt].prefix;
 	fill_defaults (result);
 
 	return result;
@@ -385,7 +407,6 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
   result->dlhandle = NULL;
   result->elf = elf;
   result->emulation = "<unknown>";
-  result->name = "<unknown>";
   fill_defaults (result);
 
   return result;

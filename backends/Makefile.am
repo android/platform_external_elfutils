@@ -33,12 +33,13 @@ AM_CPPFLAGS += -I$(top_srcdir)/libebl -I$(top_srcdir)/libasm \
 
 
 modules = i386 sh x86_64 ia64 alpha arm aarch64 sparc ppc ppc64 s390 \
-	  tilegx m68k bpf riscv
+	  tilegx m68k bpf riscv csky
 libebl_pic = libebl_i386_pic.a libebl_sh_pic.a libebl_x86_64_pic.a    \
 	     libebl_ia64_pic.a libebl_alpha_pic.a libebl_arm_pic.a    \
 	     libebl_aarch64_pic.a libebl_sparc_pic.a libebl_ppc_pic.a \
 	     libebl_ppc64_pic.a libebl_s390_pic.a libebl_tilegx_pic.a \
-	     libebl_m68k_pic.a libebl_bpf_pic.a libebl_riscv_pic.a
+	     libebl_m68k_pic.a libebl_bpf_pic.a libebl_riscv_pic.a    \
+	     libebl_csky_pic.a
 noinst_LIBRARIES = $(libebl_pic)
 noinst_DATA = $(libebl_pic:_pic.a=.so)
 
@@ -136,6 +137,10 @@ riscv_SRCS = riscv_init.c riscv_symbol.c riscv_cfi.c riscv_regs.c \
 libebl_riscv_pic_a_SOURCES = $(riscv_SRCS)
 am_libebl_riscv_pic_a_OBJECTS = $(riscv_SRCS:.c=.os)
 
+csky_SRCS = csky_attrs.c csky_init.c csky_symbol.c csky_cfi.c \
+	    csky_regs.c csky_initreg.c csky_corenote.c
+libebl_csky_pic_a_SOURCES = $(csky_SRCS)
+am_libebl_csky_pic_a_OBJECTS = $(csky_SRCS:.c=.os)
 
 libebl_%.so libebl_%.map: libebl_%_pic.a $(libelf) $(libdw) $(libeu)
 	@rm -f $(@:.so=.map)

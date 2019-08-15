@@ -312,6 +312,17 @@ static void dump_archive_index (Elf *, const char *);
 static char *yes_str;
 static char *no_str;
 
+static void
+cleanup_list (struct section_argument *list)
+{
+  while (list != NULL)
+    {
+      struct section_argument *a = list;
+      list = a->next;
+      free (a);
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -352,6 +363,9 @@ main (int argc, char *argv[])
       close (fd);
     }
   while (++remaining < argc);
+
+  cleanup_list (dump_data_sections);
+  cleanup_list (string_sections);
 
   return error_message_count != 0;
 }
@@ -1070,7 +1084,12 @@ print_ehdr (Ebl *ebl, GElf_Ehdr *ehdr)
   fputs_unlocked (gettext ("  Type:                              "), stdout);
   print_file_type (ehdr->e_type);
 
-  printf (gettext ("  Machine:                           %s\n"), ebl->name);
+  const char *machine = dwelf_elf_e_machine_string (ehdr->e_machine);
+  if (machine != NULL)
+    printf (gettext ("  Machine:                           %s\n"), machine);
+  else
+    printf (gettext ("  Machine:                           <unknown>: 0x%x\n"),
+	    ehdr->e_machine);
 
   printf (gettext ("  Version:                           %d %s\n"),
 	  ehdr->e_version,
@@ -3552,7 +3571,9 @@ print_attributes (Ebl *ebl, const GElf_Ehdr *ehdr)
 
       if (shdr == NULL || (shdr->sh_type != SHT_GNU_ATTRIBUTES
 			   && (shdr->sh_type != SHT_ARM_ATTRIBUTES
-			       || ehdr->e_machine != EM_ARM)))
+			       || ehdr->e_machine != EM_ARM)
+			   && (shdr->sh_type != SHT_CSKY_ATTRIBUTES
+			       || ehdr->e_machine != EM_CSKY)))
 	continue;
 
       printf (gettext ("\
@@ -6930,7 +6951,7 @@ struct attrcb_args
 {
   Dwfl_Module *dwflmod;
   Dwarf *dbg;
-  Dwarf_Die *die;
+  Dwarf_Die *dies;
   int level;
   bool silent;
   bool is_split;
@@ -6946,7 +6967,7 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
 {
   struct attrcb_args *cbargs = (struct attrcb_args *) arg;
   const int level = cbargs->level;
-  Dwarf_Die *die = cbargs->die;
+  Dwarf_Die *die = &cbargs->dies[level];
   bool is_split = cbargs->is_split;
 
   unsigned int attr = dwarf_whatattr (attrp);
@@ -7290,9 +7311,6 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
 	case DW_AT_ordering:
 	  valuestr = dwarf_ordering_name (num);
 	  break;
-	case DW_AT_discr_list:
-	  valuestr = dwarf_discr_list_name (num);
-	  break;
 	case DW_AT_decl_file:
 	case DW_AT_call_file:
 	  {
@@ -7347,7 +7365,7 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
       /* When highpc is in constant form it is relative to lowpc.
 	 In that case also show the address.  */
       Dwarf_Addr highpc;
-      if (attr == DW_AT_high_pc && dwarf_highpc (cbargs->die, &highpc) == 0)
+      if (attr == DW_AT_high_pc && dwarf_highpc (die, &highpc) == 0)
 	{
 	  printf ("           %*s%-20s (%s) %" PRIuMAX " (",
 		  (int) (level * 2), "", dwarf_attr_name (attr),
@@ -7369,7 +7387,7 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
 	      bool is_signed;
 	      int bytes = 0;
 	      if (attr == DW_AT_const_value)
-		die_type_sign_bytes (cbargs->die, &is_signed, &bytes);
+		die_type_sign_bytes (die, &is_signed, &bytes);
 	      else
 		is_signed = (form == DW_FORM_sdata
 			     || form == DW_FORM_implicit_const);
@@ -7520,6 +7538,96 @@ attr_callback (Dwarf_Attribute *attrp, void *arg)
 			 12 + level * 2, 12 + level * 2,
 			 cbargs->version, cbargs->addrsize, cbargs->offset_size,
 			 attrp->cu, block.length, block.data);
+	    }
+	  else
+	    print_block (block.length, block.data);
+	  break;
+
+	case DW_AT_discr_list:
+	  if (block.length == 0)
+	    puts ("<default>");
+	  else if (form != DW_FORM_data16)
+	    {
+	      const unsigned char *readp = block.data;
+	      const unsigned char *readendp = readp + block.length;
+
+	      /* See if we are dealing with a signed or unsigned
+		 values.  If the parent of this variant DIE is a
+		 variant_part then it will either have a discriminant
+		 which points to the member which type is the
+		 discriminant type.  Or the variant_part itself has a
+		 type representing the discriminant.  */
+	      bool is_signed = false;
+	      if (level > 0)
+		{
+		  Dwarf_Die *parent = &cbargs->dies[level - 1];
+		  if (dwarf_tag (die) == DW_TAG_variant
+		      && dwarf_tag (parent) == DW_TAG_variant_part)
+		    {
+		      Dwarf_Die member;
+		      Dwarf_Attribute discr_attr;
+		      int bytes;
+		      if (dwarf_formref_die (dwarf_attr (parent,
+							 DW_AT_discr,
+							 &discr_attr),
+					     &member) != NULL)
+			die_type_sign_bytes (&member, &is_signed, &bytes);
+		      else
+			die_type_sign_bytes (parent, &is_signed, &bytes);
+		    }
+		}
+	      while (readp < readendp)
+		{
+		  int d = (int) *readp++;
+		  printf ("%s ", dwarf_discr_list_name (d));
+		  if (readp >= readendp)
+		    goto attrval_out;
+
+		  Dwarf_Word val;
+		  Dwarf_Sword sval;
+		  if (d == DW_DSC_label)
+		    {
+		      if (is_signed)
+			{
+			  get_sleb128 (sval, readp, readendp);
+			  printf ("%" PRId64 "", sval);
+			}
+		      else
+			{
+			  get_uleb128 (val, readp, readendp);
+			  printf ("%" PRIu64 "", val);
+			}
+		    }
+		  else if (d == DW_DSC_range)
+		    {
+		      if (is_signed)
+			{
+			  get_sleb128 (sval, readp, readendp);
+			  printf ("%" PRId64 "..", sval);
+			  if (readp >= readendp)
+			    goto attrval_out;
+			  get_sleb128 (sval, readp, readendp);
+			  printf ("%" PRId64 "", sval);
+			}
+		      else
+			{
+			  get_uleb128 (val, readp, readendp);
+			  printf ("%" PRIu64 "..", val);
+			  if (readp >= readendp)
+			    goto attrval_out;
+			  get_uleb128 (val, readp, readendp);
+			  printf ("%" PRIu64 "", val);
+			}
+		    }
+		  else
+		    {
+		      print_block (readendp - readp, readp);
+		      break;
+		    }
+		  if (readp < readendp)
+		    printf (", ");
+		}
+	      putchar ('\n');
 	    }
 	  else
 	    print_block (block.length, block.data);
@@ -7724,7 +7832,7 @@ print_debug_units (Dwfl_Module *dwflmod,
 
       /* Print the attribute values.  */
       args.level = level;
-      args.die = &dies[level];
+      args.dies = dies;
       (void) dwarf_getattrs (&dies[level], attr_callback, &args, 0);
 
       /* Make room for the next level's DIE.  */

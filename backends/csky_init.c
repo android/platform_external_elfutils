@@ -1,4 +1,5 @@
-/* Initialization of M68K specific backend library.
+/* Initialization of C-SKY specific backend library.
+   Copyright (C) 2019 Hangzhou C-SKY Microsystems co.,ltd.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -29,16 +30,15 @@
 # include <config.h>
 #endif
 
-#define BACKEND		m68k_
-#define RELOC_PREFIX	R_68K_
+#define BACKEND		csky_
+#define RELOC_PREFIX	R_CKCORE_
 #include "libebl_CPU.h"
 
-/* This defines the common reloc hooks based on m68k_reloc.def.  */
+/* This defines the common reloc hooks based on csky_reloc.def.  */
 #include "common-reloc.c"
 
-
 const char *
-m68k_init (Elf *elf __attribute__ ((unused)),
+csky_init (Elf *elf __attribute__ ((unused)),
 	   GElf_Half machine __attribute__ ((unused)),
 	   Ebl *eh,
 	   size_t ehlen)
@@ -48,16 +48,18 @@ m68k_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  m68k_init_reloc (eh);
-  HOOK (eh, gotpc_reloc_check);
-  HOOK (eh, reloc_simple_type);
-  HOOK (eh, return_value_location);
-  HOOK (eh, register_info);
-  HOOK (eh, core_note);
+  csky_init_reloc (eh);
   HOOK (eh, abi_cfi);
-  /* gcc/config/ #define DWARF_FRAME_REGISTERS.  */
-  eh->frame_nregs = 25;
+  HOOK (eh, core_note);
+  HOOK (eh, check_object_attribute);
+  HOOK (eh, machine_flag_check);
+  HOOK (eh, reloc_simple_type);
+  HOOK (eh, register_info);
+  HOOK (eh, section_type_name);
   HOOK (eh, set_initial_registers_tid);
+
+  /* gcc/config/ #define DWARF_FRAME_REGISTERS.  */
+  eh->frame_nregs = 38;
 
   return MODVERSION;
 }

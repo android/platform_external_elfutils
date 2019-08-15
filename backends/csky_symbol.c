@@ -1,4 +1,5 @@
-/* Initialization of M68K specific backend library.
+/* C-SKY specific symbolic name handling.
+   Copyright (C) 2019 Hangzhou C-SKY Microsystems co.,ltd.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -29,35 +30,48 @@
 # include <config.h>
 #endif
 
-#define BACKEND		m68k_
-#define RELOC_PREFIX	R_68K_
+#include <assert.h>
+#include <elf.h>
+#include <stddef.h>
+#include <string.h>
+
+#define BACKEND csky_
 #include "libebl_CPU.h"
 
-/* This defines the common reloc hooks based on m68k_reloc.def.  */
-#include "common-reloc.c"
+/* Check for the simple reloc types.  */
+Elf_Type
+csky_reloc_simple_type (Ebl *ebl __attribute__ ((unused)), int type,
+			int *addsub __attribute__ ((unused)))
+{
+  switch (type)
+    {
+    case R_CKCORE_ADDR32:
+      return ELF_T_WORD;
+    default:
+      return ELF_T_NUM;
+    }
+}
 
+bool
+csky_machine_flag_check (GElf_Word flags)
+{
+  switch (flags & EF_CSKY_ABIMASK)
+    {
+    case EF_CSKY_ABIV2:
+      return true;
+    case EF_CSKY_ABIV1:
+    default:
+      return false;
+    }
+}
 
 const char *
-m68k_init (Elf *elf __attribute__ ((unused)),
-	   GElf_Half machine __attribute__ ((unused)),
-	   Ebl *eh,
-	   size_t ehlen)
+csky_section_type_name (int type,
+		       char *buf __attribute__ ((unused)),
+		       size_t len __attribute__ ((unused)))
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
+  if (type == SHT_CSKY_ATTRIBUTES)
+    return "CSKY_ATTRIBUTES";
 
-  /* We handle it.  */
-  m68k_init_reloc (eh);
-  HOOK (eh, gotpc_reloc_check);
-  HOOK (eh, reloc_simple_type);
-  HOOK (eh, return_value_location);
-  HOOK (eh, register_info);
-  HOOK (eh, core_note);
-  HOOK (eh, abi_cfi);
-  /* gcc/config/ #define DWARF_FRAME_REGISTERS.  */
-  eh->frame_nregs = 25;
-  HOOK (eh, set_initial_registers_tid);
-
-  return MODVERSION;
+  return NULL;
 }

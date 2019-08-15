@@ -49,7 +49,6 @@ i386_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  eh->name = "Intel 80386";
   i386_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
   HOOK (eh, gotpc_reloc_check);

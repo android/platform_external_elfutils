@@ -1,3 +1,33 @@
+2019-07-13 Mao Han <han_mao@c-sky.com>
+
+	* elflint.c: Add C-SKY.
+
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_ehdr): Use dwelf_elf_e_machine_string instead of
+	ebl->name. If unknown print hex value.
+
+2019-06-25  Mark Wielaard  <mark@klomp.org>
+
+	* stack.c (parse_opt): Fix dwfl_core_file_attach error message.
+
+2019-06-18  Mark Wielaard  <mark@klomp.org>
+
+	* strip.c (handle_elf): Use elf_begin ELF_C_WRITE, instead of
+	ELF_C_WRITE_MMAP.
+
+2019-05-10  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (struct attrcb_args): Rename die to dies.
+	(attr_callback): Get current current die using dies[level].
+	Handle DW_AT_discr_list as block, not as constant.
+	(print_debug_units): pass dies, not dies[level] as args.
+
+2019-05-09  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (cleanup_list): New function.
+	(main): Call cleanup_list for dump_data_sections and string_sections.
+
 2019-04-28  Mark Wielaard  <mark@klomp.org>
 
 	* unstrip.c (add_new_section_symbols): Call ELF_CHECK after

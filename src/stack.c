@@ -608,7 +608,7 @@ parse_opt (int key, char *arg __attribute__ ((unused)),
       if (core != NULL)
 	{
 	  if (dwfl_core_file_attach (dwfl, core) < 0)
-	    error (EXIT_BAD, 0, "dwfl_core_file_report: %s", dwfl_errmsg (-1));
+	    error (EXIT_BAD, 0, "dwfl_core_file_attach: %s", dwfl_errmsg (-1));
 	}
 
       /* Makes sure we are properly attached.  */

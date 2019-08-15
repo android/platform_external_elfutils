@@ -1,3 +1,13 @@
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.map (ELFUTILS_0.177): New section. Add
+	dwelf_elf_e_machine_string.
+
+2019-05-16  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_AT_GNU_numerator, DW_AT_GNU_denominator and
+	DW_AT_GNU_bias.
+
 2019-04-28  Mark Wielaard  <mark@klomp.org>
 
 	* dwarf_siblingof.c (dwarf_siblingof): Don't initialize addr.

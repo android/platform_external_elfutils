@@ -50,7 +50,6 @@ ppc_init (Elf *elf __attribute__ ((unused)),
     return NULL;
 
   /* We handle it.  */
-  eh->name = "PowerPC";
   ppc_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
   HOOK (eh, machine_flag_check);

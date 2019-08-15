@@ -1,3 +1,21 @@
+2019-04-29 Mao Han <han_mao@c-sky.com>
+
+	* eblopenbackend.c: Add C-SKY.
+
+2019-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (try_dlopen): Remove result->name check.
+	(openbackend): Remove result->name assignment.
+	(struct ebl): Remove name.
+
+2019-05-30  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (try_dlopen): New function extracted from
+	openbackend.
+	(openbackend): Replace ORIGINDIR define with BINORIGINDIR and
+	LIBORIGINDIR defines. Use tryopen to open backend in bin origin
+	path, lib origin path and without an explicit path.
+
 2019-04-28  Mark Wielaard  <mark@klomp.org>
 
 	* eblsymbolbindingname.c (ebl_symbol_binding_name): Check ebl is
