@@ -365,4 +365,8 @@ ELFUTILS_0.175 {
 ELFUTILS_0.177 {
   global:
     dwelf_elf_e_machine_string;
+    # Replaced ELFUTILS_0.175 versions.  Both versions point to the
+    # same implementation, but users of the new symbol version can
+    # presume that NULL is only returned on error (otherwise ELF_K_NONE).
+    dwelf_elf_begin;
 } ELFUTILS_0.175;

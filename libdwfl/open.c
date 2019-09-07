@@ -118,7 +118,7 @@ what_kind (int fd, Elf **elfp, Elf_Kind *kind, bool *may_close_fd)
 
 static Dwfl_Error
 libdw_open_elf (int *fdp, Elf **elfp, bool close_on_fail, bool archive_ok,
-		bool never_close_fd)
+		bool never_close_fd, bool bad_elf_ok)
 {
   bool may_close_fd = false;
 
@@ -164,6 +164,10 @@ libdw_open_elf (int *fdp, Elf **elfp, bool close_on_fail, bool archive_ok,
       && !(archive_ok && kind == ELF_K_AR))
     error = DWFL_E_BADELF;
 
+  /* This basically means, we keep a ELF_K_NONE Elf handle and return it.  */
+  if (bad_elf_ok && error == DWFL_E_BADELF)
+    error = DWFL_E_NOERROR;
+
   if (error != DWFL_E_NOERROR)
     {
       elf_end (elf);
@@ -184,11 +188,11 @@ libdw_open_elf (int *fdp, Elf **elfp, bool close_on_fail, bool archive_ok,
 Dwfl_Error internal_function
 __libdw_open_file (int *fdp, Elf **elfp, bool close_on_fail, bool archive_ok)
 {
-  return libdw_open_elf (fdp, elfp, close_on_fail, archive_ok, false);
+  return libdw_open_elf (fdp, elfp, close_on_fail, archive_ok, false, false);
 }
 
 Dwfl_Error internal_function
 __libdw_open_elf (int fd, Elf **elfp)
 {
-  return libdw_open_elf (&fd, elfp, false, true, true);
+  return libdw_open_elf (&fd, elfp, false, true, true, true);
 }

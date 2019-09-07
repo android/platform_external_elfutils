@@ -1,3 +1,17 @@
+2019-07-05  Omar Sandoval  <osandov@fb.com>
+
+	* configure.ac: Get rid of --enable-libebl-subdir.
+	* Makefile.am (SUBDIRS): Reorder backends and libcpu before libebl to
+	satisfy build dependencies.
+
+2019-08-13  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.177.
+	* NEWS: Mention elfclassify, readelf DW_AT_data_member_location
+	and DW_AT_discr_list attribute changes, dwarf.h DW_AT_GNU additions,
+	dwelf_elf_e_machine_string function, dwelf_elf_begin change and
+	C-SKY backend support.
+
 2019-02-14  Mark Wielaard  <mark@klomp.org>
 
 	* configure.ac: Set version to 0.176.

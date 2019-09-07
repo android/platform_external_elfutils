@@ -1,3 +1,16 @@
+2019-08-12  Mark Wielaard  <mark@klomp.org>
+
+	* gzip.c (open_stream): Return DWFL_E_ERRNO on bad file operation.
+	* open.c (libdw_open_elf): New argument bad_elf_ok. Check it and
+	return DWFL_E_NOERROR in case it is set and error was DWFL_E_BADELF.
+	(__libdw_open_file): Call libdw_open_elf with bad_elf_ok false.
+	(__libdw_open_elf): Call libdw_open_elf with bad_elf_ok true.
+
+2019-08-05  Omar Sandoval  <osandov@fb.com>
+
+	* dwfl_segment_report_module.c (dwfl_segment_report_module): Assign
+	mod->main.fd.
+
 2019-04-28  Mark Wielaard  <mark@klomp.org>
 
 	* frame_unwind.c (expr_eval): Make sure we left shift a unsigned

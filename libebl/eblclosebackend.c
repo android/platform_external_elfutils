@@ -44,10 +44,6 @@ ebl_closebackend (Ebl *ebl)
       /* Run the destructor.  */
       ebl->destr (ebl);
 
-      /* Close the dynamically loaded object.  */
-      if (ebl->dlhandle != NULL)
-	(void) dlclose (ebl->dlhandle);
-
       /* Free the resources.  */
       free (ebl);
     }

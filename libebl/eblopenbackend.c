@@ -41,6 +41,22 @@
 #include <system.h>
 #include <libeblP.h>
 
+const char *i386_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *sh_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *x86_64_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *ia64_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *alpha_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *arm_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *aarch64_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *sparc_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *ppc_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *ppc64_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *s390_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *tilegx_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *m68k_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *bpf_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *riscv_init (Elf *, GElf_Half, Ebl *, size_t);
+const char *csky_init (Elf *, GElf_Half, Ebl *, size_t);
 
 /* This table should contain the complete list of architectures as far
    as the ELF specification is concerned.  */
@@ -48,7 +64,7 @@
    arrays to avoid relocations.  */
 static const struct
 {
-  const char *dsoname;
+  ebl_bhinit_t init;
   const char *emulation;
   const char *prefix;
   int prefix_len;
@@ -57,85 +73,85 @@ static const struct
   int data;
 } machines[] =
 {
-  { "i386", "elf_i386", "i386", 4, EM_386, ELFCLASS32, ELFDATA2LSB },
-  { "ia64", "elf_ia64", "ia64", 4, EM_IA_64, ELFCLASS64, ELFDATA2LSB },
-  { "alpha", "elf_alpha", "alpha", 5, EM_ALPHA, ELFCLASS64, ELFDATA2LSB },
-  { "x86_64", "elf_x86_64", "x86_64", 6, EM_X86_64, ELFCLASS64, ELFDATA2LSB },
-  { "ppc", "elf_ppc", "ppc", 3, EM_PPC, ELFCLASS32, ELFDATA2MSB },
-  { "ppc64", "elf_ppc64", "ppc64", 5, EM_PPC64, ELFCLASS64, ELFDATA2MSB },
-  { "tilegx", "elf_tilegx", "tilegx", 6, EM_TILEGX, ELFCLASS64, ELFDATA2LSB },
+  { i386_init, "elf_i386", "i386", 4, EM_386, ELFCLASS32, ELFDATA2LSB },
+  { ia64_init, "elf_ia64", "ia64", 4, EM_IA_64, ELFCLASS64, ELFDATA2LSB },
+  { alpha_init, "elf_alpha", "alpha", 5, EM_ALPHA, ELFCLASS64, ELFDATA2LSB },
+  { x86_64_init, "elf_x86_64", "x86_64", 6, EM_X86_64, ELFCLASS64, ELFDATA2LSB },
+  { ppc_init, "elf_ppc", "ppc", 3, EM_PPC, ELFCLASS32, ELFDATA2MSB },
+  { ppc64_init, "elf_ppc64", "ppc64", 5, EM_PPC64, ELFCLASS64, ELFDATA2MSB },
+  { tilegx_init, "elf_tilegx", "tilegx", 6, EM_TILEGX, ELFCLASS64, ELFDATA2LSB },
   // XXX class and machine fields need to be filled in for all archs.
-  { "sh", "elf_sh", "sh", 2, EM_SH, 0, 0 },
-  { "arm", "ebl_arm", "arm", 3, EM_ARM, 0, 0 },
-  { "sparc", "elf_sparcv9", "sparc", 5, EM_SPARCV9, 0, 0 },
-  { "sparc", "elf_sparc", "sparc", 5, EM_SPARC, 0, 0 },
-  { "sparc", "elf_sparcv8plus", "sparc", 5, EM_SPARC32PLUS, 0, 0 },
-  { "s390", "ebl_s390", "s390", 4, EM_S390, 0, 0 },
+  { sh_init, "elf_sh", "sh", 2, EM_SH, 0, 0 },
+  { arm_init, "ebl_arm", "arm", 3, EM_ARM, 0, 0 },
+  { sparc_init, "elf_sparcv9", "sparc", 5, EM_SPARCV9, 0, 0 },
+  { sparc_init, "elf_sparc", "sparc", 5, EM_SPARC, 0, 0 },
+  { sparc_init, "elf_sparcv8plus", "sparc", 5, EM_SPARC32PLUS, 0, 0 },
+  { s390_init, "ebl_s390", "s390", 4, EM_S390, 0, 0 },
 
-  { "m32", "elf_m32", "m32", 3, EM_M32, 0, 0 },
-  { "m68k", "elf_m68k", "m68k", 4, EM_68K, ELFCLASS32, ELFDATA2MSB },
-  { "m88k", "elf_m88k", "m88k", 4, EM_88K, 0, 0 },
-  { "i860", "elf_i860", "i860", 4, EM_860, 0, 0 },
-  { "s370", "ebl_s370", "s370", 4, EM_S370, 0, 0 },
-  { "parisc", "elf_parisc", "parisc", 6, EM_PARISC, 0, 0 },
-  { "vpp500", "elf_vpp500", "vpp500", 5, EM_VPP500, 0, 0 },
-  { "sparc", "elf_v8plus", "v8plus", 6, EM_SPARC32PLUS, 0, 0 },
-  { "i960", "elf_i960", "i960", 4, EM_960, 0, 0 },
-  { "v800", "ebl_v800", "v800", 4, EM_V800, 0, 0 },
-  { "fr20", "ebl_fr20", "fr20", 4, EM_FR20, 0, 0 },
-  { "rh32", "ebl_rh32", "rh32", 4, EM_RH32, 0, 0 },
-  { "rce", "ebl_rce", "rce", 3, EM_RCE, 0, 0 },
-  { "tricore", "elf_tricore", "tricore", 7, EM_TRICORE, 0, 0 },
-  { "arc", "elf_arc", "arc", 3, EM_ARC, 0, 0 },
-  { "h8", "elf_h8_300", "h8_300", 6, EM_H8_300, 0, 0 },
-  { "h8", "elf_h8_300h", "h8_300h", 6, EM_H8_300H, 0, 0 },
-  { "h8", "elf_h8s", "h8s", 6, EM_H8S, 0, 0 },
-  { "h8", "elf_h8_500", "h8_500", 6, EM_H8_500, 0, 0 },
-  { "coldfire", "elf_coldfire", "coldfire", 8, EM_COLDFIRE, 0, 0 },
-  { "m68k", "elf_68hc12", "68hc12", 6, EM_68HC12, 0, 0 },
-  { "mma", "elf_mma", "mma", 3, EM_MMA, 0, 0 },
-  { "pcp", "elf_pcp", "pcp", 3, EM_PCP, 0, 0 },
-  { "ncpu", "elf_ncpu", "ncpu", 4, EM_NCPU, 0, 0 },
-  { "ndr1", "elf_ndr1", "ndr1", 4, EM_NDR1, 0, 0 },
-  { "starcore", "elf_starcore", "starcore", 8, EM_STARCORE, 0, 0 },
-  { "me16", "elf_me16", "em16", 4, EM_ME16, 0, 0 },
-  { "st100", "elf_st100", "st100", 5, EM_ST100, 0, 0 },
-  { "tinyj", "elf_tinyj", "tinyj", 5, EM_TINYJ, 0, 0 },
-  { "pdsp", "elf_pdsp", "pdsp", 4, EM_PDSP, 0, 0 },
-  { "fx66", "elf_fx66", "fx66", 4, EM_FX66, 0, 0 },
-  { "st9plus", "elf_st9plus", "st9plus", 7, EM_ST9PLUS, 0, 0 },
-  { "st7", "elf_st7", "st7", 3, EM_ST7, 0, 0 },
-  { "m68k", "elf_68hc16", "68hc16", 6, EM_68HC16, 0, 0 },
-  { "m68k", "elf_68hc11", "68hc11", 6, EM_68HC11, 0, 0 },
-  { "m68k", "elf_68hc08", "68hc08", 6, EM_68HC08, 0, 0 },
-  { "m68k", "elf_68hc05", "68hc05", 6, EM_68HC05, 0, 0 },
-  { "svx", "elf_svx", "svx", 3, EM_SVX, 0, 0 },
-  { "st19", "elf_st19", "st19", 4, EM_ST19, 0, 0 },
-  { "vax", "elf_vax", "vax", 3, EM_VAX, 0, 0 },
-  { "cris", "elf_cris", "cris", 4, EM_CRIS, 0, 0 },
-  { "javelin", "elf_javelin", "javelin", 7, EM_JAVELIN, 0, 0 },
-  { "firepath", "elf_firepath", "firepath", 8, EM_FIREPATH, 0, 0 },
-  { "zsp", "elf_zsp", "zsp", 3, EM_ZSP, 0, 0 },
-  { "mmix", "elf_mmix", "mmix", 4, EM_MMIX, 0, 0 },
-  { "hunay", "elf_huany", "huany", 5, EM_HUANY, 0, 0 },
-  { "prism", "elf_prism", "prism", 5, EM_PRISM, 0, 0 },
-  { "avr", "elf_avr", "avr", 3, EM_AVR, 0, 0 },
-  { "fr30", "elf_fr30", "fr30", 4, EM_FR30, 0, 0 },
-  { "dv10", "elf_dv10", "dv10", 4, EM_D10V, 0, 0 },
-  { "dv30", "elf_dv30", "dv30", 4, EM_D30V, 0, 0 },
-  { "v850", "elf_v850", "v850", 4, EM_V850, 0, 0 },
-  { "m32r", "elf_m32r", "m32r", 4, EM_M32R, 0, 0 },
-  { "mn10300", "elf_mn10300", "mn10300", 7, EM_MN10300, 0, 0 },
-  { "mn10200", "elf_mn10200", "mn10200", 7, EM_MN10200, 0, 0 },
-  { "pj", "elf_pj", "pj", 2, EM_PJ, 0, 0 },
-  { "openrisc", "elf_openrisc", "openrisc", 8, EM_OPENRISC, 0, 0 },
-  { "arc", "elf_arc_a5", "arc_a5", 6, EM_ARC_A5, 0, 0 },
-  { "xtensa", "elf_xtensa", "xtensa", 6, EM_XTENSA, 0, 0 },
-  { "aarch64", "elf_aarch64", "aarch64", 7, EM_AARCH64, ELFCLASS64, 0 },
-  { "bpf", "elf_bpf", "bpf", 3, EM_BPF, 0, 0 },
-  { "riscv", "elf_riscv", "riscv", 5, EM_RISCV, ELFCLASS64, ELFDATA2LSB },
-  { "riscv", "elf_riscv", "riscv", 5, EM_RISCV, ELFCLASS32, ELFDATA2LSB },
-  { "csky", "elf_csky", "csky", 4, EM_CSKY, ELFCLASS32, ELFDATA2LSB },
+  { NULL, "elf_m32", "m32", 3, EM_M32, 0, 0 },
+  { m68k_init, "elf_m68k", "m68k", 4, EM_68K, ELFCLASS32, ELFDATA2MSB },
+  { NULL, "elf_m88k", "m88k", 4, EM_88K, 0, 0 },
+  { NULL, "elf_i860", "i860", 4, EM_860, 0, 0 },
+  { NULL, "ebl_s370", "s370", 4, EM_S370, 0, 0 },
+  { NULL, "elf_parisc", "parisc", 6, EM_PARISC, 0, 0 },
+  { NULL, "elf_vpp500", "vpp500", 5, EM_VPP500, 0, 0 },
+  { sparc_init, "elf_v8plus", "v8plus", 6, EM_SPARC32PLUS, 0, 0 },
+  { NULL, "elf_i960", "i960", 4, EM_960, 0, 0 },
+  { NULL, "ebl_v800", "v800", 4, EM_V800, 0, 0 },
+  { NULL, "ebl_fr20", "fr20", 4, EM_FR20, 0, 0 },
+  { NULL, "ebl_rh32", "rh32", 4, EM_RH32, 0, 0 },
+  { NULL, "ebl_rce", "rce", 3, EM_RCE, 0, 0 },
+  { NULL, "elf_tricore", "tricore", 7, EM_TRICORE, 0, 0 },
+  { NULL, "elf_arc", "arc", 3, EM_ARC, 0, 0 },
+  { NULL, "elf_h8_300", "h8_300", 6, EM_H8_300, 0, 0 },
+  { NULL, "elf_h8_300h", "h8_300h", 6, EM_H8_300H, 0, 0 },
+  { NULL, "elf_h8s", "h8s", 6, EM_H8S, 0, 0 },
+  { NULL, "elf_h8_500", "h8_500", 6, EM_H8_500, 0, 0 },
+  { NULL, "elf_coldfire", "coldfire", 8, EM_COLDFIRE, 0, 0 },
+  { m68k_init, "elf_68hc12", "68hc12", 6, EM_68HC12, 0, 0 },
+  { NULL, "elf_mma", "mma", 3, EM_MMA, 0, 0 },
+  { NULL, "elf_pcp", "pcp", 3, EM_PCP, 0, 0 },
+  { NULL, "elf_ncpu", "ncpu", 4, EM_NCPU, 0, 0 },
+  { NULL, "elf_ndr1", "ndr1", 4, EM_NDR1, 0, 0 },
+  { NULL, "elf_starcore", "starcore", 8, EM_STARCORE, 0, 0 },
+  { NULL, "elf_me16", "em16", 4, EM_ME16, 0, 0 },
+  { NULL, "elf_st100", "st100", 5, EM_ST100, 0, 0 },
+  { NULL, "elf_tinyj", "tinyj", 5, EM_TINYJ, 0, 0 },
+  { NULL, "elf_pdsp", "pdsp", 4, EM_PDSP, 0, 0 },
+  { NULL, "elf_fx66", "fx66", 4, EM_FX66, 0, 0 },
+  { NULL, "elf_st9plus", "st9plus", 7, EM_ST9PLUS, 0, 0 },
+  { NULL, "elf_st7", "st7", 3, EM_ST7, 0, 0 },
+  { m68k_init, "elf_68hc16", "68hc16", 6, EM_68HC16, 0, 0 },
+  { m68k_init, "elf_68hc11", "68hc11", 6, EM_68HC11, 0, 0 },
+  { m68k_init, "elf_68hc08", "68hc08", 6, EM_68HC08, 0, 0 },
+  { m68k_init, "elf_68hc05", "68hc05", 6, EM_68HC05, 0, 0 },
+  { NULL, "elf_svx", "svx", 3, EM_SVX, 0, 0 },
+  { NULL, "elf_st19", "st19", 4, EM_ST19, 0, 0 },
+  { NULL, "elf_vax", "vax", 3, EM_VAX, 0, 0 },
+  { NULL, "elf_cris", "cris", 4, EM_CRIS, 0, 0 },
+  { NULL, "elf_javelin", "javelin", 7, EM_JAVELIN, 0, 0 },
+  { NULL, "elf_firepath", "firepath", 8, EM_FIREPATH, 0, 0 },
+  { NULL, "elf_zsp", "zsp", 3, EM_ZSP, 0, 0 },
+  { NULL, "elf_mmix", "mmix", 4, EM_MMIX, 0, 0 },
+  { NULL, "elf_huany", "huany", 5, EM_HUANY, 0, 0 },
+  { NULL, "elf_prism", "prism", 5, EM_PRISM, 0, 0 },
+  { NULL, "elf_avr", "avr", 3, EM_AVR, 0, 0 },
+  { NULL, "elf_fr30", "fr30", 4, EM_FR30, 0, 0 },
+  { NULL, "elf_dv10", "dv10", 4, EM_D10V, 0, 0 },
+  { NULL, "elf_dv30", "dv30", 4, EM_D30V, 0, 0 },
+  { NULL, "elf_v850", "v850", 4, EM_V850, 0, 0 },
+  { NULL, "elf_m32r", "m32r", 4, EM_M32R, 0, 0 },
+  { NULL, "elf_mn10300", "mn10300", 7, EM_MN10300, 0, 0 },
+  { NULL, "elf_mn10200", "mn10200", 7, EM_MN10200, 0, 0 },
+  { NULL, "elf_pj", "pj", 2, EM_PJ, 0, 0 },
+  { NULL, "elf_openrisc", "openrisc", 8, EM_OPENRISC, 0, 0 },
+  { NULL, "elf_arc_a5", "arc_a5", 6, EM_ARC_A5, 0, 0 },
+  { NULL, "elf_xtensa", "xtensa", 6, EM_XTENSA, 0, 0 },
+  { aarch64_init, "elf_aarch64", "aarch64", 7, EM_AARCH64, ELFCLASS64, 0 },
+  { bpf_init, "elf_bpf", "bpf", 3, EM_BPF, 0, 0 },
+  { riscv_init, "elf_riscv", "riscv", 5, EM_RISCV, ELFCLASS64, ELFDATA2LSB },
+  { riscv_init, "elf_riscv", "riscv", 5, EM_RISCV, ELFCLASS32, ELFDATA2LSB },
+  { csky_init, "elf_csky", "csky", 4, EM_CSKY, ELFCLASS32, ELFDATA2LSB },
 };
 #define nmachines (sizeof (machines) / sizeof (machines[0]))
 
@@ -252,50 +268,6 @@ fill_defaults (Ebl *result)
   result->sysvhash_entrysize = sizeof (Elf32_Word);
 }
 
-static Ebl *
-try_dlopen (const char *dsoname, Elf *elf, GElf_Half machine, size_t cnt,
-	    Ebl *result)
-{
-  void *h = dlopen (dsoname, RTLD_LAZY);
-
-  if (h != NULL)
-    {
-      /* We managed to load the object.  Now see whether the
-	 initialization function likes our file.  */
-      static const char version[] = MODVERSION;
-      const char *modversion;
-      ebl_bhinit_t initp;
-
-      // We use a static number to help the compiler see we don't
-      // overflow the stack with an arbitrary number.
-      assert (machines[cnt].prefix_len <= MAX_PREFIX_LEN);
-      char symname[MAX_PREFIX_LEN + sizeof "_init"];
-
-      strcpy (mempcpy (symname, machines[cnt].prefix,
-		       machines[cnt].prefix_len), "_init");
-
-      initp = (ebl_bhinit_t) dlsym (h, symname);
-      if (initp != NULL
-	  && (modversion = initp (elf, machine, result, sizeof (Ebl)))
-	  && strcmp (version, modversion) == 0)
-	{
-	  /* We found a module to handle our file.  */
-	  result->dlhandle = h;
-	  result->elf = elf;
-
-	  /* A few entries are mandatory.  */
-	  assert (result->destr != NULL);
-
-	  return result;
-	}
-
-      /* Not the module we need.  */
-      (void) dlclose (h);
-    }
-
-  return NULL;
-}
-
 /* Find an appropriate backend for the file associated with ELF.  */
 static Ebl *
 openbackend (Elf *elf, const char *emulation, GElf_Half machine)
@@ -357,46 +329,17 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
 	    result->data = elf->state.elf32.ehdr->e_ident[EI_DATA];
 	  }
 
-#ifndef LIBEBL_SUBDIR
-# define LIBEBL_SUBDIR PACKAGE
-#endif
+        if (machines[cnt].init &&
+            machines[cnt].init (elf, machine, result, sizeof(Ebl)))
+          {
+            result->elf = elf;
+            /* A few entries are mandatory.  */
+            assert (result->destr != NULL);
+            return result;
+          }
 
-/* This works if libebl has been staticly linked into a binary.
-   It might also work for shared libraries when installed in
-   ${prefix}/lib/ or ${prefix}/lib64/, but not for multiarch
-   library installs like ${prefix}/lib/i386-linux-gnu/  */
-#define BINORIGINDIR "$ORIGIN/../$LIB/" LIBEBL_SUBDIR "/"
-
-/* This works if libebl has been linked into a shared library,
-   just look in the subdir.  */
-#define LIBORIGINDIR "$ORIGIN/" LIBEBL_SUBDIR "/"
-
-	/* Give it a try.  At least the machine type matches.  First
-           try to load the module from the (bin) origin path.  */
-	char dsoname[100];
-	strcpy (stpcpy (stpcpy (dsoname, BINORIGINDIR "libebl_"),
-			machines[cnt].dsoname),
-		".so");
-	if (try_dlopen (dsoname, elf, machine, cnt, result) != NULL)
-	  return result;
-
-	/* Retry with the (lib) origin path.  */
-	strcpy (stpcpy (stpcpy (dsoname, LIBORIGINDIR "libebl_"),
-			machines[cnt].dsoname),
-		".so");
-	if (try_dlopen (dsoname, elf, machine, cnt, result) != NULL)
-	  return result;
-
-	/* Try without an explicit path (LD_LIBRARY_PATH or RPATH).  */
-	strcpy (stpcpy (stpcpy (dsoname, "libebl_"),
-			machines[cnt].dsoname),
-		".so");
-	if (try_dlopen (dsoname, elf, machine, cnt, result) != NULL)
-	  return result;
-
-	/* We cannot find a DSO but the emulation/machine ID matches.
+	/* We don't have a backend but the emulation/machine ID matches.
 	   Return that information.  */
-	result->dlhandle = NULL;
 	result->elf = elf;
 	fill_defaults (result);
 
@@ -404,7 +347,6 @@ openbackend (Elf *elf, const char *emulation, GElf_Half machine)
       }
 
   /* Nothing matched.  We use only the default callbacks.   */
-  result->dlhandle = NULL;
   result->elf = elf;
   result->emulation = "<unknown>";
   fill_defaults (result);

@@ -1,3 +1,9 @@
+2019-08-12  Mark Wielaard  <mark@klomp.org>
+
+	* libdwelf.h (dwelf_elf_begin): Update documentation.
+	* dwelf_elf_begin.c (dwelf_elf_begin): Don't suppress ELF_K_NONE.
+	Mark old and new version.
+
 2019-06-28  Mark Wielaard  <mark@klomp.org>
 
 	* Makefile.am (libdwelf_a_SOURCES): Add dwelf_elf_e_machine_string.c.
