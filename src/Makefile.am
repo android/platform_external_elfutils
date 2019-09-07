@@ -26,7 +26,8 @@ AM_CPPFLAGS += -I$(srcdir)/../libelf -I$(srcdir)/../libebl \
 AM_LDFLAGS = -Wl,-rpath-link,../libelf:../libdw
 
 bin_PROGRAMS = readelf nm size strip elflint findtextrel addr2line \
-	       elfcmp objdump ranlib strings ar unstrip stack elfcompress
+	       elfcmp objdump ranlib strings ar unstrip stack elfcompress \
+	       elfclassify
 
 noinst_LIBRARIES = libar.a
 
@@ -40,14 +41,14 @@ CLEANFILES += make-debug-archive
 
 if BUILD_STATIC
 libasm = ../libasm/libasm.a
-libdw = ../libdw/libdw.a -lz $(zip_LIBS) $(libelf) $(libebl) -ldl
+libdw = ../libdw/libdw.a -lz $(zip_LIBS) $(libelf)
 libelf = ../libelf/libelf.a -lz
 else
 libasm = ../libasm/libasm.so
 libdw = ../libdw/libdw.so
 libelf = ../libelf/libelf.so
 endif
-libebl = ../libebl/libebl.a
+libebl = ../libebl/libebl.a ../backends/libebl_backends.a ../libcpu/libcpu.a
 libeu = ../lib/libeu.a
 
 if DEMANGLE
@@ -67,22 +68,23 @@ ranlib_no_Wstack_usage = yes
 ar_no_Wstack_usage = yes
 unstrip_no_Wstack_usage = yes
 
-readelf_LDADD = $(libdw) $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
-nm_LDADD = $(libdw) $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl \
+readelf_LDADD = $(libdw) $(libebl) $(libelf) $(libeu) $(argp_LDADD)
+nm_LDADD = $(libdw) $(libebl) $(libelf) $(libeu) $(argp_LDADD) \
 	   $(demanglelib)
 size_LDADD = $(libelf) $(libeu) $(argp_LDADD)
-strip_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD) -ldl
-elflint_LDADD  = $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
+strip_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD)
+elflint_LDADD  = $(libebl) $(libdw) $(libelf) $(libeu) $(argp_LDADD)
 findtextrel_LDADD = $(libdw) $(libelf) $(libeu) $(argp_LDADD)
 addr2line_LDADD = $(libdw) $(libelf) $(libeu) $(argp_LDADD) $(demanglelib)
-elfcmp_LDADD = $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
-objdump_LDADD  = $(libasm) $(libebl) $(libelf) $(libeu) $(argp_LDADD) -ldl
+elfcmp_LDADD = $(libebl) $(libdw) $(libelf) $(libeu) $(argp_LDADD)
+objdump_LDADD  = $(libasm) $(libebl) $(libdw) $(libelf) $(libeu) $(argp_LDADD)
 ranlib_LDADD = libar.a $(libelf) $(libeu) $(argp_LDADD)
 strings_LDADD = $(libelf) $(libeu) $(argp_LDADD)
 ar_LDADD = libar.a $(libelf) $(libeu) $(argp_LDADD)
-unstrip_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD) -ldl
-stack_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD) -ldl $(demanglelib)
+unstrip_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD)
+stack_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD) $(demanglelib)
 elfcompress_LDADD = $(libebl) $(libelf) $(libdw) $(libeu) $(argp_LDADD)
+elfclassify_LDADD = $(libelf) $(libdw) $(libeu) $(argp_LDADD)
 
 installcheck-binPROGRAMS: $(bin_PROGRAMS)
 	bad=0; pid=$$$$; list="$(bin_PROGRAMS)"; for p in $$list; do \

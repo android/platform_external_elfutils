@@ -1,3 +1,19 @@
+2019-07-05  Omar Sandoval  <osandov@fb.com>
+
+	* Makefile.am (libdw_so_LIBS): Replace libebl.a with libebl_pic.a.
+	Move libebl_pic.a to the beginning so that libdw symbols are resolved.
+	(libdw_so_LDLIBS): Remove -ldl.
+	(libdw.so): Remove -rpath.
+	(libdw_a_LIBADD): Add libebl, libebl_backends, and libcpu objects.
+
+2019-08-25  Jonathon Anderson  <jma14@rice.edu>
+
+	* dwarf_getcfi.c (dwarf_getcfi): Set default_same_value to false.
+
+2019-08-12  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.map (ELFUTILS_0.177): Add new version of dwelf_elf_begin.
+
 2019-06-28  Mark Wielaard  <mark@klomp.org>
 
 	* libdw.map (ELFUTILS_0.177): New section. Add

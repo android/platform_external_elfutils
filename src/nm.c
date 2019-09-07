@@ -1438,6 +1438,7 @@ show_symbols (int fd, Ebl *ebl, GElf_Ehdr *ehdr,
   free (demangle_buffer);
 #endif
   /* Now we know the exact number.  */
+  size_t nentries_orig = nentries;
   nentries = nentries_used;
 
   /* Sort the entries according to the users wishes.  */
@@ -1472,7 +1473,7 @@ show_symbols (int fd, Ebl *ebl, GElf_Ehdr *ehdr,
     }
 
   /* Free all memory.  */
-  if (nentries * sizeof (sym_mem[0]) >= MAX_STACK_ALLOC)
+  if (nentries_orig * sizeof (sym_mem[0]) >= MAX_STACK_ALLOC)
     free (sym_mem);
 
   obstack_free (&whereob, NULL);

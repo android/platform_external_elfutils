@@ -114,7 +114,7 @@ static const struct argp_option options[] =
   { "symbols", 's', "SECTION", OPTION_ARG_OPTIONAL,
     N_("Display the symbol table sections"), 0 },
   { "version-info", 'V', NULL, 0, N_("Display versioning information"), 0 },
-  { "notes", 'n', NULL, 0, N_("Display the ELF notes"), 0 },
+  { "notes", 'n', "SECTION", OPTION_ARG_OPTIONAL, N_("Display the ELF notes"), 0 },
   { "arch-specific", 'A', NULL, 0,
     N_("Display architecture specific information, if any"), 0 },
   { "exception", 'e', NULL, 0,
@@ -189,6 +189,9 @@ static bool print_symbol_table;
 
 /* A specific section name, or NULL to print all symbol tables.  */
 static char *symbol_table_section;
+
+/* A specific section name, or NULL to print all ELF notes.  */
+static char *notes_section;
 
 /* True if the version information should be printed.  */
 static bool print_version_info;
@@ -439,6 +442,7 @@ parse_opt (int key, char *arg,
     case 'n':
       print_notes = true;
       any_control_option = true;
+      notes_section = arg;
       break;
     case 'r':
       print_relocations = true;
@@ -12408,6 +12412,13 @@ handle_notes (Ebl *ebl, GElf_Ehdr *ehdr)
 	    /* Not what we are looking for.  */
 	    continue;
 
+	  if (notes_section != NULL)
+	    {
+	      char *sname = elf_strptr (ebl->elf, shstrndx, shdr->sh_name);
+	      if (sname == NULL || strcmp (sname, notes_section) != 0)
+		continue;
+	    }
+
 	  printf (gettext ("\
 \nNote section [%2zu] '%s' of %" PRIu64 " bytes at offset %#0" PRIx64 ":\n"),
 		  elf_ndxscn (scn),
@@ -12623,6 +12634,7 @@ for_each_section_argument (Elf *elf, const struct section_argument *list,
 	    error (EXIT_FAILURE, 0, gettext ("cannot get section header: %s"),
 		   elf_errmsg (-1));
 	  name = elf_strptr (elf, shstrndx, shdr_mem.sh_name);
+	  (*dump) (scn, &shdr_mem, name);
 	}
       else
 	{

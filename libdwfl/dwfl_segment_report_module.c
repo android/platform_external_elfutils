@@ -967,6 +967,7 @@ dwfl_segment_report_module (Dwfl *dwfl, int ndx, const char *name,
     {
       /* Install the file in the module.  */
       mod->main.elf = elf;
+      mod->main.fd = fd;
       elf = NULL;
       fd = -1;
       mod->main.vaddr = module_start - bias;
