@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d910bed_d6b9fa04",
+        "filename": "METADATA",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2019-09-07T04:30:25Z",
+      "side": 1,
+      "message": "seems like elfutils-0.177 was only 3 weeks ago? is now a good time to try to get back on the proper release train?",
+      "range": {
+        "startLine": 12,
+        "startChar": 12,
+        "endLine": 12,
+        "endChar": 52
+      },
+      "revId": "c2a5b9ccec2cb50135b88600b9945a71323b7b66",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
+    }
+  ]
+}
