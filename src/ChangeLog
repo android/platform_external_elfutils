@@ -1,4 +1,49 @@
-2019-07-13 Mao Han <han_mao@c-sky.com>
+2019-09-28  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* elflint.c (main): When an input file cannot be opened,
+	include its name into the error diagnostics.
+	* readelf.c (main): Likewise.
+
+2019-09-02  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (PRINT_DYNSYM_TABLE): New argp key value.
+	(argp_opt): Add syn-sym.
+	(print_dynsym_table): New static bool.
+	(parse_opt): Handle PRINT_DYNSYM_TABLE.
+	(process_elf_file): Check print_dynsym_table.
+
+2019-08-27  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (for_each_section_argument): Call (*dump) also for
+	section numbers.
+
+2019-08-26  Mark Wielaard  <mark@klomp.org>
+
+	* nm.c (show_symbols): Remember nentries_orig and check before
+	freeing sym_mem.
+
+2019-07-05  Omar Sandoval  <osandov@fb.com>
+
+	* Makefile.am: Remove -ldl.
+	(elflint_LDADD): Add $(libdw).
+	(elfcmp_LDADD): Add $(libdw).
+	(objdump_LDADD): Add $(libdw).
+
+2019-08-26  Mark Wielaard  <mark@klomp.org>
+
+	* readelf (options): Add OPTION_ARG_OPTIONAL "SECTION" for notes.
+	(notes_section): New global variable.
+	(parse_opt): Set notes_section.
+	(handle_notes): Check if notes_section is set.
+
+2019-07-26  Florian Weimer  <fweimer@redhat.com>
+	    Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (bin_PROGRAMS): Add elfclassify.
+	(elfclassify_LDADD): New variable.
+	* elfclassify.c: New tool.
+
+2019-07-13  Mao Han  <han_mao@c-sky.com>
 
 	* elflint.c: Add C-SKY.
 

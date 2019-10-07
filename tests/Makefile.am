@@ -164,7 +164,9 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-typeiter-many.sh run-strip-test-many.sh \
 	run-strip-version.sh run-xlate-note.sh \
 	run-readelf-discr.sh \
-	run-dwelf_elf_e_machine_string.sh
+	run-dwelf_elf_e_machine_string.sh \
+	run-elfclassify.sh run-elfclassify-self.sh \
+	run-disasm-riscv64.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -435,8 +437,10 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-xlate-note.sh \
 	     run-readelf-discr.sh \
 	     testfile-rng.debug.bz2 testfile-urng.debug.bz2 \
-	     run-dwelf_elf_e_machine_string.sh
-
+	     run-dwelf_elf_e_machine_string.sh \
+	     run-elfclassify.sh run-elfclassify-self.sh \
+	     run-disasm-riscv64.sh \
+	     testfile-riscv64-dis1.o.bz2 testfile-riscv64-dis1.expect.bz2
 
 if USE_VALGRIND
 valgrind_cmd='valgrind -q --leak-check=full --error-exitcode=1'
@@ -485,7 +489,7 @@ libasm = -lasm
 libebl = -lebl
 else !STANDALONE
 if BUILD_STATIC
-libdw = ../libdw/libdw.a -lz $(zip_LIBS) $(libelf) $(libebl) -ldl
+libdw = ../libdw/libdw.a -lz $(zip_LIBS) $(libelf) $(libebl)
 libelf = ../libelf/libelf.a -lz
 libasm = ../libasm/libasm.a
 else
@@ -493,7 +497,7 @@ libdw = ../libdw/libdw.so
 libelf = ../libelf/libelf.so
 libasm = ../libasm/libasm.so
 endif
-libebl = ../libebl/libebl.a
+libebl = ../libebl/libebl.a ../backends/libebl_backends.a ../libcpu/libcpu.a
 libeu = ../lib/libeu.a
 endif !STANDALONE
 
@@ -530,27 +534,27 @@ funcretval_LDADD = $(libdw) $(argp_LDADD)
 allregs_LDADD = $(libdw) $(argp_LDADD)
 find_prologues_LDADD = $(libdw) $(argp_LDADD)
 #show_ciefde_LDADD = ../libdwarf/libdwarf.so $(libelf)
-asm_tst1_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst2_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst3_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst4_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst5_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst6_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst7_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst8_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-asm_tst9_LDADD = $(libasm) $(libebl) $(libelf) $(libdw) -ldl
-dwflmodtest_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
+asm_tst1_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst2_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst3_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst4_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst5_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst6_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst7_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst8_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+asm_tst9_LDADD = $(libasm) $(libebl) $(libelf) $(libdw)
+dwflmodtest_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD)
 rdwrmmap_LDADD = $(libelf)
-dwfl_bug_addr_overflow_LDADD = $(libdw) $(libebl) $(libelf) -ldl
+dwfl_bug_addr_overflow_LDADD = $(libdw) $(libebl) $(libelf)
 arls_LDADD = $(libelf)
-dwfl_bug_fd_leak_LDADD = $(libdw) $(libebl) $(libelf) -ldl
-dwfl_bug_report_LDADD = $(libdw) $(libebl) $(libelf) -ldl
-dwfl_bug_getmodules_LDADD = $(libdw) $(libebl) $(libelf) -ldl
-dwfl_addr_sect_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
+dwfl_bug_fd_leak_LDADD = $(libdw) $(libebl) $(libelf)
+dwfl_bug_report_LDADD = $(libdw) $(libebl) $(libelf)
+dwfl_bug_getmodules_LDADD = $(libdw) $(libebl) $(libelf)
+dwfl_addr_sect_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD)
 dwarf_getmacros_LDADD = $(libdw)
 dwarf_ranges_LDADD = $(libdw)
 dwarf_getstring_LDADD = $(libdw)
-addrcfi_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD) -ldl
+addrcfi_LDADD = $(libdw) $(libebl) $(libelf) $(argp_LDADD)
 dwarfcfi_LDADD = $(libdw) $(libelf)
 test_flag_nobits_LDADD = $(libelf)
 rerequest_tag_LDADD = $(libdw)

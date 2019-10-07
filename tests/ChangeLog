@@ -1,3 +1,36 @@
+2019-09-02  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-s.sh: Add --dyn-syms case.
+
+2019-09-07  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (EXTRA_DIST): Add run-disasm-riscv64.sh,
+	testfile-riscv64-dis1.o.bz2 and testfile-riscv64-dis1.expect.bz2.
+
+2019-08-27  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-test2.sh: Add -x num testcase.
+
+2019-08-29  Mark Wielaard  <mark@klomp.org>
+
+	* test-subr.sh (self_test_files_exe): replace elfcmp, objdump and
+	readelf with elfclassify, stack and unstrip.
+	(self_test_files_lib): Replace libdw.so with libasm.so.
+
+2019-07-05  Omar Sandoval  <osandov@fb.com>
+
+	* Makefile.am: Remove -ldl.
+	* tests-subr.sh (self_test_files): Remove libebl_{i386,x86_64}.so.
+
+2019-07-26  Florian Weimer  <fweimer@redhat.com>
+	    Mark Wielaard  <mark@klomp.org>
+
+	* run-elfclassify.sh: New test.
+	* run-elfclassify-self.sh: Likewise.
+	* Makefile.sh (TESTS): Add run-elfclassify.sh and
+	run-elfclassify-self.sh.
+	(EXTRA_DIST): Likewise.
+
 2019-07-16  Mao Han  <han_mao@c-sky.com>
 
 	* hello_csky.ko.bz2: New testfile.

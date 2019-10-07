@@ -105,17 +105,15 @@ endif
 libdw_pic_a_SOURCES =
 am_libdw_pic_a_OBJECTS = $(libdw_a_SOURCES:.c=.os)
 
-libdw_so_LIBS = libdw_pic.a ../libdwelf/libdwelf_pic.a \
-	  ../libdwfl/libdwfl_pic.a ../libebl/libebl.a
+libdw_so_LIBS = ../libebl/libebl_pic.a ../backends/libebl_backends_pic.a \
+		../libcpu/libcpu_pic.a libdw_pic.a ../libdwelf/libdwelf_pic.a \
+		../libdwfl/libdwfl_pic.a
 libdw_so_DEPS = ../lib/libeu.a ../libelf/libelf.so
-libdw_so_LDLIBS = $(libdw_so_DEPS) -ldl -lz $(argp_LDADD) $(zip_LIBS)
+libdw_so_LDLIBS = $(libdw_so_DEPS) -lz $(argp_LDADD) $(zip_LIBS)
 libdw_so_SOURCES =
 libdw.so$(EXEEXT): $(srcdir)/libdw.map $(libdw_so_LIBS) $(libdw_so_DEPS)
-# The rpath is necessary for libebl because its $ORIGIN use will
-# not fly in a setuid executable that links in libdw.
 	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $@ \
-		-Wl,--soname,$@.$(VERSION) \
-		-Wl,--enable-new-dtags,-rpath,$(pkglibdir) \
+		-Wl,--soname,$@.$(VERSION),--enable-new-dtags \
 		-Wl,--version-script,$<,--no-undefined \
 		-Wl,--whole-archive $(libdw_so_LIBS) -Wl,--no-whole-archive \
 		$(libdw_so_LDLIBS)
@@ -139,6 +137,15 @@ libdw_a_LIBADD = $(addprefix ../libdwfl/,$(libdwfl_objects))
 
 libdwelf_objects = $(shell $(AR) t ../libdwelf/libdwelf.a)
 libdw_a_LIBADD += $(addprefix ../libdwelf/,$(libdwelf_objects))
+
+libebl_objects = $(shell $(AR) t ../libebl/libebl.a)
+libdw_a_LIBADD += $(addprefix ../libebl/,$(libebl_objects))
+
+backends_objects = $(shell $(AR) t ../backends/libebl_backends.a)
+libdw_a_LIBADD += $(addprefix ../backends/,$(backends_objects))
+
+libcpu_objects = $(shell $(AR) t ../libcpu/libcpu.a)
+libdw_a_LIBADD += $(addprefix ../libcpu/,$(libcpu_objects))
 
 noinst_HEADERS = libdwP.h memory-access.h dwarf_abbrev_hash.h \
 		 dwarf_sig8_hash.h cfi.h encoded-value.h
