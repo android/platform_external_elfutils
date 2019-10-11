@@ -1,3 +1,19 @@
+Version 0.177
+
+elfclassify: New tool to analyze ELF objects.
+
+readelf: Print DW_AT_data_member_location as decimal offset.
+         Decode DW_AT_discr_list block attributes.
+
+libdw: Add DW_AT_GNU_numerator, DW_AT_GNU_denominator and DW_AT_GNU_bias.
+
+libdwelf: Add dwelf_elf_e_machine_string.
+          dwelf_elf_begin now only returns NULL when there is an error
+          reading or decompressing a file. If the file is not an ELF file
+          an ELF handle of type ELF_K_NONE is returned.
+
+backends: Add support for C-SKY.
+
 Version 0.176
 
 build: Add new --enable-install-elfh option.

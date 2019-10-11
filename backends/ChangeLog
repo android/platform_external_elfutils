@@ -1,3 +1,9 @@
+2019-07-05  Omar Sandoval  <osandov@fb.com>
+
+	* Makefile.am: Replace libcpu_{i386,x86_64,bpf}.a with libcpu.a.
+	Replace libcpu.a with libcpu_pic.a.
+	Combine libebl_CPU.so modules into libebl_backends{,_pic}.a.
+
 2019-07-13 Mao Han <han_mao@c-sky.com>
 
 	* Makefile.am: Add C-SKY.

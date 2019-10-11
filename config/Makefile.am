@@ -38,9 +38,9 @@ if MAINTAINER_MODE
 $(srcdir)/elfutils.spec.in: $(top_srcdir)/NEWS
 	@tmpname=$$(mktemp $${TMPDIR:-/tmp}/elfutils.XXXXXX); \
 	date +'* %a %b %e %Y' | tr '[\n]' '[ ]' > $$tmpname; \
-	getent passwd "$$(whoami)" | \
-	  awk 'BEGIN {FS=":"} { printf $$5; exit 0}' >> $$tmpname; \
-	echo -n " <$$(whoami)@gmail.com> " >> $$tmpname; \
+	username=$$(git config --get user.name); \
+	useremail=$$(git config --get user.email); \
+	echo -n "$$username <$$useremail> " >> $$tmpname; \
 	awk '\
 	  $$1 == "Version" && started { exit } \
 	  $$1 == "Version" { started=1; line=""; sub(/:/,"",$$2); \

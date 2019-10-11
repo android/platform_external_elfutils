@@ -1,3 +1,7 @@
+2019-08-28  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libasm_so_DEPS): Replace libebl.a with libebl_pic.a.
+
 2019-03-06  Mark Wielaard  <mark@klomp.org>
 
 	* asm_end.c (binary_end): Check return value of gelf_update_ehdr.
