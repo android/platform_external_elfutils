@@ -41,13 +41,13 @@ dwelf_elf_begin (int fd)
 {
   Elf *elf = NULL;
   Dwfl_Error e = __libdw_open_elf (fd, &elf);
-  if (elf != NULL && elf_kind (elf) != ELF_K_NONE)
+  if (e == DWFL_E_NOERROR)
     return elf;
 
-  /* Elf wasn't usable.  Make sure there is a proper elf error message.  */
-
-  if (elf != NULL)
-    elf_end (elf);
+  /* Elf wasn't usable.  Make sure there is a proper elf error
+     message.  This is probably not the real error, because there is
+     no good way to propagate errnos or decompression errors, but
+     better than nothing.  */
 
   if (e != DWFL_E_LIBELF)
     {
@@ -60,3 +60,5 @@ dwelf_elf_begin (int fd)
 
   return NULL;
 }
+OLD_VERSION (dwelf_elf_begin, ELFUTILS_0.175)
+NEW_VERSION (dwelf_elf_begin, ELFUTILS_0.177)

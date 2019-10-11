@@ -28,36 +28,37 @@
 ## not, see <http://www.gnu.org/licenses/>.
 ##
 include $(top_srcdir)/config/eu.am
+if BUILD_STATIC
 AM_CFLAGS += $(fpic_CFLAGS)
+endif
 AM_CPPFLAGS += -I$(srcdir)/../libelf -I$(srcdir)/../libdw -I$(srcdir)/../libasm
 VERSION = 1
-LIBEBL_SUBDIR = @LIBEBL_SUBDIR@
 
-lib_LIBRARIES = libebl.a
+noinst_LIBRARIES = libebl.a libebl_pic.a
 
-pkginclude_HEADERS = libebl.h
+libebl_a_SOURCES = eblopenbackend.c eblclosebackend.c eblreloctypename.c \
+		   eblsegmenttypename.c eblsectiontypename.c \
+		   eblmachineflagname.c eblsymboltypename.c \
+		   ebldynamictagname.c eblsectionname.c \
+		   eblsymbolbindingname.c eblbackendname.c eblosabiname.c \
+		   eblmachineflagcheck.c eblmachinesectionflagcheck.c \
+		   eblreloctypecheck.c eblrelocvaliduse.c \
+		   eblrelocsimpletype.c ebldynamictagcheck.c \
+		   eblcorenotetypename.c eblobjnotetypename.c eblcorenote.c \
+		   eblobjnote.c ebldebugscnp.c eblgotpcreloccheck.c \
+		   eblcopyrelocp.c eblsectionstripp.c eblelfclass.c \
+		   eblelfdata.c eblelfmachine.c ebl_check_special_symbol.c \
+		   eblbsspltp.c eblretval.c eblreginfo.c eblnonerelocp.c \
+		   eblrelativerelocp.c eblsysvhashentrysize.c eblauxvinfo.c \
+		   eblcheckobjattr.c ebl_check_special_section.c \
+		   ebl_syscall_abi.c eblabicfi.c eblstother.c eblinitreg.c \
+		   ebldwarftoregno.c eblnormalizepc.c eblunwind.c \
+		   eblresolvesym.c eblcheckreloctargettype.c \
+		   ebl_data_marker_symbol.c
 
-gen_SOURCES = eblopenbackend.c eblclosebackend.c \
-	      eblreloctypename.c eblsegmenttypename.c \
-	      eblsectiontypename.c eblmachineflagname.c \
-	      eblsymboltypename.c ebldynamictagname.c eblsectionname.c \
-	      eblsymbolbindingname.c eblbackendname.c eblosabiname.c \
-	      eblmachineflagcheck.c eblmachinesectionflagcheck.c \
-	      eblreloctypecheck.c eblrelocvaliduse.c eblrelocsimpletype.c \
-	      ebldynamictagcheck.c eblcorenotetypename.c eblobjnotetypename.c \
-	      eblcorenote.c eblobjnote.c ebldebugscnp.c \
-	      eblgotpcreloccheck.c eblcopyrelocp.c eblsectionstripp.c \
-	      eblelfclass.c eblelfdata.c eblelfmachine.c \
-	      ebl_check_special_symbol.c eblbsspltp.c eblretval.c \
-	      eblreginfo.c eblnonerelocp.c eblrelativerelocp.c \
-	      eblsysvhashentrysize.c eblauxvinfo.c eblcheckobjattr.c \
-	      ebl_check_special_section.c ebl_syscall_abi.c eblabicfi.c \
-	      eblstother.c eblinitreg.c ebldwarftoregno.c eblnormalizepc.c \
-	      eblunwind.c eblresolvesym.c eblcheckreloctargettype.c \
-	      ebl_data_marker_symbol.c
+libebl_pic_a_SOURCES =
+am_libebl_pic_a_OBJECTS = $(libebl_a_SOURCES:.c=.os)
 
-libebl_a_SOURCES = $(gen_SOURCES)
+noinst_HEADERS = libebl.h libeblP.h ebl-hooks.h
 
-noinst_HEADERS = libeblP.h ebl-hooks.h
-
-CLEANFILES += $(am_libebl_pic_a_OBJECTS)
+MOSTLYCLEANFILES = $(am_libebl_pic_a_OBJECTS)

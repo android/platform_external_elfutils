@@ -25,4 +25,11 @@ Hex dump of section [6] '.strtab', 1 bytes at offset 0x290:
   0x00000000 00                                  .
 EOF
 
+testrun_compare ${abs_top_builddir}/src/readelf -x 6 testfile28 <<\EOF
+
+Hex dump of section [6] '.strtab', 1 bytes at offset 0x290:
+  0x00000000 00                                  .
+EOF
+
+
 exit 0

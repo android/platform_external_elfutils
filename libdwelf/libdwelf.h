@@ -128,9 +128,12 @@ extern void dwelf_strtab_free (Dwelf_Strtab *st)
 /* Creates a read-only Elf handle from the given file handle.  The
    file may be compressed and/or contain a linux kernel image header,
    in which case it is eagerly decompressed in full and the Elf handle
-   is created as if created with elf_memory ().  On error NULL is
-   returned.  The Elf handle should be closed with elf_end ().  The
-   file handle will not be closed.  Does not return ELF_K_NONE handles.  */
+   is created as if created with elf_memory ().  On decompression or
+   file errors NULL is returned (and elf_errno will be set).  If there
+   was no error, but the file is not an ELF file, then an ELF_K_NONE
+   Elf handle is returned (just like with elf_begin).  The Elf handle
+   should be closed with elf_end ().  The file handle will not be
+   closed.  */
 extern Elf *dwelf_elf_begin (int fd);
 
 /* Returns a human readable string for the given ELF header e_machine

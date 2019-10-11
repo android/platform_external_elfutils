@@ -1,3 +1,27 @@
+2019-08-29  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (%description devel): Remove libebl text.
+	(%install): Don't touch backend lib.*.so* files.
+	(%files): Remove backends dir and so files.
+	(%files devel): Remove libebl.h and libebl.a
+
+2019-08-28  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (License): Add GFDL.
+	(%install): Correct sub-shell syntax, use (), not {}.
+	(%files): Add man1/eu-*.1*.
+	Add eu-stack. Add COPYING-GFDL.
+	(%files libelf-devel): Add man3/elf_*.3*.
+
+2019-08-14  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* elfutils.spec.in (%files): Add %{_bindir}/eu-elfclassify.
+
+2019-08-13  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (elfutils.spec.in): Use git --get user.name and
+	user.email.
+
 2019-04-15  Mark Wielaard  <mark@klomp.org>
 
 	* upload-release.sh: Add git tag --verify.

@@ -4,7 +4,7 @@ Name: elfutils
 Version: @PACKAGE_VERSION@
 Release: 1
 URL: http://elfutils.org/
-License: GPLv3+ and (GPLv2+ or LGPLv3+)
+License: GPLv3+ and (GPLv2+ or LGPLv3+) and GFDL
 Group: Development/Tools
 Source: ftp://sourceware.org/pub/elfutils/%{version}/elfutils-%{version}.tar.bz2
 Obsoletes: libelf libelf-devel
@@ -45,15 +45,14 @@ and machine-specific ELF handling and process introspection.
 %package devel
 Summary: Development libraries to handle compiled objects.
 Group: Development/Tools
-License: GPLv2+ or LGPLv3+
+License: (GPLv2+ or LGPLv3+) and GFDL
 Requires: elfutils = %{version}-%{release}
 Requires: elfutils-libelf-devel = %{version}-%{release}
 
 %description devel
 The elfutils-devel package contains the libraries to create
-applications for handling compiled objects.  libebl provides some
-higher-level ELF access functionality.  libdw provides access to
-the DWARF debugging information.  libasm provides a programmable
+applications for handling compiled objects.  libdw provides access
+to the DWARF debugging information.  libasm provides a programmable
 assembler interface.
 
 %package devel-static
@@ -131,14 +130,13 @@ mkdir -p ${RPM_BUILD_ROOT}%{_prefix}
 %makeinstall
 
 chmod +x ${RPM_BUILD_ROOT}%{_prefix}/%{_lib}/lib*.so*
-chmod +x ${RPM_BUILD_ROOT}%{_prefix}/%{_lib}/elfutils/lib*.so*
 
 # XXX Nuke unpackaged files
-{ cd ${RPM_BUILD_ROOT}
+( cd ${RPM_BUILD_ROOT}
   rm -f .%{_includedir}/elfutils/libasm.h
   rm -f .%{_libdir}/libasm.so
   rm -f .%{_libdir}/libasm.a
-}
+)
 
 install -Dm0644 config/10-default-yama-scope.conf ${RPM_BUILD_ROOT}%{_sysctldir}/10-default-yama-scope.conf
 
@@ -161,14 +159,17 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files
 %defattr(-,root,root)
-%doc COPYING COPYING-GPLV2 COPYING-LGPLV3 README TODO CONTRIBUTING
+%license COPYING COPYING-GPLV2 COPYING-LGPLV3 doc/COPYING-GFDL
+%doc README TODO CONTRIBUTING
 %{_bindir}/eu-elflint
 %{_bindir}/eu-nm
 %{_bindir}/eu-readelf
 %{_bindir}/eu-size
+%{_bindir}/eu-stack
 %{_bindir}/eu-strip
 %{_bindir}/eu-findtextrel
 %{_bindir}/eu-addr2line
+%{_bindir}/eu-elfclassify
 %{_bindir}/eu-elfcmp
 %{_bindir}/eu-ranlib
 %{_bindir}/eu-strings
@@ -181,8 +182,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/libdw-%{version}.so
 %{_libdir}/libasm.so.*
 %{_libdir}/libdw.so.*
-%dir %{_libdir}/elfutils
-%{_libdir}/elfutils/lib*.so
+%{_mandir}/man1/eu-*.1*
 
 %files devel
 %defattr(-,root,root)
@@ -191,12 +191,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_includedir}/elfutils/elf-knowledge.h
 %{_includedir}/elfutils/known-dwarf.h
 #%{_includedir}/elfutils/libasm.h
-%{_includedir}/elfutils/libebl.h
 %{_includedir}/elfutils/libdw.h
 %{_includedir}/elfutils/libdwfl.h
 %{_includedir}/elfutils/libdwelf.h
 %{_includedir}/elfutils/version.h
-%{_libdir}/libebl.a
 #%{_libdir}/libasm.so
 %{_libdir}/libdw.so
 %{_libdir}/pkgconfig/libdw.pc
@@ -219,6 +217,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_includedir}/elfutils/version.h
 %{_libdir}/libelf.so
 %{_libdir}/pkgconfig/libelf.pc
+%{_mandir}/man3/elf_*.3*
 
 %files libelf-devel-static
 %{_libdir}/libelf.a
@@ -227,6 +226,17 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sysctldir}/10-default-yama-scope.conf
 
 %changelog
+* Tue Aug 13 2019 Mark Wielaard <mark@klomp.org> 0.177-1
+- elfclassify: New tool to analyze ELF objects.
+- readelf: Print DW_AT_data_member_location as decimal offset.
+           Decode DW_AT_discr_list block attributes.
+- libdw: Add DW_AT_GNU_numerator, DW_AT_GNU_denominator and DW_AT_GNU_bias.
+- libdwelf: Add dwelf_elf_e_machine_string.
+            dwelf_elf_begin now only returns NULL when there is an error
+            reading or decompressing a file. If the file is not an ELF file
+            an ELF handle of type ELF_K_NONE is returned.
+- backends: Add support for C-SKY.
+
 * Thu Feb 14 2019 Mark Wielaard <mark@klomp.org> 0.176-1
 - build: Add new --enable-install-elfh option.
   Do NOT use this for system installs (it overrides glibc elf.h).
