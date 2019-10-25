@@ -34,6 +34,24 @@
       "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "068d117d_84917313",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1293738
+      },
+      "writtenOn": "2019-10-25T20:32:16Z",
+      "side": 1,
+      "message": "It\u0027s a bit complicated to unwind this, but I think I figured it out.\n\nIn older versions of elfutils, the include directory put various files directly under include/elfutuils, and programs were supposed to \"#include \u003celfutils/libdwfl.h\u003e\". But in newer versions, the directory has been split up into libdw, libdwfl, libelf, etc. So now you\u0027re supposed to just \"#include \u003clibdwfl.h\u003e\"\n\nThe rest of the Android platform only uses libelf headers, not libdw or libdwfl. So the libelf/Android.bp does the job. But igt-gpu-tools hard-codes the \"#include \u003celfutils/libdwfl.h\u003e\". /usr/include/elfutils still seems to be a thing in Debian, too.\n\nSo I think this change is correct. The only other way to do fix it would be to export libdw/libdwfl with additional Android.bp, and then patch igt-gpu-tools to eliminate the elfutils/ prefix.",
+      "parentUuid": "47d1c022_e3496f5a",
+      "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
     }
   ]
 }
