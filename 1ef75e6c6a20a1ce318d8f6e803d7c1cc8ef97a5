@@ -52,6 +52,24 @@
       "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "808c8ab1_2d726916",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1074628
+      },
+      "writtenOn": "2019-10-25T20:53:17Z",
+      "side": 1,
+      "message": "Fun. It almost seems like this should be elfutils_headers vs libelf_headers, since it\u0027s exposing more than just libelf, but that\u0027s just a nit (if we were going that far, this should be a header library instead of a static library with no sources, but that requires changing the users from `static_libs` to `header_libs`).",
+      "parentUuid": "068d117d_84917313",
+      "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
     }
   ]
 }
