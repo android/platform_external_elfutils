@@ -70,6 +70,58 @@
       "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f7248259_66459915",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2019-10-29T19:18:23Z",
+      "side": 1,
+      "message": "looks like the only user of libelf_headers is actually in external/elfutils? so we may as well fix it while we\u0027re here?",
+      "parentUuid": "808c8ab1_2d726916",
+      "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "54f8856a_3646982c",
+        "filename": "libelf/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2019-10-29T19:18:23Z",
+      "side": 1,
+      "message": "(this being the only reference in codesearch.)",
+      "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77ef92b3_4437b190",
+        "filename": "libelf/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2019-10-29T19:18:23Z",
+      "side": 1,
+      "message": "(actually, this line can be deleted since the project was removed.)",
+      "revId": "1ef75e6c6a20a1ce318d8f6e803d7c1cc8ef97a5",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
     }
   ]
 }
