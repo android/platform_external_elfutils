@@ -1,0 +1,7 @@
+Code-Review+2: Elliott Hughes <enh@google.com>
+Presubmit-Verified+1: Treehugger Robot <treehugger-gerrit@google.com>
+Submitted-by: Sean Callanan <spyffe@google.com>
+Submitted-at: Wed, 30 Oct 2019 00:52:48 +0000
+Reviewed-on: https://android-review.googlesource.com/c/platform/external/elfutils/+/965986
+Project: platform/external/elfutils
+Branch: refs/heads/master
