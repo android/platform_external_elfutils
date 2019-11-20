@@ -226,6 +226,18 @@ LDFLAGS="$save_LDFLAGS"])
 AS_IF([test "x$ac_cv_tls" != xyes],
       AC_MSG_ERROR([__thread support required]))
 
+dnl Before 4.9 gcc doesn't ship stdatomic.h, but the nessesary atomics are
+dnl available by (at least) 4.7. So if the system doesn't have a stdatomic.h we
+dnl fall back on one copied from FreeBSD that handles the difference.
+AC_CACHE_CHECK([whether gcc provides stdatomic.h], ac_cv_has_stdatomic,
+  [AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#include <stdatomic.h>]])],
+		     ac_cv_has_stdatomic=yes, ac_cv_has_stdatomic=no)])
+AM_CONDITIONAL(HAVE_STDATOMIC_H, test "x$ac_cv_has_stdatomic" = xyes)
+AS_IF([test "x$ac_cv_has_stdatomic" = xyes], [AC_DEFINE(HAVE_STDATOMIC_H)])
+
+AH_TEMPLATE([HAVE_STDATOMIC_H], [Define to 1 if `stdatomic.h` is provided by the
+                                 system, 0 otherwise.])
+
 dnl This test must come as early as possible after the compiler configuration
 dnl tests, because the choice of the file model can (in principle) affect
 dnl whether functions and headers are available, whether they work, etc.

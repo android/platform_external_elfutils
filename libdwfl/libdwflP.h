@@ -242,8 +242,7 @@ struct Dwfl_Thread
 {
   Dwfl_Process *process;
   pid_t tid;
-  /* The current frame being unwound.  Initially it is the bottom frame.
-     Later the processed frames get freed and this pointer is updated.  */
+  /* Bottom (innermost) frame while we're initializing, NULL afterwards.  */
   Dwfl_Frame *unwound;
   void *callbacks_arg;
 };
