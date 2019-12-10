@@ -9,10 +9,10 @@ third_party {
     type: GIT
     value: "git://sourceware.org/git/elfutils.git"
   }
-  version: "09c9e8091c36eff7f1f4220ac12afe66d0322c59"
+  version: "elfutils-0.178"
   last_upgrade_date {
     year: 2019
-    month: 11
-    day: 6
+    month: 12
+    day: 10
   }
 }

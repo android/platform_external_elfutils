@@ -1,3 +1,7 @@
+2019-11-26  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (BUILD_STATIC): Add libraries needed for libdw.
+
 2019-10-26  Mark Wielaard  <mark@klomp.org>
 
 	* unstrip.c (collect_symbols): Check symbol strings are
