@@ -149,17 +149,6 @@ enum
 
 #include "dwarf_sig8_hash.h"
 
-/* Structure for internal memory handling.  This is basically a simplified
-   reimplementation of obstacks.  Unfortunately the standard obstack
-   implementation is not usable in libraries.  */
-struct libdw_memblock
-{
-  size_t size;
-  size_t remaining;
-  struct libdw_memblock *prev;
-  char mem[0];
-};
-
 /* This is the structure representing the debugging state.  */
 struct Dwarf
 {
@@ -231,11 +220,22 @@ struct Dwarf
   /* Similar for addrx/constx, which will come from .debug_addr section.  */
   struct Dwarf_CU *fake_addr_cu;
 
-  /* Internal memory handling.  Each thread allocates separately and only
-     allocates from its own blocks, while all the blocks are pushed atomically
-     onto a unified stack for easy deallocation.  */
-  pthread_key_t mem_key;
-  atomic_uintptr_t mem_tail;
+  /* Supporting lock for internal memory handling.  Ensures threads that have
+     an entry in the mem_tails array are not disturbed by new threads doing
+     allocations for this Dwarf.  */
+  pthread_rwlock_t mem_rwl;
+
+  /* Internal memory handling.  This is basically a simplified thread-local
+     reimplementation of obstacks.  Unfortunately the standard obstack
+     implementation is not usable in libraries.  */
+  size_t mem_stacks;
+  struct libdw_memblock
+  {
+    size_t size;
+    size_t remaining;
+    struct libdw_memblock *prev;
+    char mem[0];
+  } **mem_tails;
 
   /* Default size of allocated memory blocks.  */
   size_t mem_default_size;
@@ -578,33 +578,43 @@ libdw_valid_user_form (int form)
 extern void __libdw_seterrno (int value) internal_function;
 
 
-/* Memory handling, the easy parts.  This macro does not do nor need to do any
-   locking for proper concurrent operation.  */
+/* Memory handling, the easy parts.  */
 #define libdw_alloc(dbg, type, tsize, cnt) \
-  ({ struct libdw_memblock *_tail = pthread_getspecific (dbg->mem_key);       \
-     size_t _req = (tsize) * (cnt);					      \
-     type *_result;							      \
-     if (unlikely (_tail == NULL))					      \
-       _result = (type *) __libdw_allocate (dbg, _req, __alignof (type));     \
+  ({ struct libdw_memblock *_tail = __libdw_alloc_tail(dbg);		      \
+     size_t _required = (tsize) * (cnt);				      \
+     type *_result = (type *) (_tail->mem + (_tail->size - _tail->remaining));\
+     size_t _padding = ((__alignof (type)				      \
+			 - ((uintptr_t) _result & (__alignof (type) - 1)))    \
+			& (__alignof (type) - 1));			      \
+     if (unlikely (_tail->remaining < _required + _padding))		      \
+       _result = (type *) __libdw_allocate (dbg, _required, __alignof (type));\
      else								      \
        {								      \
-	 _result = (type *) (_tail->mem + (_tail->size - _tail->remaining));  \
-	 size_t _padding = ((__alignof (type)				      \
-			    - ((uintptr_t) _result & (__alignof (type) - 1))) \
-			       & (__alignof (type) - 1));		      \
-	 if (unlikely (_tail->remaining < _req + _padding))		      \
-	   _result = (type *) __libdw_allocate (dbg, _req, __alignof (type)); \
-	 else								      \
-	   {								      \
-	     _req += _padding;						      \
-	     _result = (type *) ((char *) _result + _padding);		      \
-	     _tail->remaining -= _req;					      \
-	   }								      \
+	 _required += _padding;						      \
+	 _result = (type *) ((char *) _result + _padding);		      \
+	 _tail->remaining -= _required;					      \
        }								      \
      _result; })
 
 #define libdw_typed_alloc(dbg, type) \
   libdw_alloc (dbg, type, sizeof (type), 1)
+
+/* Can only be used to undo the last libdw_alloc.  */
+#define libdw_unalloc(dbg, type, tsize, cnt) \
+  ({ struct libdw_memblock *_tail = __libdw_thread_tail (dbg);		      \
+     size_t _required = (tsize) * (cnt);				      \
+     /* We cannot know the padding, it is lost.  */			      \
+     _tail->remaining += _required; })					      \
+
+#define libdw_typed_unalloc(dbg, type) \
+  libdw_unalloc (dbg, type, sizeof (type), 1)
+
+/* Callback to choose a thread-local memory allocation stack.  */
+extern struct libdw_memblock *__libdw_alloc_tail (Dwarf* dbg)
+     __nonnull_attribute__ (1);
+
+extern struct libdw_memblock *__libdw_thread_tail (Dwarf* dbg)
+     __nonnull_attribute__ (1);
 
 /* Callback to allocate more.  */
 extern void *__libdw_allocate (Dwarf *dbg, size_t minsize, size_t align)
