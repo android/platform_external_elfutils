@@ -430,13 +430,14 @@ dwarf_begin_elf (Elf *elf, Dwarf_Cmd cmd, Elf_Scn *scngrp)
      actual allocation.  */
   result->mem_default_size = mem_default_size;
   result->oom_handler = __libdw_oom;
-  if (pthread_key_create (&result->mem_key, NULL) != 0)
+  if (pthread_rwlock_init(&result->mem_rwl, NULL) != 0)
     {
       free (result);
-      __libdw_seterrno (DWARF_E_NOMEM); /* no memory or max pthread keys.  */
+      __libdw_seterrno (DWARF_E_NOMEM); /* no memory.  */
       return NULL;
     }
-  atomic_init (&result->mem_tail, (uintptr_t)NULL);
+  result->mem_stacks = 0;
+  result->mem_tails = NULL;
 
   if (cmd == DWARF_C_READ || cmd == DWARF_C_RDWR)
     {

@@ -100,17 +100,19 @@ dwarf_end (Dwarf *dwarf)
       tdestroy (dwarf->split_tree, noop_free);
 
       /* Free the internally allocated memory.  */
-      struct libdw_memblock *memp;
-      memp = (struct libdw_memblock *) (atomic_load_explicit
-					(&dwarf->mem_tail,
-					 memory_order_relaxed));
-      while (memp != NULL)
-	{
-	  struct libdw_memblock *prevp = memp->prev;
-	  free (memp);
-	  memp = prevp;
-	}
-      pthread_key_delete (dwarf->mem_key);
+      for (size_t i = 0; i < dwarf->mem_stacks; i++)
+        {
+          struct libdw_memblock *memp = dwarf->mem_tails[i];
+          while (memp != NULL)
+	    {
+	      struct libdw_memblock *prevp = memp->prev;
+	      free (memp);
+	      memp = prevp;
+	    }
+        }
+      if (dwarf->mem_tails != NULL)
+        free (dwarf->mem_tails);
+      pthread_rwlock_destroy (&dwarf->mem_rwl);
 
       /* Free the pubnames helper structure.  */
       free (dwarf->pubnames_sets);
