@@ -28,12 +28,11 @@
 ## the GNU Lesser General Public License along with this program.  If
 ## not, see <http://www.gnu.org/licenses/>.
 ##
-EXTRA_DIST = elfutils.spec.in known-dwarf.awk 10-default-yama-scope.conf \
-	     libelf.pc.in libdw.pc.in libdebuginfod.pc.in \
-	     debuginfod.service debuginfod.sysconfig
+EXTRA_DIST = elfutils.spec.in known-dwarf.awk 10-default-yama-scope.conf
+	     libelf.pc.in libdw.pc.in
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libelf.pc libdw.pc libdebuginfod.pc
+pkgconfig_DATA = libelf.pc libdw.pc
 
 if MAINTAINER_MODE
 $(srcdir)/elfutils.spec.in: $(top_srcdir)/NEWS

@@ -38,4 +38,4 @@
 #define next_prime __libdwarf_next_prime
 extern size_t next_prime (size_t) attribute_hidden;
 
-#include <dynamicsizehash_concurrent.c>
+#include <dynamicsizehash.c>

@@ -8,14 +8,14 @@ fi
 
 cd ..
 
-for d in lib libasm libdw libdwfl libebl libelf backends src debuginfod; do
+for d in lib libasm libdw libdwfl libebl libelf backends src; do
   tmp=$d-data
   cd $d
   unused=0
   unused_files=
   for f in *.gcno; do
     base="$(basename $f .gcno)"
-    if [ -f "$base.c" ]; then fc="$base.c"; else fc="$base.cxx"; fi
+    fc="$base.c"
     gcda="$base.gcda"
     if [ -f "$gcda" ]; then
       gcov -n -a "$fc" |
