@@ -17,7 +17,7 @@ dnl  GNU General Public License for more details.
 dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-AC_INIT([elfutils],[0.178],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
+AC_INIT([elfutils],[0.179],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
 
 dnl Workaround for older autoconf < 2.64
 m4_ifndef([AC_PACKAGE_URL],
@@ -197,6 +197,15 @@ if test "$ac_cv_zdefs" = "yes"; then
 	dso_LDFLAGS="$dso_LDFLAGS $ZDEFS_LDFLAGS"
 fi
 
+# We really want build-ids. Warn and force generating them if gcc was
+# configure without --enable-linker-build-id
+AC_CACHE_CHECK([whether the compiler generates build-ids], ac_cv_buildid, [dnl
+AC_LINK_IFELSE([AC_LANG_PROGRAM()],[ac_cv_buildid=yes; readelf -n conftest$EXEEXT | grep -q NT_GNU_BUILD_ID || ac_cv_buildid=no],AC_MSG_FAILURE([unexpected compile failure]))])
+if test "$ac_cv_buildid" = "no"; then
+	AC_MSG_WARN([compiler doesn't generate build-id by default])
+	LDFLAGS="$LDFLAGS -Wl,--build-id"
+fi
+
 ZRELRO_LDFLAGS="-Wl,-z,relro"
 AC_CACHE_CHECK([whether gcc supports $ZRELRO_LDFLAGS], ac_cv_zrelro, [dnl
 save_LDFLAGS="$LDFLAGS"
@@ -264,7 +273,7 @@ case "$CFLAGS" in
     ;;
   *)
     save_CFLAGS="$CFLAGS"
-    CFLAGS="-D_FORTIFY_SOURCE=2 -Werror $CFLAGS"
+    CFLAGS="-D_FORTIFY_SOURCE=2 $CFLAGS -Werror"
     AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
       #include <string.h>
       int main() { return 0; }
@@ -678,18 +687,18 @@ fi
 # both client and server.
 AC_ARG_ENABLE([debuginfod],AC_HELP_STRING([--enable-debuginfod], [Build debuginfod server and client]))
 AC_PROG_CXX
-AX_CXX_COMPILE_STDCXX(11, noext, optional)
 AS_IF([test "x$enable_debuginfod" != "xno"], [
-    AC_MSG_NOTICE([checking debuginfod dependencies, disable to skip])
+    AC_MSG_NOTICE([checking debuginfod C++11 support, --disable-debuginfod to skip])
+    AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
+    AC_MSG_NOTICE([checking debuginfod dependencies, --disable-debuginfod to skip])
     enable_debuginfod=yes # presume success
     PKG_PROG_PKG_CONFIG
-    if test "x$ac_cv_prog_ac_ct_CXX" = "x"; then enable_debuginfod=no; fi
     PKG_CHECK_MODULES([libmicrohttpd],[libmicrohttpd >= 0.9.33],[],[enable_debuginfod=no])
     PKG_CHECK_MODULES([libcurl],[libcurl >= 7.29.0],[],[enable_debuginfod=no])
     PKG_CHECK_MODULES([sqlite3],[sqlite3 >= 3.7.17],[],[enable_debuginfod=no])
     PKG_CHECK_MODULES([libarchive],[libarchive >= 3.1.2],[],[enable_debuginfod=no])
     if test "x$enable_debuginfod" = "xno"; then
-      AC_MSG_ERROR([C++ compiler or dependencies not found, use --disable-debuginfod to disable.])
+      AC_MSG_ERROR([dependencies not found, use --disable-debuginfod to disable.])
     fi
 ])
 

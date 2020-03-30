@@ -1,3 +1,49 @@
+2020-03-30  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.179.
+
+2020-03-25  Frank Ch. Eigler <fche@redhat.com>
+
+	* elfutils.spec.in: *Require: bsdtar instead of dpkg.
+
+2020-03-04  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (package debuginfod): Remove Requires: rpm.
+	Add Requires: dpkg.
+
+2020-01-12  Frank Ch. Eigler  <fche@redhat.com>
+
+	* elfutils.spec.in: Typo fix for "Requires: debuginfod-client".
+
+2020-01-11  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.service: Set PrivateTmp=yes.
+
+2020-01-01  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (pkgconfig_DATA): Conditionalize libdebuginfod.pc
+	on DEBUGINFOD.
+
+2019-12-22  Frank Ch. Eigler  <fche@redhat.com>
+
+	* elfutils.spec.in (debuginfod): Add BuildRequire dpkg
+	for deb testing.  (Available on Fedora & EPEL, not base RHEL.)
+
+2019-12-05  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Add explicit version-release requires for all
+	packages.
+
+2019-11-28  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in (debuginfod): Add an explicit Requires
+	elfutils-debuginfod-client.
+
+2019-11-27  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Move all versioned libdebuginfod libraries
+	from debuginfod-client-devel to debuginfod-client.
+
 2019-11-26  Mark Wielaard  <mark@klomp.org>
 
 	* elfutils.spec.in: Remove Group tags, remove fedora and rhel

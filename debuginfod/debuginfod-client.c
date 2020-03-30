@@ -1,5 +1,5 @@
 /* Retrieve ELF / DWARF / source files from the debuginfod.
-   Copyright (C) 2019 Red Hat, Inc.
+   Copyright (C) 2019-2020 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -40,6 +40,7 @@
 
 #include "config.h"
 #include "debuginfod.h"
+#include "system.h"
 #include <assert.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -49,6 +50,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fts.h>
+#include <regex.h>
 #include <string.h>
 #include <stdbool.h>
 #include <linux/limits.h>
@@ -57,6 +59,7 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/utsname.h>
 #include <curl/curl.h>
 
 /* If fts.h is included before config.h, its indirect inclusions may not
@@ -75,6 +78,20 @@ struct debuginfod_client
 {
   /* Progress/interrupt callback function. */
   debuginfod_progressfn_t progressfn;
+
+  /* Stores user data. */
+  void* user_data;
+
+  /* Stores current/last url, if any. */
+  char* url;
+
+  /* Accumulates outgoing http header names/values. */
+  int user_agent_set_p; /* affects add_default_headers */
+  struct curl_slist *headers;
+
+  /* Flags the default_progressfn having printed something that
+     debuginfod_end needs to terminate. */
+  int default_progressfn_printed_p;
 
   /* Can contain all other context, like cache_path, server_urls,
      timeout or other info gotten from environment variables, the
@@ -96,18 +113,18 @@ static const time_t cache_default_max_unused_age_s = 604800; /* 1 week */
 /* Location of the cache of files downloaded from debuginfods.
    The default parent directory is $HOME, or '/' if $HOME doesn't exist.  */
 static const char *cache_default_name = ".debuginfod_client_cache";
+static const char *cache_xdg_name = "debuginfod_client";
 static const char *cache_path_envvar = DEBUGINFOD_CACHE_PATH_ENV_VAR;
 
-/* URLs of debuginfods, separated by url_delim.
-   This env var must be set for debuginfod-client to run.  */
+/* URLs of debuginfods, separated by url_delim. */
 static const char *server_urls_envvar = DEBUGINFOD_URLS_ENV_VAR;
 static const char *url_delim =  " ";
 static const char url_delim_char = ' ';
 
-/* Timeout for debuginfods, in seconds.
-   This env var must be set for debuginfod-client to run.  */
+/* Timeout for debuginfods, in seconds (to get at least 100K). */
 static const char *server_timeout_envvar = DEBUGINFOD_TIMEOUT_ENV_VAR;
-static int server_timeout = 5;
+static const long default_timeout = 90;
+
 
 /* Data associated with a particular CURL easy handle. Passed to
    the write callback.  */
@@ -121,6 +138,9 @@ struct handle_data
 
   /* This handle.  */
   CURL *handle;
+
+  /* The client object whom we're serving. */
+  debuginfod_client *client;
 
   /* Pointer to handle that should write to fd. Initially points to NULL,
      then points to the first handle that begins writing the target file
@@ -138,7 +158,17 @@ debuginfod_write_callback (char *ptr, size_t size, size_t nmemb, void *data)
 
   /* Indicate to other handles that they can abort their transfer.  */
   if (*d->target_handle == NULL)
-    *d->target_handle = d->handle;
+    {
+      *d->target_handle = d->handle;
+      /* update the client object */
+      const char *url = NULL;
+      (void) curl_easy_getinfo (d->handle, CURLINFO_EFFECTIVE_URL, &url);
+      if (url)
+        {
+          free (d->client->url);
+          d->client->url = strdup(url); /* ok if fails */
+        }
+    }
 
   /* If this handle isn't the target handle, abort transfer.  */
   if (*d->target_handle != d->handle)
@@ -240,10 +270,19 @@ debuginfod_clean_cache(debuginfod_client *c,
   if (fts == NULL)
     return -errno;
 
+  regex_t re;
+  const char * pattern = ".*/[a-f0-9]+/(debuginfo|executable|source.*)$";
+  if (regcomp (&re, pattern, REG_EXTENDED | REG_NOSUB) != 0)
+    return -ENOMEM;
+
   FTSENT *f;
   long files = 0;
   while ((f = fts_read(fts)) != NULL)
     {
+      /* ignore any files that do not match the pattern.  */
+      if (regexec (&re, f->fts_path, 0, NULL, 0) != 0)
+        continue;
+
       files++;
       if (c->progressfn) /* inform/check progress callback */
         if ((c->progressfn) (c, files, 0))
@@ -267,7 +306,8 @@ debuginfod_clean_cache(debuginfod_client *c,
           ;
         }
     }
-  fts_close(fts);
+  fts_close (fts);
+  regfree (&re);
 
   /* Update timestamp representing when the cache was last cleaned.  */
   utime (interval_path, NULL);
@@ -276,6 +316,136 @@ debuginfod_clean_cache(debuginfod_client *c,
 
 
 #define MAX_BUILD_ID_BYTES 64
+
+
+static void
+add_default_headers(debuginfod_client *client)
+{
+  if (client->user_agent_set_p)
+    return;
+
+  /* Compute a User-Agent: string to send.  The more accurately this
+     describes this host, the likelier that the debuginfod servers
+     might be able to locate debuginfo for us. */
+
+  char* utspart = NULL;
+  struct utsname uts;
+  int rc = 0;
+  rc = uname (&uts);
+  if (rc == 0)
+    rc = asprintf(& utspart, "%s/%s", uts.sysname, uts.machine);
+  if (rc < 0)
+    utspart = NULL;
+
+  FILE *f = fopen ("/etc/os-release", "r");
+  if (f == NULL)
+    f = fopen ("/usr/lib/os-release", "r");
+  char *id = NULL;
+  char *version = NULL;
+  if (f != NULL)
+    {
+      while (id == NULL || version == NULL)
+        {
+          char buf[128];
+          char *s = &buf[0];
+          if (fgets (s, sizeof(buf), f) == NULL)
+            break;
+
+          int len = strlen (s);
+          if (len < 3)
+            continue;
+          if (s[len - 1] == '\n')
+            {
+              s[len - 1] = '\0';
+              len--;
+            }
+
+          char *v = strchr (s, '=');
+          if (v == NULL || strlen (v) < 2)
+            continue;
+
+          /* Split var and value. */
+          *v = '\0';
+          v++;
+
+          /* Remove optional quotes around value string. */
+          if (*v == '"' || *v == '\'')
+            {
+              v++;
+              s[len - 1] = '\0';
+            }
+          if (strcmp (s, "ID") == 0)
+            id = strdup (v);
+          if (strcmp (s, "VERSION_ID") == 0)
+            version = strdup (v);
+        }
+      fclose (f);
+    }
+
+  char *ua = NULL;
+  rc = asprintf(& ua, "User-Agent: %s/%s,%s,%s/%s",
+                PACKAGE_NAME, PACKAGE_VERSION,
+                utspart ?: "",
+                id ?: "",
+                version ?: "");
+  if (rc < 0)
+    ua = NULL;
+
+  if (ua)
+    (void) debuginfod_add_http_header (client, ua);
+
+  free (ua);
+  free (id);
+  free (version);
+  free (utspart);
+}
+
+
+#define xalloc_str(p, fmt, args...)        \
+  do                                       \
+    {                                      \
+      if (asprintf (&p, fmt, args) < 0)    \
+        {                                  \
+          p = NULL;                        \
+          rc = -ENOMEM;                    \
+          goto out;                        \
+        }                                  \
+    } while (0)
+
+
+/* Offer a basic form of progress tracing */
+static int
+default_progressfn (debuginfod_client *c, long a, long b)
+{
+  const char* url = debuginfod_get_url (c);
+  int len = 0;
+
+  /* We prefer to print the host part of the URL to keep the
+     message short. */
+  if (url != NULL)
+    {
+      const char* buildid = strstr(url, "buildid/");
+      if (buildid != NULL)
+        len = (buildid - url);
+      else
+        len = strlen(url);
+    }
+
+  if (b == 0 || url==NULL) /* early stage */
+    dprintf(STDERR_FILENO,
+            "\rDownloading %c", "-/|\\"[a % 4]);
+  else if (b < 0) /* download in progress but unknown total length */
+    dprintf(STDERR_FILENO,
+            "\rDownloading from %.*s %ld",
+            len, url, a);
+  else /* download in progress, and known total length */
+    dprintf(STDERR_FILENO,
+            "\rDownloading from %.*s %ld/%ld",
+            len, url, a, b);
+  c->default_progressfn_printed_p = 1;
+
+  return 0;
+}
 
 
 /* Query each of the server URLs found in $DEBUGINFOD_URLS for the file
@@ -291,16 +461,32 @@ debuginfod_query_server (debuginfod_client *c,
                          const char *filename,
                          char **path)
 {
-  char *urls_envvar;
   char *server_urls;
-  char cache_path[PATH_MAX];
-  char maxage_path[PATH_MAX*3]; /* These *3 multipliers are to shut up gcc -Wformat-truncation */
-  char interval_path[PATH_MAX*4];
-  char target_cache_dir[PATH_MAX*2];
-  char target_cache_path[PATH_MAX*4];
-  char target_cache_tmppath[PATH_MAX*5];
-  char suffix[PATH_MAX*2];
+  char *urls_envvar;
+  char *cache_path = NULL;
+  char *maxage_path = NULL;
+  char *interval_path = NULL;
+  char *target_cache_dir = NULL;
+  char *target_cache_path = NULL;
+  char *target_cache_tmppath = NULL;
+  char suffix[PATH_MAX];
   char build_id_bytes[MAX_BUILD_ID_BYTES * 2 + 1];
+  int rc;
+
+  /* Clear the obsolete URL from a previous _find operation. */
+  free (c->url);
+  c->url = NULL;
+
+  add_default_headers(c);
+
+  /* Is there any server we can query?  If not, don't do any work,
+     just return with ENOSYS.  Don't even access the cache.  */
+  urls_envvar = getenv(server_urls_envvar);
+  if (urls_envvar == NULL || urls_envvar[0] == '\0')
+    {
+      rc = -ENOSYS;
+      goto out;
+    }
 
   /* Copy lowercase hex representation of build_id into buf.  */
   if ((build_id_len >= MAX_BUILD_ID_BYTES) ||
@@ -349,31 +535,75 @@ debuginfod_query_server (debuginfod_client *c,
   /* set paths needed to perform the query
 
      example format
-     cache_path:        $HOME/.debuginfod_cache
-     target_cache_dir:  $HOME/.debuginfod_cache/0123abcd
-     target_cache_path: $HOME/.debuginfod_cache/0123abcd/debuginfo
-     target_cache_path: $HOME/.debuginfod_cache/0123abcd/source#PATH#TO#SOURCE ?
+     cache_path:        $HOME/.cache
+     target_cache_dir:  $HOME/.cache/0123abcd
+     target_cache_path: $HOME/.cache/0123abcd/debuginfo
+     target_cache_path: $HOME/.cache/0123abcd/source#PATH#TO#SOURCE ?
+
+     $XDG_CACHE_HOME takes priority over $HOME/.cache.
+     $DEBUGINFOD_CACHE_PATH takes priority over $HOME/.cache and $XDG_CACHE_HOME.
   */
 
-  if (getenv(cache_path_envvar))
-    strcpy(cache_path, getenv(cache_path_envvar));
+  /* Determine location of the cache. The path specified by the debuginfod
+     cache environment variable takes priority.  */
+  char *cache_var = getenv(cache_path_envvar);
+  if (cache_var != NULL && strlen (cache_var) > 0)
+    xalloc_str (cache_path, "%s", cache_var);
   else
     {
-      if (getenv("HOME"))
-        sprintf(cache_path, "%s/%s", getenv("HOME"), cache_default_name);
-      else
-        sprintf(cache_path, "/%s", cache_default_name);
+      /* If a cache already exists in $HOME ('/' if $HOME isn't set), then use
+         that. Otherwise use the XDG cache directory naming format.  */
+      xalloc_str (cache_path, "%s/%s", getenv ("HOME") ?: "/", cache_default_name);
+
+      struct stat st;
+      if (stat (cache_path, &st) < 0)
+        {
+          char cachedir[PATH_MAX];
+          char *xdg = getenv ("XDG_CACHE_HOME");
+
+          if (xdg != NULL && strlen (xdg) > 0)
+            snprintf (cachedir, PATH_MAX, "%s", xdg);
+          else
+            snprintf (cachedir, PATH_MAX, "%s/.cache", getenv ("HOME") ?: "/");
+
+          /* Create XDG cache directory if it doesn't exist.  */
+          if (stat (cachedir, &st) == 0)
+            {
+              if (! S_ISDIR (st.st_mode))
+                {
+                  rc = -EEXIST;
+                  goto out;
+                }
+            }
+          else
+            {
+              rc = mkdir (cachedir, 0700);
+
+              /* Also check for EEXIST and S_ISDIR in case another client just
+                 happened to create the cache.  */
+              if (rc < 0
+                  && (errno != EEXIST
+                      || stat (cachedir, &st) != 0
+                      || ! S_ISDIR (st.st_mode)))
+                {
+                  rc = -errno;
+                  goto out;
+                }
+            }
+
+          free (cache_path);
+          xalloc_str (cache_path, "%s/%s", cachedir, cache_xdg_name);
+        }
     }
 
-  /* avoid using snprintf here due to compiler warning.  */
-  snprintf(target_cache_dir, sizeof(target_cache_dir), "%s/%s", cache_path, build_id_bytes);
-  snprintf(target_cache_path, sizeof(target_cache_path), "%s/%s%s", target_cache_dir, type, suffix);
-  snprintf(target_cache_tmppath, sizeof(target_cache_tmppath), "%s.XXXXXX", target_cache_path);
+  xalloc_str (target_cache_dir, "%s/%s", cache_path, build_id_bytes);
+  xalloc_str (target_cache_path, "%s/%s%s", target_cache_dir, type, suffix);
+  xalloc_str (target_cache_tmppath, "%s.XXXXXX", target_cache_path);
 
   /* XXX combine these */
-  snprintf(interval_path, sizeof(interval_path), "%s/%s", cache_path, cache_clean_interval_filename);
-  snprintf(maxage_path, sizeof(maxage_path), "%s/%s", cache_path, cache_max_unused_age_filename);
-  int rc = debuginfod_init_cache(cache_path, interval_path, maxage_path);
+  xalloc_str (interval_path, "%s/%s", cache_path, cache_clean_interval_filename);
+  xalloc_str (maxage_path, "%s/%s", cache_path, cache_max_unused_age_filename);
+  rc = debuginfod_init_cache(cache_path, interval_path, maxage_path);
   if (rc != 0)
     goto out;
   rc = debuginfod_clean_cache(c, cache_path, interval_path, maxage_path);
@@ -387,19 +617,14 @@ debuginfod_query_server (debuginfod_client *c,
       /* Success!!!! */
       if (path != NULL)
         *path = strdup(target_cache_path);
-      return fd;
-    }
-
-
-  urls_envvar = getenv(server_urls_envvar);
-  if (urls_envvar == NULL || urls_envvar[0] == '\0')
-    {
-      rc = -ENOSYS;
+      rc = fd;
       goto out;
     }
 
-  if (getenv(server_timeout_envvar))
-    server_timeout = atoi (getenv(server_timeout_envvar));
+  long timeout = default_timeout;
+  const char* timeout_envvar = getenv(server_timeout_envvar);
+  if (timeout_envvar != NULL)
+    timeout = atoi (timeout_envvar);
 
   /* make a copy of the envvar so it can be safely modified.  */
   server_urls = strdup(urls_envvar);
@@ -464,6 +689,7 @@ debuginfod_query_server (debuginfod_client *c,
       data[i].fd = fd;
       data[i].target_handle = &target_handle;
       data[i].handle = curl_easy_init();
+      data[i].client = c;
 
       if (data[i].handle == NULL)
         {
@@ -491,14 +717,28 @@ debuginfod_query_server (debuginfod_client *c,
                        CURLOPT_WRITEFUNCTION,
                        debuginfod_write_callback);
       curl_easy_setopt(data[i].handle, CURLOPT_WRITEDATA, (void*)&data[i]);
-      curl_easy_setopt(data[i].handle, CURLOPT_TIMEOUT, (long) server_timeout);
+      if (timeout > 0)
+	{
+	  /* Make sure there is at least some progress,
+	     try to get at least 100K per timeout seconds.  */
+	  curl_easy_setopt (data[i].handle, CURLOPT_LOW_SPEED_TIME,
+			    timeout);
+	  curl_easy_setopt (data[i].handle, CURLOPT_LOW_SPEED_LIMIT,
+			    100 * 1024L);
+	}
       curl_easy_setopt(data[i].handle, CURLOPT_FILETIME, (long) 1);
       curl_easy_setopt(data[i].handle, CURLOPT_FOLLOWLOCATION, (long) 1);
       curl_easy_setopt(data[i].handle, CURLOPT_FAILONERROR, (long) 1);
       curl_easy_setopt(data[i].handle, CURLOPT_NOSIGNAL, (long) 1);
+#if LIBCURL_VERSION_NUM >= 0x072a00 /* 7.42.0 */
+      curl_easy_setopt(data[i].handle, CURLOPT_PATH_AS_IS, (long) 1);
+#else
+      /* On old curl; no big deal, canonicalization here is almost the
+         same, except perhaps for ? # type decorations at the tail. */
+#endif
       curl_easy_setopt(data[i].handle, CURLOPT_AUTOREFERER, (long) 1);
       curl_easy_setopt(data[i].handle, CURLOPT_ACCEPT_ENCODING, "");
-      curl_easy_setopt(data[i].handle, CURLOPT_USERAGENT, (void*) PACKAGE_STRING);
+      curl_easy_setopt(data[i].handle, CURLOPT_HTTPHEADER, c->headers);
 
       curl_multi_add_handle(curlm, data[i].handle);
       server_url = strtok_r(NULL, url_delim, &strtok_saveptr);
@@ -509,15 +749,35 @@ debuginfod_query_server (debuginfod_client *c,
   long loops = 0;
   do
     {
-      CURLMcode curl_res;
+      /* Wait 1 second, the minimum DEBUGINFOD_TIMEOUT.  */
+      curl_multi_wait(curlm, NULL, 0, 1000, NULL);
+
+      /* If the target file has been found, abort the other queries.  */
+      if (target_handle != NULL)
+        for (int i = 0; i < num_urls; i++)
+          if (data[i].handle != target_handle)
+            curl_multi_remove_handle(curlm, data[i].handle);
+
+      CURLMcode curlm_res = curl_multi_perform(curlm, &still_running);
+      if (curlm_res != CURLM_OK)
+        {
+          switch (curlm_res)
+            {
+            case CURLM_CALL_MULTI_PERFORM: continue;
+            case CURLM_OUT_OF_MEMORY: rc = -ENOMEM; break;
+            default: rc = -ENETUNREACH; break;
+            }
+          goto out1;
+        }
 
       if (c->progressfn) /* inform/check progress callback */
         {
           loops ++;
           long pa = loops; /* default params for progress callback */
-          long pb = 0;
+          long pb = 0; /* transfer_timeout tempting, but loops != elapsed-time */
           if (target_handle) /* we've committed to a server; report its download progress */
             {
+              CURLcode curl_res;
 #ifdef CURLINFO_SIZE_DOWNLOAD_T
               curl_off_t dl;
               curl_res = curl_easy_getinfo(target_handle,
@@ -534,6 +794,8 @@ debuginfod_query_server (debuginfod_client *c,
                 pa = (dl > LONG_MAX ? LONG_MAX : (long)dl);
 #endif
 
+              /* NB: If going through deflate-compressing proxies, this
+                 number is likely to be unavailable, so -1 may show. */
 #ifdef CURLINFO_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
               curl_off_t cl;
               curl_res = curl_easy_getinfo(target_handle,
@@ -553,27 +815,6 @@ debuginfod_query_server (debuginfod_client *c,
 
           if ((*c->progressfn) (c, pa, pb))
             break;
-        }
-
-      /* Wait 1 second, the minimum DEBUGINFOD_TIMEOUT.  */
-      curl_multi_wait(curlm, NULL, 0, 1000, NULL);
-
-      /* If the target file has been found, abort the other queries.  */
-      if (target_handle != NULL)
-        for (int i = 0; i < num_urls; i++)
-          if (data[i].handle != target_handle)
-            curl_multi_remove_handle(curlm, data[i].handle);
-
-      curl_res = curl_multi_perform(curlm, &still_running);
-      if (curl_res != CURLM_OK)
-        {
-          switch (curl_res)
-            {
-            case CURLM_CALL_MULTI_PERFORM: continue;
-            case CURLM_OUT_OF_MEMORY: rc = -ENOMEM; break;
-            default: rc = -ENETUNREACH; break;
-            }
-          goto out1;
         }
     } while (still_running);
 
@@ -610,20 +851,34 @@ debuginfod_query_server (debuginfod_client *c,
           else
             {
               /* Query completed without an error. Confirm that the
-                 response code is 200 and set verified_handle.  */
-              long resp_code = 500;
-              CURLcode curl_res;
+                 response code is 200 when using HTTP/HTTPS and 0 when
+                 using file:// and set verified_handle.  */
 
-              curl_res = curl_easy_getinfo(target_handle,
-                                           CURLINFO_RESPONSE_CODE,
-                                           &resp_code);
-
-              if (curl_res == CURLE_OK
-                  && resp_code == 200
-                  && msg->easy_handle != NULL)
+              if (msg->easy_handle != NULL)
                 {
-                  verified_handle = msg->easy_handle;
-                  break;
+                  char *effective_url = NULL;
+                  long resp_code = 500;
+                  CURLcode ok1 = curl_easy_getinfo (target_handle,
+						    CURLINFO_EFFECTIVE_URL,
+						    &effective_url);
+                  CURLcode ok2 = curl_easy_getinfo (target_handle,
+						    CURLINFO_RESPONSE_CODE,
+						    &resp_code);
+                  if(ok1 == CURLE_OK && ok2 == CURLE_OK && effective_url)
+                    {
+                      if (strncmp (effective_url, "http", 4) == 0)
+                        if (resp_code == 200)
+                          {
+                            verified_handle = msg->easy_handle;
+                            break;
+                          }
+                      if (strncmp (effective_url, "file", 4) == 0)
+                        if (resp_code == 0)
+                          {
+                            verified_handle = msg->easy_handle;
+                            break;
+                          }
+                    }
                 }
             }
         }
@@ -659,12 +914,14 @@ debuginfod_query_server (debuginfod_client *c,
   curl_multi_cleanup (curlm);
   free (data);
   free (server_urls);
+
   /* don't close fd - we're returning it */
   /* don't unlink the tmppath; it's already been renamed. */
   if (path != NULL)
    *path = strdup(target_cache_path);
 
-  return fd;
+  rc = fd;
+  goto out;
 
 /* error exits */
  out1:
@@ -673,16 +930,32 @@ debuginfod_query_server (debuginfod_client *c,
 
   curl_multi_cleanup(curlm);
   unlink (target_cache_tmppath);
+  close (fd); /* before the rmdir, otherwise it'll fail */
   (void) rmdir (target_cache_dir); /* nop if not empty */
   free(data);
-  close (fd);
 
  out0:
   free (server_urls);
 
+/* general purpose exit */
  out:
+  /* Conclude the last \r status line */
+  /* Another possibility is to use the ANSI CSI n K EL "Erase in Line"
+     code.  That way, the previously printed messages would be erased,
+     and without a newline. */
+  if (c->default_progressfn_printed_p)
+    dprintf(STDERR_FILENO, "\n");
+
+  free (cache_path);
+  free (maxage_path);
+  free (interval_path);
+  free (target_cache_dir);
+  free (target_cache_path);
+  free (target_cache_tmppath);
   return rc;
 }
+
+
 
 /* See debuginfod.h  */
 debuginfod_client  *
@@ -690,15 +963,42 @@ debuginfod_begin (void)
 {
   debuginfod_client *client;
   size_t size = sizeof (struct debuginfod_client);
-  client = (debuginfod_client *) malloc (size);
+  client = (debuginfod_client *) calloc (1, size);
   if (client != NULL)
-    client->progressfn = NULL;
+    {
+      if (getenv(DEBUGINFOD_PROGRESS_ENV_VAR))
+	client->progressfn = default_progressfn;
+    }
   return client;
+}
+
+void
+debuginfod_set_user_data(debuginfod_client *client,
+                         void *data)
+{
+  client->user_data = data;
+}
+
+void *
+debuginfod_get_user_data(debuginfod_client *client)
+{
+  return client->user_data;
+}
+
+const char *
+debuginfod_get_url(debuginfod_client *client)
+{
+  return client->url;
 }
 
 void
 debuginfod_end (debuginfod_client *client)
 {
+  if (client == NULL)
+    return;
+
+  curl_slist_free_all (client->headers);
+  free (client->url);
   free (client);
 }
 
@@ -729,6 +1029,33 @@ int debuginfod_find_source(debuginfod_client *client,
 {
   return debuginfod_query_server(client, build_id, build_id_len,
                                  "source", filename, path);
+}
+
+
+/* Add an outgoing HTTP header.  */
+int debuginfod_add_http_header (debuginfod_client *client, const char* header)
+{
+  /* Sanity check header value is of the form Header: Value.
+     It should contain exactly one colon that isn't the first or
+     last character.  */
+  char *colon = strchr (header, ':');
+  if (colon == NULL
+      || colon == header
+      || *(colon + 1) == '\0'
+      || strchr (colon + 1, ':') != NULL)
+    return -EINVAL;
+
+  struct curl_slist *temp = curl_slist_append (client->headers, header);
+  if (temp == NULL)
+    return -ENOMEM;
+
+  /* Track if User-Agent: is being set.  If so, signal not to add the
+     default one. */
+  if (strncmp (header, "User-Agent:", 11) == 0)
+    client->user_agent_set_p = 1;
+
+  client->headers = temp;
+  return 0;
 }
 
 
