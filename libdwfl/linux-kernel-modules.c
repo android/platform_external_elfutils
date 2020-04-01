@@ -174,9 +174,12 @@ kernel_release (void)
 static int
 find_kernel_elf (Dwfl *dwfl, const char *release, char **fname)
 {
-  if ((release[0] == '/'
-       ? asprintf (fname, "%s/vmlinux", release)
-       : asprintf (fname, "/boot/vmlinux-%s", release)) < 0)
+  /* First try to find an uncompressed vmlinux image.  Possibly
+     including debuginfo.  */
+  if (release == NULL
+      || ((release[0] == '/'
+	   ? asprintf (fname, "%s/vmlinux", release)
+	   : asprintf (fname, "/boot/vmlinux-%s", release)) < 0))
     return -1;
 
   int fd = try_kernel_name (dwfl, fname, true);
@@ -186,6 +189,27 @@ find_kernel_elf (Dwfl *dwfl, const char *release, char **fname)
       if (asprintf (fname, MODULEDIRFMT "/vmlinux", release) < 0)
 	return -1;
       fd = try_kernel_name (dwfl, fname, true);
+    }
+
+  /* There might be a compressed vmlinuz image.  Probably without
+     debuginfo, but try to find it under the debug path also, just in
+     case.  */
+  if (fd < 0)
+    {
+      free (*fname);
+      if ((release[0] == '/'
+           ? asprintf (fname, "%s/vmlinuz", release)
+           : asprintf (fname, "/boot/vmlinuz-%s", release)) < 0)
+        return -1;
+
+      fd = try_kernel_name (dwfl, fname, true);
+      if (fd < 0 && release[0] != '/')
+	{
+	  free (*fname);
+	  if (asprintf (fname, MODULEDIRFMT "/vmlinuz", release) < 0)
+	    return -1;
+	  fd = try_kernel_name (dwfl, fname, true);
+	}
     }
 
   return fd;
@@ -217,6 +241,9 @@ report_kernel (Dwfl *dwfl, const char **release,
   int result = get_release (dwfl, release);
   if (unlikely (result != 0))
     return result;
+
+  if (release == NULL || *release == NULL)
+    return EINVAL;
 
   char *fname;
   int fd = find_kernel_elf (dwfl, *release, &fname);
@@ -272,6 +299,9 @@ report_kernel_archive (Dwfl *dwfl, const char **release,
   int result = get_release (dwfl, release);
   if (unlikely (result != 0))
     return result;
+
+  if (release == NULL || *release == NULL)
+    return EINVAL;
 
   char *archive;
   int res = (((*release)[0] == '/')
