@@ -1,16 +1,16 @@
 # -*- rpm-spec-*-
-Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
 Name: elfutils
 Version: @PACKAGE_VERSION@
 Release: 1
 URL: http://elfutils.org/
 License: GPLv3+ and (GPLv2+ or LGPLv3+) and GFDL
 Source: ftp://sourceware.org/pub/elfutils/%{version}/elfutils-%{version}.tar.bz2
+Summary: A collection of utilities and DSOs to handle ELF files and DWARF data
 
 Requires: elfutils-libelf = %{version}-%{release}
 Requires: elfutils-libs = %{version}-%{release}
 # Can be a Recommends if rpm supports that
-Requires: elfutils-debuginfod-client
+Requires: elfutils-debuginfod-client = %{version}-%{release}
 
 BuildRequires: gcc
 # For libstdc++ demangle support
@@ -35,6 +35,7 @@ BuildRequires: pkgconfig(libarchive) >= 3.1.2
 BuildRequires: bzip2
 # For the run-debuginfod-find.sh test case in %check for /usr/sbin/ss
 BuildRequires: iproute
+BuildRequires: bsdtar
 BuildRequires: curl
 
 %define _gnu %{nil}
@@ -54,7 +55,7 @@ License: GPLv2+ or LGPLv3+
 Requires: elfutils-libelf = %{version}-%{release}
 Requires: default-yama-scope
 # Can be a Recommends if rpm supports that
-Requires: elfutils-debuginfod-client
+Requires: elfutils-debuginfod-client = %{version}-%{release}
 
 %description libs
 The elfutils-libs package contains libraries which implement DWARF, ELF,
@@ -68,11 +69,8 @@ Summary: Development libraries to handle compiled objects
 License: GPLv2+ or LGPLv3+
 Requires: elfutils-libs = %{version}-%{release}
 Requires: elfutils-libelf-devel = %{version}-%{release}
-%if 0%{?rhel} >= 8 || 0%{?fedora} >= 20
-Recommends: elfutils-debuginfod-client-devel
-%else
-Requires: elfutils-debuginfod-client-devel
-%endif
+# Can be a Recommends if rpm supports that
+Requires: elfutils-debuginfod-client-devel = %{version}-%{release}
 
 %description devel
 The elfutils-devel package contains the libraries to create
@@ -87,8 +85,8 @@ Requires: elfutils-devel = %{version}-%{release}
 Requires: elfutils-libelf-devel-static = %{version}-%{release}
 
 %description devel-static
-The elfutils-devel-static archive contains the static archives
-with the code the handle compiled objects.
+The elfutils-devel-static package contains the static archives
+with the code to handle compiled objects.
 
 %package libelf
 Summary: Library to read and write ELF files
@@ -144,17 +142,21 @@ License: GPLv3+ and (GPLv2+ or LGPLv3+)
 %package debuginfod-client-devel
 Summary: Libraries and headers to build debuginfod client applications
 License: GPLv2+ or LGPLv3+
+Requires: elfutils-debuginfod-client = %{version}-%{release}
 
 %package debuginfod
 Summary: HTTP ELF/DWARF file server addressed by build-id
 License: GPLv3+
+Requires: elfutils-libs = %{version}-%{release}
+Requires: elfutils-libelf = %{version}-%{release}
+Requires: elfutils-debuginfod-client = %{version}-%{release}
 BuildRequires: systemd
 Requires(post):   systemd
 Requires(preun):  systemd
 Requires(postun): systemd
 Requires(pre): shadow-utils
-# For /usr/bin/cpio2rpm
-Requires: rpm
+# To extract .deb files with a bsdtar (= libarchive) subshell
+Requires: bsdtar
 
 %description debuginfod-client
 The elfutils-debuginfod-client package contains shared libraries
@@ -289,6 +291,7 @@ fi
 %files debuginfod-client
 %defattr(-,root,root)
 %{_libdir}/libdebuginfod-%{version}.so
+%{_libdir}/libdebuginfod.so.*
 %{_bindir}/debuginfod-find
 %{_mandir}/man1/debuginfod-find.1*
 
@@ -297,7 +300,7 @@ fi
 %{_libdir}/pkgconfig/libdebuginfod.pc
 %{_mandir}/man3/debuginfod_*.3*
 %{_includedir}/elfutils/debuginfod.h
-%{_libdir}/libdebuginfod.so*
+%{_libdir}/libdebuginfod.so
 
 %files debuginfod
 %defattr(-,root,root)
@@ -324,6 +327,31 @@ exit 0
 %systemd_postun_with_restart debuginfod.service
 
 %changelog
+* Mon Mar 30 2020 Mark Wielaard <mark@klomp.org> 0.179-1
+- debuginfod-client: When DEBUGINFOD_PROGRESS is set and the program
+  doesn't install its own debuginfod_progressfn_t show download
+  progress on stderr.
+  DEBUGINFOD_TIMEOUT is now defined as seconds to get at least 100K,
+  defaults to 90 seconds.
+  Default to $XDG_CACHE_HOME/debuginfod_client.
+  New functions debuginfod_set_user_data, debuginfod_get_user_data,
+  debuginfod_get_url and debuginfod_add_http_header.
+  Support for file:// URLs.
+- debuginfod: Uses libarchive directly for reading rpm archives.
+  Support for indexing .deb/.ddeb archives through dpkg-deb or bsdtar.
+  Generic archive support through -Z EXT[=CMD]. Which can be used for
+  example for arch-linux pacman files by using -Z '.tar.zst=zstdcat'.
+  Better logging using User-Agent and X-Forwarded-For headers.
+  More prometheus metrics.
+  Support for eliding dots or extraneous slashes in path names.
+- debuginfod-find: Accept /path/names in place of buildid hex.
+- libelf: Handle PN_XNUM in elf_getphdrnum before shdr 0 is cached.
+  Ensure zlib resource cleanup on failure.
+- libdwfl: dwfl_linux_kernel_find_elf and dwfl_linux_kernel_report_offline
+  now find and handle a compressed vmlinuz image.
+- readelf, elflint: Handle PT_GNU_PROPERTY.
+- translations: Updated Ukrainian translation.
+
 * Tue Nov 26 2019 Mark Wielaard <mark@klomp.org> 0.178-1
 - debuginfod: New server, client tool and library to index and fetch
               ELF/DWARF files addressed by build-id through HTTP.
