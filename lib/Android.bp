@@ -1,0 +1,7 @@
+cc_library_host_static {
+    name: "libeu",
+    defaults: ["elfutils_defaults"],
+    srcs: ["*.c"],
+    exclude_srcs: ["dynamicsizehash*.c"],
+}
+

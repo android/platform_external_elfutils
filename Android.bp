@@ -17,6 +17,8 @@ cc_defaults {
     cflags: [
         "-DHAVE_CONFIG_H",
         "-D_GNU_SOURCE",
+        // upper bound for the number of lines of the resulting mnemonic files
+        "-DNMNES=1000",
         "-std=gnu99",
         "-Werror",
         // to suppress the "pointer of type ‘void *’ used in arithmetic" warning
@@ -27,6 +29,11 @@ cc_defaults {
          "elfutils_headers",
     ],
     export_header_lib_headers: ["elfutils_headers"],
+
+    visibility: [
+        "//external/dwarves:__subpackages__",
+        "//external/elfutils:__subpackages__",
+    ],
 }
 
 cc_library {
@@ -78,5 +85,53 @@ cc_library_headers {
         },
     },
     visibility: [":__subpackages__"],
+}
+
+cc_library_host_static {
+    name: "libdw",
+    defaults: ["elfutils_defaults"],
+    srcs: [
+        "backends/*.c",
+        "libcpu/*_disasm.c",
+        "libdw/*.c",
+        "libdwelf/*.c",
+        "libdwfl/*.c",
+        "libebl/*.c",
+    ],
+    generated_headers: [
+        "i386_dis",
+        "i386_mnemonics",
+        "x86_64_dis",
+        "x86_64_mnemonics",
+    ],
+    exclude_srcs: [
+        // Do not enabled compression support
+        "libdwfl/bzip2.c",
+        "libdwfl/lzma.c",
+        // Those headers are incompatible with clang due to nested function
+        // definitions.
+        "libdwfl/dwfl_segment_report_module.c",
+        "libdwfl/elf-from-memory.c",
+        "libdwfl/link_map.c",
+        // Those are common source files actually used as headers and not
+        // compiled standalone.
+        "backends/common-reloc.c",
+        "backends/linux-core-note.c",
+        "backends/x86_corenote.c",
+    ],
+    local_include_dirs: [
+        "libcpu",
+        "libasm",
+        "libdwelf",
+        "libdwfl",
+        "libebl",
+    ],
+    export_include_dirs: [
+        "libdw",
+    ],
+    static_libs: [
+        "libelf"
+    ],
+    compile_multilib: "64",
 }
 
