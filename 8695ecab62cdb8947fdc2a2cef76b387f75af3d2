@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "32a623d0_22c0f0a8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2020-06-23T15:10:13Z",
+      "side": 1,
+      "message": "thanks! that was going to be my one comment :-)",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 40
+      },
+      "revId": "8695ecab62cdb8947fdc2a2cef76b387f75af3d2",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "46aa69e4_e0cda2c5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2020-06-23T15:10:13Z",
+      "side": 1,
+      "message": "as you\u0027ve seen, we hadn\u0027t regenerated the config.h and version.h files --- can you add a comment to the Android.bp file explaining how to regenerate everything that needs to be regenerated?\n\nnote that we do _have_ those tools available for the build, so if it\u0027s simple enough to do with genrules (or the built-in lex/yacc support), that would definitely be worth doing. this library sees fairly frequent updates.",
+      "range": {
+        "startLine": 21,
+        "startChar": 57,
+        "endLine": 22,
+        "endChar": 44
+      },
+      "revId": "8695ecab62cdb8947fdc2a2cef76b387f75af3d2",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
+    }
+  ]
+}
