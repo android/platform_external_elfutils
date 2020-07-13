@@ -17,7 +17,7 @@ dnl  GNU General Public License for more details.
 dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-AC_INIT([elfutils],[0.179],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
+AC_INIT([elfutils],[0.180],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
 
 dnl Workaround for older autoconf < 2.64
 m4_ifndef([AC_PACKAGE_URL],
@@ -41,7 +41,7 @@ fi
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_FILES([config/Makefile])
 
-AC_COPYRIGHT([Copyright (C) 1996-2018 The elfutils developers.])
+AC_COPYRIGHT([Copyright (C) 1996-2020 The elfutils developers.])
 AC_PREREQ(2.63)			dnl Minimum Autoconf version required.
 
 dnl We use GNU make extensions; automake 1.10 defaults to -Wportability.
@@ -626,12 +626,6 @@ esac
 
 # Round up to the next release API (x.y) version.
 eu_version=$(( (eu_version + 999) / 1000 ))
-
-dnl Unique ID for this build.
-MODVERSION="Build for ${eu_version} ${ac_cv_build}"
-AC_SUBST([MODVERSION])
-AC_DEFINE_UNQUOTED(MODVERSION, "$MODVERSION")
-AH_TEMPLATE([MODVERSION], [Identifier for modules in the build.])
 
 AC_CHECK_SIZEOF(long)
 

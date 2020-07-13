@@ -37,16 +37,11 @@
 /* This defines the common reloc hooks based on csky_reloc.def.  */
 #include "common-reloc.c"
 
-const char *
+Ebl *
 csky_init (Elf *elf __attribute__ ((unused)),
 	   GElf_Half machine __attribute__ ((unused)),
-	   Ebl *eh,
-	   size_t ehlen)
+	   Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   csky_init_reloc (eh);
   HOOK (eh, abi_cfi);
@@ -61,5 +56,5 @@ csky_init (Elf *elf __attribute__ ((unused)),
   /* gcc/config/ #define DWARF_FRAME_REGISTERS.  */
   eh->frame_nregs = 38;
 
-  return MODVERSION;
+  return eh;
 }

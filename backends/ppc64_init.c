@@ -41,16 +41,11 @@
 #include "common-reloc.c"
 
 
-const char *
+Ebl *
 ppc64_init (Elf *elf __attribute__ ((unused)),
 	    GElf_Half machine __attribute__ ((unused)),
-	    Ebl *eh,
-	    size_t ehlen)
+	    Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   ppc64_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
@@ -107,5 +102,5 @@ ppc64_init (Elf *elf __attribute__ ((unused)),
 	}
     }
 
-  return MODVERSION;
+  return eh;
 }

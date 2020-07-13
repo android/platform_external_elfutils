@@ -37,16 +37,11 @@
 #include "common-reloc.c"
 
 
-const char *
+Ebl *
 m68k_init (Elf *elf __attribute__ ((unused)),
 	   GElf_Half machine __attribute__ ((unused)),
-	   Ebl *eh,
-	   size_t ehlen)
+	   Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   m68k_init_reloc (eh);
   HOOK (eh, gotpc_reloc_check);
@@ -59,5 +54,5 @@ m68k_init (Elf *elf __attribute__ ((unused)),
   eh->frame_nregs = 25;
   HOOK (eh, set_initial_registers_tid);
 
-  return MODVERSION;
+  return eh;
 }
