@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b74412e1_6a2ea79f",
+        "filename": "Android.bp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2020-07-14T15:31:31Z",
+      "side": 1,
+      "message": "(fwiw, the build folks say not to bother with copyright headers in .bp files.)",
+      "revId": "f2679899689d56ac1b5d217825ba8357e37f7ddf",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
+    }
+  ]
+}
