@@ -80,8 +80,10 @@ struct ebl
 };
 
 
-/* Type of the initialization functions in the backend modules.  */
-typedef const char *(*ebl_bhinit_t) (Elf *, GElf_Half, Ebl *, size_t);
+/* Type of the initialization functions in the backend modules.
+   The init function returns the given Ebl * or NULL if it couldn't
+   initialize for the given Elf or machine.  */
+typedef Ebl *(*ebl_bhinit_t) (Elf *, GElf_Half, Ebl *);
 
 
 /* gettext helper macros.  */

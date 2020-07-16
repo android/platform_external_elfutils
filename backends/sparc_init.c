@@ -44,16 +44,11 @@
 
 extern __typeof (EBLHOOK (core_note)) sparc64_core_note attribute_hidden;
 
-const char *
+Ebl *
 sparc_init (Elf *elf __attribute__ ((unused)),
 	    GElf_Half machine __attribute__ ((unused)),
-	    Ebl *eh,
-	    size_t ehlen)
+	    Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   sparc_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
@@ -79,5 +74,5 @@ sparc_init (Elf *elf __attribute__ ((unused)),
   eh->ra_offset = 8;
   HOOK (eh, set_initial_registers_tid);
 
-  return MODVERSION;
+  return eh;
 }

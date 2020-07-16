@@ -1,3 +1,7 @@
+2020-06-11  Mark Wielaaard  <mark@klomp.org>
+
+	* printversion.c (print_version): Update copyright year.
+
 2019-08-25  Srđan Milaković  <sm108@rice.edu>
 
 	* dynamicsizehash_concurrent.{c,h}: New files.

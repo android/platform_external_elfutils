@@ -1,3 +1,17 @@
+Version 0.180
+
+elflint: Allow SHF_EXCLUDE as generic section flag when --gnu is given.
+
+libdw, readelf: Handle GCC LTO .gnu.debuglto_ prefix.
+
+libdw: Use correct CU to resolve file names in dwarf_decl_file.
+
+libdwfl: Handle debugaltlink in dwfl_standard_find_debuginfo.
+
+size: Also obey radix printing for bsd format.
+
+nm: Explicitly print weak 'V' or 'T' and common 'C' symbols.
+
 Version 0.179
 
 debuginfod-client: When DEBUGINFOD_PROGRESS is set and the program doesn't
