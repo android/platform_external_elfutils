@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: elfutils VERSION\n"
 "Report-Msgid-Bugs-To: https://sourceware.org/bugzilla/\n"
-"POT-Creation-Date: 2020-03-30 12:56+0200\n"
+"POT-Creation-Date: 2020-06-11 15:50+0200\n"
 "PO-Revision-Date: 2009-06-29 15:15+0200\n"
 "Last-Translator: Michael Münch <micm@fedoraproject.org>\n"
 "Language-Team: German\n"
@@ -55,7 +55,7 @@ msgstr ""
 "auch nicht für Marktgängigkeit oder Eignung für einen Bestimmten Zweck.\n"
 
 #: lib/xmalloc.c:52 lib/xmalloc.c:65 lib/xmalloc.c:77 src/readelf.c:3449
-#: src/readelf.c:11398 src/unstrip.c:2393 src/unstrip.c:2599
+#: src/readelf.c:11403 src/unstrip.c:2393 src/unstrip.c:2599
 #, c-format
 msgid "memory exhausted"
 msgstr "Kein Speicher mehr verfügbar"
@@ -533,7 +533,7 @@ msgstr "Kein Backend"
 #: libebl/eblcorenotetypename.c:100 libebl/eblobjnotetypename.c:77
 #: libebl/eblobjnotetypename.c:109 libebl/eblobjnotetypename.c:130
 #: libebl/eblosabiname.c:73 libebl/eblsectionname.c:83
-#: libebl/eblsectiontypename.c:115 libebl/eblsegmenttypename.c:85
+#: libebl/eblsectiontypename.c:115 libebl/eblsegmenttypename.c:81
 msgid "<unknown>"
 msgstr "<Unbekannt>"
 
@@ -1673,7 +1673,7 @@ msgstr ""
 
 #: src/elflint.c:610 src/elflint.c:1498 src/elflint.c:1549 src/elflint.c:1655
 #: src/elflint.c:1991 src/elflint.c:2317 src/elflint.c:2936 src/elflint.c:3099
-#: src/elflint.c:3247 src/elflint.c:3437 src/elflint.c:4435
+#: src/elflint.c:3247 src/elflint.c:3437 src/elflint.c:4440
 #, c-format
 msgid "section [%2d] '%s': cannot get section data\n"
 msgstr ""
@@ -2861,370 +2861,375 @@ msgstr ""
 msgid "section [%2zu] '%s' has unsupported type %d\n"
 msgstr ""
 
-#: src/elflint.c:3926
+#: src/elflint.c:3931
 #, c-format
 msgid ""
 "section [%2zu] '%s' contains invalid processor-specific flag(s) %#<PRIx64>\n"
 msgstr ""
 
-#: src/elflint.c:3933
+#: src/elflint.c:3938
 #, c-format
 msgid "section [%2zu] '%s' contains unknown flag(s) %#<PRIx64>\n"
 msgstr ""
 
-#: src/elflint.c:3941
+#: src/elflint.c:3946
 #, c-format
 msgid "section [%2zu] '%s': thread-local data sections address not zero\n"
 msgstr ""
 
-#: src/elflint.c:3951
+#: src/elflint.c:3956
 #, fuzzy, c-format
 msgid "section [%2zu] '%s': allocated section cannot be compressed\n"
 msgstr "konnte Abschnittsdaten nicht holen: %s"
 
-#: src/elflint.c:3956
+#: src/elflint.c:3961
 #, fuzzy, c-format
 msgid "section [%2zu] '%s': nobits section cannot be compressed\n"
 msgstr "konnte Abschnittsdaten nicht holen: %s"
 
-#: src/elflint.c:3962
+#: src/elflint.c:3967
 #, c-format
 msgid ""
 "section [%2zu] '%s': compressed section with no compression header: %s\n"
 msgstr ""
 
-#: src/elflint.c:3968
+#: src/elflint.c:3973
 #, c-format
 msgid "section [%2zu] '%s': invalid section reference in link value\n"
 msgstr ""
 
-#: src/elflint.c:3973
+#: src/elflint.c:3978
 #, c-format
 msgid "section [%2zu] '%s': invalid section reference in info value\n"
 msgstr ""
 
-#: src/elflint.c:3980
+#: src/elflint.c:3985
 #, c-format
 msgid "section [%2zu] '%s': strings flag set without merge flag\n"
 msgstr ""
 
-#: src/elflint.c:3985
+#: src/elflint.c:3990
 #, c-format
 msgid "section [%2zu] '%s': merge flag set but entry size is zero\n"
 msgstr ""
 
-#: src/elflint.c:4004
+#: src/elflint.c:4009
 #, c-format
 msgid "section [%2zu] '%s' has unexpected type %d for an executable section\n"
 msgstr ""
 
-#: src/elflint.c:4013
+#: src/elflint.c:4018
 #, c-format
 msgid "section [%2zu] '%s' must be of type NOBITS in debuginfo files\n"
 msgstr ""
 
-#: src/elflint.c:4020
+#: src/elflint.c:4025
 #, c-format
 msgid "section [%2zu] '%s' is both executable and writable\n"
 msgstr ""
 
-#: src/elflint.c:4051
+#: src/elflint.c:4056
 #, c-format
 msgid ""
 "section [%2zu] '%s' not fully contained in segment of program header entry "
 "%d\n"
 msgstr ""
 
-#: src/elflint.c:4061
+#: src/elflint.c:4066
 #, c-format
 msgid ""
 "section [%2zu] '%s' has type NOBITS but is read from the file in segment of "
 "program header entry %d\n"
 msgstr ""
 
-#: src/elflint.c:4087
+#: src/elflint.c:4092
 #, c-format
 msgid ""
 "section [%2zu] '%s' has type NOBITS but is read from the file in segment of "
 "program header entry %d and file contents is non-zero\n"
 msgstr ""
 
-#: src/elflint.c:4098
+#: src/elflint.c:4103
 #, c-format
 msgid ""
 "section [%2zu] '%s' has not type NOBITS but is not read from the file in "
 "segment of program header entry %d\n"
 msgstr ""
 
-#: src/elflint.c:4109
+#: src/elflint.c:4114
 #, c-format
 msgid "section [%2zu] '%s' is executable in nonexecutable segment %d\n"
 msgstr ""
 
-#: src/elflint.c:4119
+#: src/elflint.c:4124
 #, c-format
 msgid "section [%2zu] '%s' is writable in unwritable segment %d\n"
 msgstr ""
 
-#: src/elflint.c:4129
+#: src/elflint.c:4134
 #, c-format
 msgid ""
 "section [%2zu] '%s': alloc flag set but section not in any loaded segment\n"
 msgstr ""
 
-#: src/elflint.c:4135
+#: src/elflint.c:4140
 #, c-format
 msgid ""
 "section [%2zu] '%s': ELF header says this is the section header string table "
 "but type is not SHT_TYPE\n"
 msgstr ""
 
-#: src/elflint.c:4143
+#: src/elflint.c:4148
 #, c-format
 msgid ""
 "section [%2zu] '%s': relocatable files cannot have dynamic symbol tables\n"
 msgstr ""
 
-#: src/elflint.c:4194
+#: src/elflint.c:4199
 #, c-format
 msgid "more than one version symbol table present\n"
 msgstr ""
 
-#: src/elflint.c:4217
+#: src/elflint.c:4222
 #, c-format
 msgid "INTERP program header entry but no .interp section\n"
 msgstr ""
 
-#: src/elflint.c:4228
+#: src/elflint.c:4233
 #, c-format
 msgid ""
 "loadable segment [%u] is executable but contains no executable sections\n"
 msgstr ""
 
-#: src/elflint.c:4234
+#: src/elflint.c:4239
 #, c-format
 msgid "loadable segment [%u] is writable but contains no writable sections\n"
 msgstr ""
 
-#: src/elflint.c:4245
+#: src/elflint.c:4250
 #, c-format
 msgid ""
 "no .gnu.versym section present but .gnu.versym_d or .gnu.versym_r section "
 "exist\n"
 msgstr ""
 
-#: src/elflint.c:4258
+#: src/elflint.c:4263
 #, c-format
 msgid "duplicate version index %d\n"
 msgstr ""
 
-#: src/elflint.c:4272
+#: src/elflint.c:4277
 #, c-format
 msgid ".gnu.versym section present without .gnu.versym_d or .gnu.versym_r\n"
 msgstr ""
 
-#: src/elflint.c:4321
+#: src/elflint.c:4326
 #, c-format
 msgid "phdr[%d]: unknown core file note type %<PRIu32> at offset %<PRIu64>\n"
 msgstr ""
 
-#: src/elflint.c:4325
+#: src/elflint.c:4330
 #, c-format
 msgid ""
 "section [%2d] '%s': unknown core file note type %<PRIu32> at offset %zu\n"
 msgstr ""
 
-#: src/elflint.c:4374
+#: src/elflint.c:4379
 #, c-format
 msgid ""
 "phdr[%d]: unknown object file note type %<PRIu32> with owner name '%s' at "
 "offset %zu\n"
 msgstr ""
 
-#: src/elflint.c:4379
+#: src/elflint.c:4384
 #, c-format
 msgid ""
 "section [%2d] '%s': unknown object file note type %<PRIu32> with owner name "
 "'%s' at offset %zu\n"
 msgstr ""
 
-#: src/elflint.c:4398
+#: src/elflint.c:4403
 #, c-format
 msgid "phdr[%d]: no note entries defined for the type of file\n"
 msgstr ""
 
-#: src/elflint.c:4418
+#: src/elflint.c:4423
 #, c-format
 msgid "phdr[%d]: cannot get content of note section: %s\n"
 msgstr ""
 
-#: src/elflint.c:4421
+#: src/elflint.c:4426
 #, c-format
 msgid "phdr[%d]: extra %<PRIu64> bytes after last note\n"
 msgstr ""
 
-#: src/elflint.c:4442
+#: src/elflint.c:4447
 #, c-format
 msgid "section [%2d] '%s': no note entries defined for the type of file\n"
 msgstr ""
 
-#: src/elflint.c:4449
+#: src/elflint.c:4454
 #, c-format
 msgid "section [%2d] '%s': cannot get content of note section\n"
 msgstr ""
 
-#: src/elflint.c:4452
+#: src/elflint.c:4457
 #, c-format
 msgid "section [%2d] '%s': extra %<PRIu64> bytes after last note\n"
 msgstr ""
 
-#: src/elflint.c:4470
+#: src/elflint.c:4475
 #, c-format
 msgid ""
 "only executables, shared objects, and core files can have program headers\n"
 msgstr ""
 
-#: src/elflint.c:4485
+#: src/elflint.c:4490
 #, c-format
 msgid "cannot get program header entry %d: %s\n"
 msgstr ""
 
-#: src/elflint.c:4499
+#: src/elflint.c:4500
 #, c-format
 msgid "program header entry %d: unknown program header entry type %#<PRIx64>\n"
 msgstr ""
 
-#: src/elflint.c:4510
+#: src/elflint.c:4511
 #, c-format
 msgid "more than one INTERP entry in program header\n"
 msgstr ""
 
-#: src/elflint.c:4518
+#: src/elflint.c:4519
 #, c-format
 msgid "more than one TLS entry in program header\n"
 msgstr ""
 
-#: src/elflint.c:4525
+#: src/elflint.c:4526
 #, c-format
 msgid "static executable cannot have dynamic sections\n"
 msgstr ""
 
-#: src/elflint.c:4539
+#: src/elflint.c:4540
 #, c-format
 msgid "dynamic section reference in program header has wrong offset\n"
 msgstr ""
 
-#: src/elflint.c:4542
+#: src/elflint.c:4543
 #, c-format
 msgid "dynamic section size mismatch in program and section header\n"
 msgstr ""
 
-#: src/elflint.c:4552
+#: src/elflint.c:4553
 #, c-format
 msgid "more than one GNU_RELRO entry in program header\n"
 msgstr ""
 
-#: src/elflint.c:4573
+#: src/elflint.c:4574
 #, c-format
 msgid "loadable segment GNU_RELRO applies to is not writable\n"
 msgstr ""
 
-#: src/elflint.c:4584
+#: src/elflint.c:4585
 #, c-format
 msgid "loadable segment [%u] flags do not match GNU_RELRO [%u] flags\n"
 msgstr ""
 
-#: src/elflint.c:4591
+#: src/elflint.c:4592
 #, c-format
 msgid ""
 "GNU_RELRO [%u] flags are not a subset of the loadable segment [%u] flags\n"
 msgstr ""
 
-#: src/elflint.c:4600 src/elflint.c:4623
+#: src/elflint.c:4601 src/elflint.c:4624
 #, c-format
 msgid "%s segment not contained in a loaded segment\n"
 msgstr ""
 
-#: src/elflint.c:4629
+#: src/elflint.c:4630
 #, c-format
 msgid "program header offset in ELF header and PHDR entry do not match"
 msgstr ""
 
-#: src/elflint.c:4656
+#: src/elflint.c:4657
 #, c-format
 msgid "call frame search table reference in program header has wrong offset\n"
 msgstr ""
 
-#: src/elflint.c:4659
+#: src/elflint.c:4660
 #, c-format
 msgid "call frame search table size mismatch in program and section header\n"
 msgstr ""
 
-#: src/elflint.c:4672
+#: src/elflint.c:4673
 #, c-format
 msgid "PT_GNU_EH_FRAME present but no .eh_frame_hdr section\n"
 msgstr ""
 
-#: src/elflint.c:4680
+#: src/elflint.c:4681
 #, c-format
 msgid "call frame search table must be allocated\n"
 msgstr ""
 
-#: src/elflint.c:4683
+#: src/elflint.c:4684
 #, c-format
 msgid "section [%2zu] '%s' must be allocated\n"
 msgstr ""
 
-#: src/elflint.c:4687
+#: src/elflint.c:4688
 #, c-format
 msgid "call frame search table must not be writable\n"
 msgstr ""
 
-#: src/elflint.c:4690
+#: src/elflint.c:4691
 #, c-format
 msgid "section [%2zu] '%s' must not be writable\n"
 msgstr ""
 
-#: src/elflint.c:4695
+#: src/elflint.c:4696
 #, c-format
 msgid "call frame search table must not be executable\n"
 msgstr ""
 
-#: src/elflint.c:4698
+#: src/elflint.c:4699
 #, c-format
 msgid "section [%2zu] '%s' must not be executable\n"
 msgstr ""
 
-#: src/elflint.c:4709
+#: src/elflint.c:4710
 #, c-format
 msgid "program header entry %d: file size greater than memory size\n"
 msgstr ""
 
-#: src/elflint.c:4716
+#: src/elflint.c:4717
 #, c-format
 msgid "program header entry %d: alignment not a power of 2\n"
 msgstr ""
 
-#: src/elflint.c:4719
+#: src/elflint.c:4720
 #, c-format
 msgid ""
 "program header entry %d: file offset and virtual address not module of "
 "alignment\n"
 msgstr ""
 
-#: src/elflint.c:4732
+#: src/elflint.c:4733
 #, c-format
 msgid ""
 "executable/DSO with .eh_frame_hdr section does not have a PT_GNU_EH_FRAME "
 "program header entry"
 msgstr ""
 
-#: src/elflint.c:4766
+#: src/elflint.c:4767
 #, c-format
 msgid "cannot read ELF header: %s\n"
 msgstr ""
 
-#: src/elflint.c:4792
+#: src/elflint.c:4779
+#, fuzzy, c-format
+msgid "cannot create backend for ELF file\n"
+msgstr "neue Datei konnte nicht angelegt werden"
+
+#: src/elflint.c:4800
 #, c-format
 msgid "text relocation flag set but not needed\n"
 msgstr ""
@@ -3481,12 +3486,12 @@ msgstr "%s%s%s: Dateiformat nicht erkannt"
 msgid "cannot create search tree"
 msgstr "Kann Suchbaum nicht erstellen"
 
-#: src/nm.c:746 src/nm.c:1205 src/objdump.c:779 src/readelf.c:635
+#: src/nm.c:746 src/nm.c:1239 src/objdump.c:782 src/readelf.c:635
 #: src/readelf.c:1447 src/readelf.c:1598 src/readelf.c:1799 src/readelf.c:2005
 #: src/readelf.c:2195 src/readelf.c:2373 src/readelf.c:2449 src/readelf.c:2707
 #: src/readelf.c:2783 src/readelf.c:2870 src/readelf.c:3468 src/readelf.c:3518
-#: src/readelf.c:3581 src/readelf.c:11230 src/readelf.c:12415
-#: src/readelf.c:12626 src/readelf.c:12695 src/size.c:398 src/size.c:470
+#: src/readelf.c:3581 src/readelf.c:11230 src/readelf.c:12420
+#: src/readelf.c:12631 src/readelf.c:12700 src/size.c:398 src/size.c:470
 #: src/strip.c:1038
 #, c-format
 msgid "cannot get section header string table index"
@@ -3514,28 +3519,28 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/nm.c:1216
+#: src/nm.c:1250
 #, fuzzy, c-format
 msgid "%s: entry size in section %zd `%s' is not what we expect"
 msgstr "%s: entry size in section `%s' is not what we expect"
 
-#: src/nm.c:1221
+#: src/nm.c:1255
 #, fuzzy, c-format
 msgid "%s: size of section %zd `%s' is not multiple of entry size"
 msgstr "%s: entry size in section `%s' is not what we expect"
 
-#: src/nm.c:1300
+#: src/nm.c:1334
 #, fuzzy, c-format
 msgid "%s: entries (%zd) in section %zd `%s' is too large"
 msgstr "%s: entry size in section `%s' is not what we expect"
 
 #. XXX Add machine specific object file types.
-#: src/nm.c:1527
+#: src/nm.c:1570
 #, c-format
 msgid "%s%s%s%s: Invalid operation"
 msgstr "%s%s%s%s: Ungültige Operation"
 
-#: src/nm.c:1584
+#: src/nm.c:1620
 #, c-format
 msgid "%s%s%s: no symbols"
 msgstr "%s%s%s: keine Symbole"
@@ -3608,6 +3613,11 @@ msgstr "Inhalt des Abschnitts %s:\n"
 #, c-format
 msgid "cannot disassemble"
 msgstr "Disassemblieren nicht möglich"
+
+#: src/objdump.c:760
+#, fuzzy, c-format
+msgid "cannot create backend for elf file"
+msgstr "neue Datei konnte nicht angelegt werden"
 
 #. Short description of program.
 #: src/ranlib.c:63
@@ -3798,7 +3808,7 @@ msgstr ""
 msgid "cannot get section: %s"
 msgstr ""
 
-#: src/readelf.c:653 src/readelf.c:1270 src/readelf.c:1479 src/readelf.c:12646
+#: src/readelf.c:653 src/readelf.c:1270 src/readelf.c:1479 src/readelf.c:12651
 #: src/unstrip.c:395 src/unstrip.c:426 src/unstrip.c:485 src/unstrip.c:604
 #: src/unstrip.c:625 src/unstrip.c:665 src/unstrip.c:881 src/unstrip.c:1212
 #: src/unstrip.c:1339 src/unstrip.c:1363 src/unstrip.c:1419 src/unstrip.c:1483
@@ -4170,8 +4180,8 @@ msgstr ""
 msgid "<INVALID SECTION>"
 msgstr ""
 
-#: src/readelf.c:1656 src/readelf.c:2383 src/readelf.c:3484 src/readelf.c:12517
-#: src/readelf.c:12524 src/readelf.c:12568 src/readelf.c:12575
+#: src/readelf.c:1656 src/readelf.c:2383 src/readelf.c:3484 src/readelf.c:12522
+#: src/readelf.c:12529 src/readelf.c:12573 src/readelf.c:12580
 msgid "Couldn't uncompress section"
 msgstr ""
 
@@ -5449,67 +5459,67 @@ msgstr ""
 msgid "cannot get debug context descriptor: %s"
 msgstr ""
 
-#: src/readelf.c:11449 src/readelf.c:12071 src/readelf.c:12182
-#: src/readelf.c:12240
+#: src/readelf.c:11454 src/readelf.c:12076 src/readelf.c:12187
+#: src/readelf.c:12245
 #, c-format
 msgid "cannot convert core note data: %s"
 msgstr ""
 
-#: src/readelf.c:11812
+#: src/readelf.c:11817
 #, c-format
 msgid ""
 "\n"
 "%*s... <repeats %u more times> ..."
 msgstr ""
 
-#: src/readelf.c:12319
+#: src/readelf.c:12324
 msgid "  Owner          Data size  Type\n"
 msgstr ""
 
-#: src/readelf.c:12348
+#: src/readelf.c:12353
 #, c-format
 msgid "  %-13.*s  %9<PRId32>  %s\n"
 msgstr ""
 
-#: src/readelf.c:12400
+#: src/readelf.c:12405
 #, fuzzy, c-format
 msgid "cannot get content of note: %s"
 msgstr "Konnte Inhalt von %s: %s nicht lesen"
 
-#: src/readelf.c:12434
+#: src/readelf.c:12439
 #, c-format
 msgid ""
 "\n"
 "Note section [%2zu] '%s' of %<PRIu64> bytes at offset %#0<PRIx64>:\n"
 msgstr ""
 
-#: src/readelf.c:12457
+#: src/readelf.c:12462
 #, c-format
 msgid ""
 "\n"
 "Note segment of %<PRIu64> bytes at offset %#0<PRIx64>:\n"
 msgstr ""
 
-#: src/readelf.c:12504
+#: src/readelf.c:12509
 #, fuzzy, c-format
 msgid ""
 "\n"
 "Section [%zu] '%s' has no data to dump.\n"
 msgstr "konnte Abschnittsdaten nicht holen: %s"
 
-#: src/readelf.c:12531 src/readelf.c:12582
+#: src/readelf.c:12536 src/readelf.c:12587
 #, fuzzy, c-format
 msgid "cannot get data for section [%zu] '%s': %s"
 msgstr "konnte Abschnittsdaten nicht holen: %s"
 
-#: src/readelf.c:12536
+#: src/readelf.c:12541
 #, c-format
 msgid ""
 "\n"
 "Hex dump of section [%zu] '%s', %<PRIu64> bytes at offset %#0<PRIx64>:\n"
 msgstr ""
 
-#: src/readelf.c:12541
+#: src/readelf.c:12546
 #, c-format
 msgid ""
 "\n"
@@ -5517,21 +5527,21 @@ msgid ""
 "%#0<PRIx64>:\n"
 msgstr ""
 
-#: src/readelf.c:12555
+#: src/readelf.c:12560
 #, fuzzy, c-format
 msgid ""
 "\n"
 "Section [%zu] '%s' has no strings to dump.\n"
 msgstr "konnte Abschnittsdaten nicht holen: %s"
 
-#: src/readelf.c:12587
+#: src/readelf.c:12592
 #, c-format
 msgid ""
 "\n"
 "String section [%zu] '%s' contains %<PRIu64> bytes at offset %#0<PRIx64>:\n"
 msgstr ""
 
-#: src/readelf.c:12592
+#: src/readelf.c:12597
 #, c-format
 msgid ""
 "\n"
@@ -5539,45 +5549,45 @@ msgid ""
 "offset %#0<PRIx64>:\n"
 msgstr ""
 
-#: src/readelf.c:12641
+#: src/readelf.c:12646
 #, c-format
 msgid ""
 "\n"
 "section [%lu] does not exist"
 msgstr ""
 
-#: src/readelf.c:12671
+#: src/readelf.c:12676
 #, c-format
 msgid ""
 "\n"
 "section '%s' does not exist"
 msgstr ""
 
-#: src/readelf.c:12728
+#: src/readelf.c:12733
 #, c-format
 msgid "cannot get symbol index of archive '%s': %s"
 msgstr ""
 
-#: src/readelf.c:12731
+#: src/readelf.c:12736
 #, c-format
 msgid ""
 "\n"
 "Archive '%s' has no symbol index\n"
 msgstr ""
 
-#: src/readelf.c:12735
+#: src/readelf.c:12740
 #, c-format
 msgid ""
 "\n"
 "Index of archive '%s' has %zu entries:\n"
 msgstr ""
 
-#: src/readelf.c:12753
+#: src/readelf.c:12758
 #, fuzzy, c-format
 msgid "cannot extract member at offset %zu in '%s': %s"
 msgstr "konnte Programm-Kopf nicht erstellen: %s"
 
-#: src/readelf.c:12758
+#: src/readelf.c:12763
 #, c-format
 msgid "Archive member '%s' contains:\n"
 msgstr ""
@@ -5640,7 +5650,7 @@ msgstr ""
 msgid "%s: file format not recognized"
 msgstr ""
 
-#: src/size.c:418 src/size.c:557
+#: src/size.c:418 src/size.c:560
 #, c-format
 msgid " (ex %s)"
 msgstr ""
@@ -5650,7 +5660,7 @@ msgstr ""
 msgid "cannot get section header"
 msgstr "konnte Abschnittsdaten nicht holen: %s"
 
-#: src/size.c:582
+#: src/size.c:585
 msgid "(TOTALS)\n"
 msgstr ""
 

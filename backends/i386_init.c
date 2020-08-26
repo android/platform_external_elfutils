@@ -38,16 +38,11 @@
 /* This defines the common reloc hooks based on i386_reloc.def.  */
 #include "common-reloc.c"
 
-const char *
+Ebl *
 i386_init (Elf *elf __attribute__ ((unused)),
 	   GElf_Half machine __attribute__ ((unused)),
-	   Ebl *eh,
-	   size_t ehlen)
+	   Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   i386_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
@@ -66,5 +61,5 @@ i386_init (Elf *elf __attribute__ ((unused)),
   HOOK (eh, set_initial_registers_tid);
   HOOK (eh, unwind);
 
-  return MODVERSION;
+  return eh;
 }

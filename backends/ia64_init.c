@@ -38,16 +38,11 @@
 /* This defines the common reloc hooks based on ia64_reloc.def.  */
 #include "common-reloc.c"
 
-const char *
+Ebl *
 ia64_init (Elf *elf __attribute__ ((unused)),
 	   GElf_Half machine __attribute__ ((unused)),
-	   Ebl *eh,
-	   size_t ehlen)
+	   Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   ia64_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
@@ -61,5 +56,5 @@ ia64_init (Elf *elf __attribute__ ((unused)),
   HOOK (eh, return_value_location);
   HOOK (eh, check_reloc_target_type);
 
-  return MODVERSION;
+  return eh;
 }

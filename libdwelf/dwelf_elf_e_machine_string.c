@@ -340,8 +340,8 @@ dwelf_elf_e_machine_string (int machine)
       return "KIPO-KAIST Core-A 1st gen";
     case EM_COREA_2ND:
       return "KIPO-KAIST Core-A 2nd gen";
-    case EM_ARC_COMPACT2:
-      return "Synopsys ARCompact V2";
+    case EM_ARCV2:
+      return "Synopsys ARCv2 ISA";
     case EM_OPEN8:
       return "Open8 RISC";
     case EM_RL78:

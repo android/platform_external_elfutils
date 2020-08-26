@@ -37,16 +37,11 @@
 /* This defines the common reloc hooks based on tilegx_reloc.def.  */
 #include "common-reloc.c"
 
-const char *
+Ebl *
 tilegx_init (Elf *elf __attribute__ ((unused)),
 	     GElf_Half machine __attribute__ ((unused)),
-	     Ebl *eh,
-	     size_t ehlen)
+	     Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   tilegx_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
@@ -54,5 +49,5 @@ tilegx_init (Elf *elf __attribute__ ((unused)),
   HOOK (eh, register_info);
   HOOK (eh, core_note);
 
-  return MODVERSION;
+  return eh;
 }

@@ -1,3 +1,23 @@
+2020-06-10  Mark Wielard  <mark@klomp.org>
+
+	* aarch64_init.c (aarch64_init): Remove ehlen, return eh.
+	* alpha_init.c (alpha_init): Likewise.
+	* arm_init.c (arm_init): Likewise.
+	* bpf_init.c (bpf_init): Likewise.
+	* csky_init.c (csky_init): Likewise.
+	* i386_init.c (i386_init): Likewise.
+	* ia64_init.c (ia64_init): Likewise.
+	* m68k_init.c (m68k_init): Likewise.
+	* ppc64_init.c (ppc64_init): Likewise.
+	* ppc_init.c (ppc_init): Likewise.
+	* riscv_init.c (riscv_init): Likewise.
+	* s390_init.c (s390_init): Likewise.
+	* sh_init.c (sh_init): Likewise.
+	* sparc_init.c (sparc_init): Likewise.
+	* tilegx_init.c (tilegx_init): Likewise.
+	* x86_64_init.c (x86_64_init): Likewise.
+	* libebl_CPU.h (init): Adjust EBLHOOK signature.
+
 2019-07-05  Omar Sandoval  <osandov@fb.com>
 
 	* Makefile.am: Replace libcpu_{i386,x86_64,bpf}.a with libcpu.a.

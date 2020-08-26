@@ -7,6 +7,12 @@
 /* Should ar and ranlib use -D behavior by default? */
 #define DEFAULT_AR_DETERMINISTIC false
 
+/* Build debuginfod */
+/* #undef ENABLE_DEBUGINFOD */
+
+/* define if the compiler supports basic C++11 syntax */
+#define HAVE_CXX11 1
+
 /* Define to 1 if you have the declaration of `mempcpy', and to 0 if you
    don't. */
 #define HAVE_DECL_MEMPCPY 1
@@ -24,7 +30,7 @@
 #define HAVE_DECL_RAWMEMCHR 1
 
 /* Defined if __attribute__((fallthrough)) is supported */
-/* #undef HAVE_FALLTHROUGH  */
+/* #undef HAVE_FALLTHROUGH */
 
 /* Defined if __attribute__((gcc_struct)) is supported */
 /* #undef HAVE_GCC_STRUCT */
@@ -37,6 +43,9 @@
 
 /* Define to 1 if you have the `process_vm_readv' function. */
 #define HAVE_PROCESS_VM_READV 1
+
+/* Define to 1 if `stdatomic.h` is provided by the system, 0 otherwise. */
+#define HAVE_STDATOMIC_H 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -65,12 +74,6 @@
 /* Defined if __attribute__((visibility())) is supported */
 #define HAVE_VISIBILITY 1
 
-/* $libdir subdirectory containing libebl modules. */
-#define LIBEBL_SUBDIR "elfutils"
-
-/* Identifier for modules in the build. */
-#define MODVERSION "Build for elfutils 173 x86_64-pc-linux-gnu"
-
 /* Name of package */
 #define PACKAGE "elfutils"
 
@@ -81,7 +84,7 @@
 #define PACKAGE_NAME "elfutils"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "elfutils 0.173"
+#define PACKAGE_STRING "elfutils 0.180"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "elfutils"
@@ -90,14 +93,10 @@
 #define PACKAGE_URL "http://elfutils.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.173"
+#define PACKAGE_VERSION "0.180"
 
 /* The size of `long', as computed by sizeof. */
-#if __LP64__
 #define SIZEOF_LONG 8
-#else
-#define SIZEOF_LONG 4
-#endif
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -118,7 +117,7 @@
 #define USE_ZLIB 1
 
 /* Version number of package */
-#define VERSION "0.173"
+#define VERSION "0.180"
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */

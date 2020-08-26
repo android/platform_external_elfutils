@@ -43,16 +43,11 @@ extern __typeof (EBLHOOK (return_value_location))
 
 extern __typeof (EBLHOOK (core_note)) riscv64_core_note attribute_hidden;
 
-const char *
+Ebl *
 riscv_init (Elf *elf,
 	    GElf_Half machine __attribute__ ((unused)),
-	    Ebl *eh,
-	    size_t ehlen)
+	    Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   riscv_init_reloc (eh);
   HOOK (eh, reloc_simple_type);
@@ -73,5 +68,5 @@ riscv_init (Elf *elf,
 	  == EF_RISCV_FLOAT_ABI_DOUBLE))
     eh->return_value_location = riscv_return_value_location_lp64d;
 
-  return MODVERSION;
+  return eh;
 }

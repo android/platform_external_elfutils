@@ -1,3 +1,45 @@
+2020-06-07  Mark Wielaard  <mark@klomp.org>
+
+	* nm.c (sort_by_name_strtab): Replace by...
+	(sort_by_name_elf): New static Elf pointer and ...
+	(sort_by_name_ndx): New static size_t index.
+	(sort_by_name): Use elf_strptr to get symbol string.
+	(show_symbols): Set sort_by_name_elf and sort_by_name_ndx.
+
+2020-06-06  Mark Wielaard  <mark@klomp.org>
+
+	* nm.c (show_symbols_sysv): Skip no name and STT_FILE symbols.
+	When not printing address and size pad strings. Strip "GNU_"
+	prefix from binding name.
+	(class_type_char): Use 'V' for weak symbols, 'C' for common
+	symbols and 'T' for weak functions.
+	(show_symbols_posix): Skip STT_FILE symbols. Don't print value and
+	size when undefined.
+
+2020-06-04  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_program_header): Remove PT_GNU_PROPERTY define.
+
+2020-05-14  Mark Wielaard  <mark@klomp.org>
+
+	* size.c (show_bsd): Set printf format based on radix.
+
+2020-05-09  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (process_elf_file): Error out if ebl_openbackend fails.
+	* objdump.c (handle_elf): Likewise.
+	* nm.c (handle_elf): Likewise. Move full name string construction
+	forward, so it can be used in the error message.
+
+2020-04-17  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug): Check .gnu.debuglto_ prefix.
+
+2020-04-16  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_sections): Mask out SHF_EXCLUDE from processor
+	specific section flags when --gnu is given.
+
 2020-02-08  Mark Wielaard  <mark@klomp.org>
 
 	* elflint.c (check_program_header): Handle PT_GNU_PROPERTY.

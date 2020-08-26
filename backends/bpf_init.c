@@ -39,20 +39,16 @@
 #include "common-reloc.c"
 
 
-const char *
+Ebl *
 bpf_init (Elf *elf __attribute__ ((unused)),
 	  GElf_Half machine __attribute__ ((unused)),
-	  Ebl *eh, size_t ehlen)
+	  Ebl *eh)
 {
-  /* Check whether the Elf_BH object has a sufficent size.  */
-  if (ehlen < sizeof (Ebl))
-    return NULL;
-
   /* We handle it.  */
   bpf_init_reloc (eh);
   HOOK (eh, register_info);
   HOOK (eh, disasm);
   HOOK (eh, reloc_simple_type);
 
-  return MODVERSION;
+  return eh;
 }
