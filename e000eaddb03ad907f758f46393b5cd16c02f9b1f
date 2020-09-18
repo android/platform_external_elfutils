@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66a5962e_31448268",
+        "filename": "libcpu/mnemonic_preprocess.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2020-09-18T20:55:18Z",
+      "side": 1,
+      "message": "stick \"android\" in the filename, on the assumption this isn\u0027t going to be upstreamed?",
+      "revId": "e000eaddb03ad907f758f46393b5cd16c02f9b1f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": true
+    }
+  ]
+}
