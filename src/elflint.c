@@ -467,7 +467,7 @@ invalid number of section header table entries\n"));
 	  break;
 	/* If the section wasn't compressed this does nothing, but
 	   returns an error.  We don't care.  */
-	elf_compress (scn, 0, 0);
+	if (elf_compress (scn, 0, 0) < 0) { ; }
      }
   if (scnt < shnum)
     ERROR (gettext ("Can only check %u headers, shnum was %u\n"), scnt, shnum);
@@ -3631,6 +3631,7 @@ static const struct
     { ".data", 6, SHT_PROGBITS, exact, SHF_ALLOC | SHF_WRITE, 0 },
     { ".data1", 7, SHT_PROGBITS, exact, SHF_ALLOC | SHF_WRITE, 0 },
     { ".debug_str", 11, SHT_PROGBITS, exact_or_gnuld, SHF_MERGE | SHF_STRINGS, 0 },
+    { ".debug_line_str", 16, SHT_PROGBITS, exact_or_gnuld, SHF_MERGE | SHF_STRINGS, 0 },
     { ".debug", 6, SHT_PROGBITS, exact, 0, 0 },
     { ".dynamic", 9, SHT_DYNAMIC, atleast, SHF_ALLOC, SHF_WRITE },
     { ".dynstr", 8, SHT_STRTAB, exact, SHF_ALLOC, 0 },

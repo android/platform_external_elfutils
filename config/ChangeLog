@@ -1,3 +1,11 @@
+2020-09-08  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.181.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* upload-release.sh: Use /usr/bin/env bash.
+
 2020-06-11  Mark Wielaard  <mark@klomp.org>
 
 	* elfutils.spec.in: Update for 0.189.

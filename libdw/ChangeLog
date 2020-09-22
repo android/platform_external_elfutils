@@ -1,3 +1,37 @@
+2020-09-03  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf.h: Add DW_CFA_AARCH64_negate_ra_state.
+	* cfi.h (struct Dwarf_CFI_s): Add e_machine field.
+	* cfi.c (execute_cfi): Recognize, but ignore
+	DW_CFA_AARCH64_negate_ra_state on aarch64.
+	* dwarf_getcfi.c (dwarf_getcfi): Set cfi e_machine.
+	* dwarf_getcfi_elf.c (allocate_cfi): Take ehdr as argument and set
+	cfi e_machine.
+	(getcfi_gnu_eh_frame): Pass ehdr to allocate_cfi.
+	(getcfi_scn_eh_frame): Likewise.
+
+2020-09-03  Mark Wielaard  <mark@klomp.org>
+
+	* libdw.map (ELFUTILS_0.126): Remove local wildcard.
+	(ELFUTILS_0.127): Likewise.
+	(ELFUTILS_0.130): Likewise.
+	(ELFUTILS_0.136): Likewise.
+	(ELFUTILS_0.138): Likewise.
+
+2020-08-25  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_getlocation.c (check_constant_offset): Rename to...
+	(is_constant_offset): .. this.
+
+2020-06-28  Mark Wielaard  <mark@klomp.org>
+
+	* linux-kernel-modules.c (intuit_kernel_bounds): Check read_address
+	returns an increasing address when searching for end.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* cfi.c (execute_cfi): Add missing FALLTHROUGH.
+
 2020-05-08  Mark Wielaard  <mark@klomp.org>
 
 	* libdw_visit_scopes.c (walk_children): Don't recurse into imported
