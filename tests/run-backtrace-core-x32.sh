@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 # Copyright (C) H.J. Lu <hjl.tools@gmail.com>, 2015.
 # This file is part of elfutils.
 #

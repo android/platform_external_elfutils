@@ -226,3 +226,34 @@ Note section [ 4] '.note.gnu.property' of 56 bytes at offset 0x40:
   GNU                    8  GNU_PROPERTY_TYPE_0
     NO_COPY_ON_PROTECTION
 EOF
+
+# - testfile-gnu-property-note.c
+# int
+# main ()
+# {
+#   return 0;
+# }
+#
+# gcc -mbranch-protection=standard -c testfile-gnu-property-note.c
+# gcc -o testfile-gnu-property-note-aarch64 testfile-gnu-property-note.o
+# eu-strip --remove-section=.gnu.build.attributes \
+#	   testfile-gnu-property-note-aarch64
+
+testfiles testfile-gnu-property-note-aarch64
+testrun_compare ${abs_top_builddir}/src/readelf -n testfile-gnu-property-note-aarch64 << EOF
+
+Note section [ 2] '.note.gnu.property' of 32 bytes at offset 0x2c8:
+  Owner          Data size  Type
+  GNU                   16  GNU_PROPERTY_TYPE_0
+    AARCH64 FEATURE_1_AND: 00000003 BTI PAC
+
+Note section [ 3] '.note.gnu.build-id' of 36 bytes at offset 0x2e8:
+  Owner          Data size  Type
+  GNU                   20  GNU_BUILD_ID
+    Build ID: af82d6df6f3b396487e3e27a826ca9cbbbecbe5f
+
+Note section [ 4] '.note.ABI-tag' of 32 bytes at offset 0x30c:
+  Owner          Data size  Type
+  GNU                   16  GNU_ABI_TAG
+    OS: Linux, ABI: 3.7.0
+EOF

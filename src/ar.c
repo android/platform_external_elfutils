@@ -787,26 +787,30 @@ cannot rename temporary file to %.*s"),
 	      else
 		rest_off = SARMAG;
 
-	      if ((symtab.symsnamelen != 0
+	      if (symtab.symsnamelen != 0
 		   && ((write_retry (newfd, symtab.symsoff,
 				     symtab.symsofflen)
 			!= (ssize_t) symtab.symsofflen)
 		       || (write_retry (newfd, symtab.symsname,
 					symtab.symsnamelen)
 			   != (ssize_t) symtab.symsnamelen)))
-		  /* Even if the original file had content before the
-		     symbol table, we write it in the correct order.  */
-		  || (index_off != SARMAG
-		      && copy_content (elf, newfd, SARMAG, index_off - SARMAG))
-		  || copy_content (elf, newfd, rest_off, st.st_size - rest_off)
-		  /* Set the mode of the new file to the same values the
-		     original file has.  */
-		  || fchmod (newfd, st.st_mode & ALLPERMS) != 0
-		  /* Never complain about fchown failing.  */
-		  || (({asm ("" :: "r" (fchown (newfd, st.st_uid,
-						st.st_gid))); }),
-		      close (newfd) != 0)
-		  || (newfd = -1, rename (tmpfname, arfname) != 0))
+		goto nonew_unlink;
+	      /* Even if the original file had content before the
+		 symbol table, we write it in the correct order.  */
+	      if ((index_off != SARMAG
+		   && copy_content (elf, newfd, SARMAG, index_off - SARMAG))
+		  || copy_content (elf, newfd, rest_off, st.st_size - rest_off))
+		goto nonew_unlink;
+
+	      /* Never complain about fchown failing.  */
+	      if (fchown (newfd, st.st_uid, st.st_gid) != 0) { ; }
+	      /* Set the mode of the new file to the same values the
+		 original file has.  */
+	      if (fchmod (newfd, st.st_mode & ALLPERMS) != 0
+		  || close (newfd) != 0)
+		goto nonew_unlink;
+	      newfd = -1;
+	      if (rename (tmpfname, arfname) != 0)
 		goto nonew_unlink;
 	    }
 	}
@@ -1052,12 +1056,15 @@ do_oper_delete (const char *arfname, char **argv, int argc,
     }
 
   /* Set the mode of the new file to the same values the original file
-     has.  */
+     has.  Never complain about fchown failing.  But do it before
+     setting the mode (which might be reset/ignored if the owner is
+     wrong.  */
+  if (fchown (newfd, st.st_uid, st.st_gid) != 0) { ; }
   if (fchmod (newfd, st.st_mode & ALLPERMS) != 0
-      /* Never complain about fchown failing.  */
-      || (({asm ("" :: "r" (fchown (newfd, st.st_uid, st.st_gid))); }),
-	  close (newfd) != 0)
-      || (newfd = -1, rename (tmpfname, arfname) != 0))
+      || close (newfd) != 0)
+    goto nonew_unlink;
+  newfd = -1;
+  if (rename (tmpfname, arfname) != 0)
     goto nonew_unlink;
 
  errout:
@@ -1534,13 +1541,19 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 
   /* Set the mode of the new file to the same values the original file
      has.  */
-  if (fd != -1
-      && (fchmod (newfd, st.st_mode & ALLPERMS) != 0
-	  /* Never complain about fchown failing.  */
-	  || (({asm ("" :: "r" (fchown (newfd, st.st_uid, st.st_gid))); }),
-	      close (newfd) != 0)
-	  || (newfd = -1, rename (tmpfname, arfname) != 0)))
-      goto nonew_unlink;
+  if (fd != -1)
+    {
+      /* Never complain about fchown failing.  But do it before
+	 setting the modes, or they might be reset/ignored if the
+	 owner is wrong.  */
+      if (fchown (newfd, st.st_uid, st.st_gid) != 0) { ; }
+      if (fchmod (newfd, st.st_mode & ALLPERMS) != 0
+	  || close (newfd) != 0)
+        goto nonew_unlink;
+      newfd = -1;
+      if (rename (tmpfname, arfname) != 0)
+	goto nonew_unlink;
+    }
 
  errout:
   for (int cnt = 0; cnt < argc; ++cnt)

@@ -31,6 +31,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <gelf.h>
 
 typedef struct ebl Ebl;
 

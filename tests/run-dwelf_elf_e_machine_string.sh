@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 # Test to make sure all EM values in elf.h are recognized
 # Copyright (C) 2019 Red Hat, Inc.
 # This file is part of elfutils.

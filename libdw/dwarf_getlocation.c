@@ -161,11 +161,14 @@ dwarf_getlocation_implicit_value (Dwarf_Attribute *attr, const Dwarf_Op *op,
   return 0;
 }
 
-/* DW_AT_data_member_location can be a constant as well as a loclistptr.
-   Only data[48] indicate a loclistptr.  */
+/* If the given attribute is DW_AT_data_member_location and it has constant
+   form then create a fake location using DW_OP_plus_uconst and the offset
+   value.  On success returns zero and fills in llbuf (when not NULL) and
+   sets listlen to 1.  Returns 1 when this isn't a DW_AT_data_member_location
+   offset.  Returns -1 and sets dwarf_errno on failure (bad DWARF data).  */
 static int
-check_constant_offset (Dwarf_Attribute *attr,
-		       Dwarf_Op **llbuf, size_t *listlen)
+is_constant_offset (Dwarf_Attribute *attr,
+		    Dwarf_Op **llbuf, size_t *listlen)
 {
   if (attr->code != DW_AT_data_member_location)
     return 1;
@@ -665,9 +668,9 @@ dwarf_getlocation (Dwarf_Attribute *attr, Dwarf_Op **llbuf, size_t *listlen)
   if (! attr_ok (attr))
     return -1;
 
-  int result = check_constant_offset (attr, llbuf, listlen);
+  int result = is_constant_offset (attr, llbuf, listlen);
   if (result != 1)
-    return result;
+    return result; /* Either success 0, or -1 to indicate error.  */
 
   /* If it has a block form, it's a single location expression.
      Except for DW_FORM_data16, which is a 128bit constant.  */
@@ -898,7 +901,8 @@ dwarf_getlocation_addr (Dwarf_Attribute *attr, Dwarf_Addr address,
 	}
     }
 
-  int result = check_constant_offset (attr, llbufs, listlens);
+  /* If is_constant_offset is successful, we are done with 1 result.  */
+  int result = is_constant_offset (attr, llbufs, listlens);
   if (result != 1)
     return result ?: 1;
 
@@ -979,7 +983,7 @@ dwarf_getlocations (Dwarf_Attribute *attr, ptrdiff_t offset, Dwarf_Addr *basep,
 	    }
 	}
 
-      int result = check_constant_offset (attr, expr, exprlen);
+      int result = is_constant_offset (attr, expr, exprlen);
       if (result != 1)
 	{
 	  if (result == 0)
@@ -989,7 +993,7 @@ dwarf_getlocations (Dwarf_Attribute *attr, ptrdiff_t offset, Dwarf_Addr *basep,
 	      *endp = -1;
 	      return 1;
 	    }
-	  return result;
+	  return result; /* Something bad, dwarf_errno has been set.  */
 	}
 
       /* We must be looking at a true loclistptr, fetch the initial

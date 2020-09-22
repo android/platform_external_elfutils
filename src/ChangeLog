@@ -1,3 +1,49 @@
+2020-09-03  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_cfa_program): Take ehdr as argument. Use it to
+	recognize DW_CFA_AARCH64_negate_ra_state.
+	(print_debug_frame_section): Pass ehdr to print_cfa_program.
+	(print_debug): Don't warn if we dump frames, but cannot get dbg.
+
+2020-09-01  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_ranges_section): Base address entry can
+	be first.
+	(print_debug_loc_section): Likewise.
+
+2020-09-04  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (special_sections): Add .debug_line_str.
+
+2020-08-26  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (print_debug_line_section): It is not an error if there
+	are no line number statements at the end of a debug line section.
+
+2020-07-19  Mark Wielaard  <mark@klomp.org>
+
+	* elfclassify.c (process_current_path): Handle fwrite failing.
+
+2020-07-05  Mark Wielaard  <mark@klomp.org>
+
+	* stack.c (module_callback): Don't assert if dwfl_module_info fails.
+	* unstrip.c (adjust_relocs): Produce a proper error when HAS
+	section has inconsistent size or entsize.
+	(match_module): Don't assert if dwfl_module_info fails.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* ar.c (do_oper_extract): Split large if statement. Call fchown
+	before fchmod and explicitly ignore the return value.
+	(do_oper_delete): Likewise.
+	(do_oper_insert): Likewise.
+	* ranlib.c (handle_file): Likewise.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_elf_header): Explicitly check and ignore
+	any error from elf_compress.
+
 2020-06-07  Mark Wielaard  <mark@klomp.org>
 
 	* nm.c (sort_by_name_strtab): Replace by...
