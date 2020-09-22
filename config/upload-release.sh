@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Must be run in the source directory.
 # Should have passed make distcheck.

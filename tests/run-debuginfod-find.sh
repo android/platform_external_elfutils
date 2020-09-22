@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright (C) 2019-2020 Red Hat, Inc.
 # This file is part of elfutils.
@@ -413,6 +413,12 @@ testrun ${abs_top_builddir}/debuginfod/debuginfod-find debuginfo $BUILDID && fal
 export DEBUGINFOD_URLS=http://127.0.0.1:$PORT2
 testrun ${abs_top_builddir}/debuginfod/debuginfod-find debuginfo $BUILDID
 
+# test again with scheme free url
+export DEBUGINFOD_URLS=127.0.0.1:$PORT1
+rm -rf $DEBUGINFOD_CACHE_PATH
+testrun ${abs_top_builddir}/debuginfod/debuginfod-find debuginfo $BUILDID && false || true
+export DEBUGINFOD_URLS=127.0.0.1:$PORT2
+testrun ${abs_top_builddir}/debuginfod/debuginfod-find debuginfo $BUILDID
 
 # test parallel queries in client
 export DEBUGINFOD_CACHE_PATH=${PWD}/.client_cache3

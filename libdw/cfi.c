@@ -229,6 +229,7 @@ execute_cfi (Dwarf_CFI *cache,
 	case DW_CFA_offset_extended:
 	  get_uleb128 (operand, program, end);
 	  cfi_assert (program < end);
+	  FALLTHROUGH;
 	case DW_CFA_offset + 0 ... DW_CFA_offset + CFI_PRIMARY_MAX:
 	  get_uleb128 (offset, program, end);
 	  offset *= cie->data_alignment_factor;
@@ -349,24 +350,35 @@ execute_cfi (Dwarf_CFI *cache,
 	case DW_CFA_nop:
 	  continue;
 
-	case DW_CFA_GNU_window_save:
-	  /* This is magic shorthand used only by SPARC.  It's equivalent
-	     to a bunch of DW_CFA_register and DW_CFA_offset operations.  */
-	  if (unlikely (! enough_registers (31, &fs, &result)))
-	    goto out;
-	  for (regno = 8; regno < 16; ++regno)
+	case DW_CFA_GNU_window_save: /* DW_CFA_AARCH64_negate_ra_state */
+	  if (cache->e_machine == EM_AARCH64)
 	    {
-	      /* Find each %oN in %iN.  */
-	      fs->regs[regno].rule = reg_register;
-	      fs->regs[regno].value = regno + 16;
+	      /* Toggles the return address state, indicating whether
+		 the return address is encrypted or not on
+		 aarch64. XXX not handled yet.  */
 	    }
-	  unsigned int address_size = (cache->e_ident[EI_CLASS] == ELFCLASS32
-				       ? 4 : 8);
-	  for (; regno < 32; ++regno)
+	  else
 	    {
-	      /* Find %l0..%l7 and %i0..%i7 in a block at the CFA.  */
-	      fs->regs[regno].rule = reg_offset;
-	      fs->regs[regno].value = (regno - 16) * address_size;
+	      /* This is magic shorthand used only by SPARC.  It's
+		 equivalent to a bunch of DW_CFA_register and
+		 DW_CFA_offset operations.  */
+	      if (unlikely (! enough_registers (31, &fs, &result)))
+		goto out;
+	      for (regno = 8; regno < 16; ++regno)
+		{
+		  /* Find each %oN in %iN.  */
+		  fs->regs[regno].rule = reg_register;
+		  fs->regs[regno].value = regno + 16;
+		}
+	      unsigned int address_size;
+	      address_size = (cache->e_ident[EI_CLASS] == ELFCLASS32
+			      ? 4 : 8);
+	      for (; regno < 32; ++regno)
+		{
+		  /* Find %l0..%l7 and %i0..%i7 in a block at the CFA.  */
+		  fs->regs[regno].rule = reg_offset;
+		  fs->regs[regno].value = (regno - 16) * address_size;
+		}
 	    }
 	  continue;
 

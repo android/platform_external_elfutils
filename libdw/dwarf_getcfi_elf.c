@@ -41,7 +41,7 @@
 
 
 static Dwarf_CFI *
-allocate_cfi (Elf *elf, GElf_Addr vaddr)
+allocate_cfi (Elf *elf, const GElf_Ehdr *ehdr, GElf_Addr vaddr)
 {
   Dwarf_CFI *cfi = calloc (1, sizeof *cfi);
   if (cfi == NULL)
@@ -57,6 +57,8 @@ allocate_cfi (Elf *elf, GElf_Addr vaddr)
       __libdw_seterrno (DWARF_E_GETEHDR_ERROR);
       return NULL;
     }
+
+  cfi->e_machine = ehdr->e_machine;
 
   if ((BYTE_ORDER == LITTLE_ENDIAN && cfi->e_ident[EI_DATA] == ELFDATA2MSB)
       || (BYTE_ORDER == BIG_ENDIAN && cfi->e_ident[EI_DATA] == ELFDATA2LSB))
@@ -172,7 +174,7 @@ getcfi_gnu_eh_frame (Elf *elf, const GElf_Ehdr *ehdr, const GElf_Phdr *phdr)
       __libdw_seterrno (DWARF_E_INVALID_ELF); /* XXX might be read error */
       return NULL;
     }
-  Dwarf_CFI *cfi = allocate_cfi (elf, eh_frame_ptr);
+  Dwarf_CFI *cfi = allocate_cfi (elf, ehdr, eh_frame_ptr);
   if (cfi != NULL)
     {
       cfi->data = (Elf_Data_Scn *) data;
@@ -222,7 +224,7 @@ getcfi_scn_eh_frame (Elf *elf, const GElf_Ehdr *ehdr,
       __libdw_seterrno (DWARF_E_INVALID_ELF);
       return NULL;
     }
-  Dwarf_CFI *cfi = allocate_cfi (elf, shdr->sh_addr);
+  Dwarf_CFI *cfi = allocate_cfi (elf, ehdr, shdr->sh_addr);
   if (cfi != NULL)
     {
       cfi->data = (Elf_Data_Scn *) data;

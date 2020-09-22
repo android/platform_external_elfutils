@@ -7,8 +7,14 @@
 /* Should ar and ranlib use -D behavior by default? */
 #define DEFAULT_AR_DETERMINISTIC false
 
+/* Build dummy libdebuginfod */
+/* #undef DUMMY_LIBDEBUGINFOD */
+
 /* Build debuginfod */
 /* #undef ENABLE_DEBUGINFOD */
+
+/* Enable libdebuginfod */
+#define ENABLE_LIBDEBUGINFOD 1
 
 /* define if the compiler supports basic C++11 syntax */
 #define HAVE_CXX11 1
@@ -84,7 +90,7 @@
 #define PACKAGE_NAME "elfutils"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "elfutils 0.180"
+#define PACKAGE_STRING "elfutils 0.181"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "elfutils"
@@ -93,7 +99,7 @@
 #define PACKAGE_URL "http://elfutils.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.180"
+#define PACKAGE_VERSION "0.181"
 
 /* The size of `long', as computed by sizeof. */
 #define SIZEOF_LONG 8
@@ -117,7 +123,7 @@
 #define USE_ZLIB 1
 
 /* Version number of package */
-#define VERSION "0.180"
+#define VERSION "0.181"
 
 /* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
    `char[]'. */

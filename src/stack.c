@@ -143,7 +143,12 @@ module_callback (Dwfl_Module *mod, void **userdata __attribute__((unused)),
   const char *debugfile;
   const char *modname = dwfl_module_info (mod, NULL, NULL, &end, NULL,
                                           NULL, &mainfile, &debugfile);
-  assert (strcmp (modname, name) == 0);
+  if (modname == NULL || strcmp (modname, name) != 0)
+    {
+      end = start + 1;
+      mainfile = NULL;
+      debugfile = NULL;
+    }
 
   int width = get_addr_width (mod);
   printf ("0x%0*" PRIx64 "-0x%0*" PRIx64 " %s\n",

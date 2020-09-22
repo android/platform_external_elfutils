@@ -41,13 +41,35 @@
 #include "config.h"
 #include "debuginfod.h"
 #include "system.h"
+#include <errno.h>
+#include <stdlib.h>
+
+/* We might be building a bootstrap dummy library, which is really simple. */
+#ifdef DUMMY_LIBDEBUGINFOD
+
+debuginfod_client *debuginfod_begin (void) { errno = ENOSYS; return NULL; }
+int debuginfod_find_debuginfo (debuginfod_client *c, const unsigned char *b,
+                               int s, char **p) { return -ENOSYS; }
+int debuginfod_find_executable (debuginfod_client *c, const unsigned char *b,
+                                int s, char **p) { return -ENOSYS; }
+int debuginfod_find_source (debuginfod_client *c, const unsigned char *b,
+                            int s, const char *f, char **p)  { return -ENOSYS; }
+void debuginfod_set_progressfn(debuginfod_client *c,
+			       debuginfod_progressfn_t fn) { }
+void debuginfod_set_user_data (debuginfod_client *c, void *d) { }
+void* debuginfod_get_user_data (debuginfod_client *c) { return NULL; }
+const char* debuginfod_get_url (debuginfod_client *c) { return NULL; }
+int debuginfod_add_http_header (debuginfod_client *c,
+				const char *h) { return -ENOSYS; }
+void debuginfod_end (debuginfod_client *c) { }
+
+#else /* DUMMY_LIBDEBUGINFOD */
+
 #include <assert.h>
 #include <dirent.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <fts.h>
 #include <regex.h>
@@ -244,9 +266,14 @@ debuginfod_clean_cache(debuginfod_client *c,
   /* Check timestamp of interval file to see whether cleaning is necessary.  */
   time_t clean_interval;
   interval_file = fopen(interval_path, "r");
-  if (fscanf(interval_file, "%ld", &clean_interval) != 1)
+  if (interval_file)
+    {
+      if (fscanf(interval_file, "%ld", &clean_interval) != 1)
+        clean_interval = cache_clean_default_interval_s;
+      fclose(interval_file);
+    }
+  else
     clean_interval = cache_clean_default_interval_s;
-  fclose(interval_file);
 
   if (time(NULL) - st.st_mtime < clean_interval)
     /* Interval has not passed, skip cleaning.  */
@@ -469,7 +496,7 @@ debuginfod_query_server (debuginfod_client *c,
   char *target_cache_dir = NULL;
   char *target_cache_path = NULL;
   char *target_cache_tmppath = NULL;
-  char suffix[PATH_MAX];
+  char suffix[PATH_MAX + 1]; /* +1 for zero terminator.  */
   char build_id_bytes[MAX_BUILD_ID_BYTES * 2 + 1];
   int rc;
 
@@ -491,7 +518,7 @@ debuginfod_query_server (debuginfod_client *c,
   /* Copy lowercase hex representation of build_id into buf.  */
   if ((build_id_len >= MAX_BUILD_ID_BYTES) ||
       (build_id_len == 0 &&
-       sizeof(build_id_bytes) > MAX_BUILD_ID_BYTES*2 + 1))
+       strlen ((const char *) build_id) > MAX_BUILD_ID_BYTES*2))
     return -EINVAL;
   if (build_id_len == 0) /* expect clean hexadecimal */
     strcpy (build_id_bytes, (const char *) build_id);
@@ -506,7 +533,7 @@ debuginfod_query_server (debuginfod_client *c,
 
       /* copy the filename to suffix, s,/,#,g */
       unsigned q = 0;
-      for (unsigned fi=0; q < PATH_MAX-1; fi++)
+      for (unsigned fi=0; q < PATH_MAX-2; fi++) /* -2, escape is 2 chars.  */
         switch (filename[fi])
           {
           case '\0':
@@ -660,10 +687,24 @@ debuginfod_query_server (debuginfod_client *c,
         && (i == 0 || server_urls[i - 1] == url_delim_char))
       num_urls++;
 
+  CURLM *curlm = curl_multi_init();
+  if (curlm == NULL)
+    {
+      rc = -ENETUNREACH;
+      goto out0;
+    }
+
   /* Tracks which handle should write to fd. Set to the first
      handle that is ready to write the target file to the cache.  */
   CURL *target_handle = NULL;
   struct handle_data *data = malloc(sizeof(struct handle_data) * num_urls);
+  if (data == NULL)
+    {
+      rc = -ENOMEM;
+      goto out0;
+    }
+
+  /* thereafter, goto out1 on error.  */
 
   /* Initalize handle_data with default values. */
   for (int i = 0; i < num_urls; i++)
@@ -671,14 +712,6 @@ debuginfod_query_server (debuginfod_client *c,
       data[i].handle = NULL;
       data[i].fd = -1;
     }
-
-  CURLM *curlm = curl_multi_init();
-  if (curlm == NULL)
-    {
-      rc = -ENETUNREACH;
-      goto out0;
-    }
-  /* thereafter, goto out1 on error.  */
 
   char *strtok_saveptr;
   char *server_url = strtok_r(server_urls, url_delim, &strtok_saveptr);
@@ -866,19 +899,44 @@ debuginfod_query_server (debuginfod_client *c,
 						    &resp_code);
                   if(ok1 == CURLE_OK && ok2 == CURLE_OK && effective_url)
                     {
-                      if (strncmp (effective_url, "http", 4) == 0)
+                      if (strncasecmp (effective_url, "HTTP", 4) == 0)
                         if (resp_code == 200)
                           {
                             verified_handle = msg->easy_handle;
                             break;
                           }
-                      if (strncmp (effective_url, "file", 4) == 0)
+                      if (strncasecmp (effective_url, "FILE", 4) == 0)
                         if (resp_code == 0)
                           {
                             verified_handle = msg->easy_handle;
                             break;
                           }
                     }
+                  /* - libcurl since 7.52.0 version start to support
+                       CURLINFO_SCHEME;
+                     - before 7.61.0, effective_url would give us a
+                       url with upper case SCHEME added in the front;
+                     - effective_url between 7.61 and 7.69 can be lack
+                       of scheme if the original url doesn't include one;
+                     - since version 7.69 effective_url will be provide
+                       a scheme in lower case.  */
+                  #if LIBCURL_VERSION_NUM >= 0x073d00 /* 7.61.0 */
+                  #if LIBCURL_VERSION_NUM <= 0x074500 /* 7.69.0 */
+                  char *scheme = NULL;
+                  CURLcode ok3 = curl_easy_getinfo (target_handle,
+                                                    CURLINFO_SCHEME,
+                                                    &scheme);
+                  if(ok3 == CURLE_OK && scheme)
+                    {
+                      if (strncmp (scheme, "HTTP", 4) == 0)
+                        if (resp_code == 200)
+                          {
+                            verified_handle = msg->easy_handle;
+                            break;
+                          }
+                    }
+                  #endif
+                  #endif
                 }
             }
         }
@@ -1079,3 +1137,5 @@ __attribute__((destructor)) attribute_hidden void libdebuginfod_dtor(void)
   /* ... so don't do this: */
   /* curl_global_cleanup(); */
 }
+
+#endif /* DUMMY_LIBDEBUGINFOD */

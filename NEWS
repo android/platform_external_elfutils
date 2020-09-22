@@ -1,3 +1,20 @@
+Version 0.181
+
+libelf: elf_update now compensates (fixes up) a bad sh_addralign for
+        SHF_COMPRESSED sections.
+
+libdebuginfod: configure now takes --enable-libdebuginfod=dummy or
+               --disable-libdebuginfod for bootstrapping.
+               DEBUGINFOD_URLS now accepts "scheme-free" urls
+               (guessing at what the user meant, either http:// or file://)
+
+readelf, elflint: Handle aarch64 bti, pac bits in dynamic table and gnu
+                  property notes.
+
+libdw, readelf: Recognize DW_CFA_AARCH64_negate_ra_state. Allows unwinding
+                on arm64 for code that is compiled for PAC (Pointer
+                Authentication Code) as long as it isn't enabled.
+
 Version 0.180
 
 elflint: Allow SHF_EXCLUDE as generic section flag when --gnu is given.

@@ -24,6 +24,9 @@ notrans_dist_man1_MANS=
 
 if DEBUGINFOD
 notrans_dist_man8_MANS += debuginfod.8
+endif
+
+if LIBDEBUGINFOD
 notrans_dist_man3_MANS += debuginfod_add_http_header.3
 notrans_dist_man3_MANS += debuginfod_begin.3
 notrans_dist_man3_MANS += debuginfod_end.3
@@ -36,4 +39,3 @@ notrans_dist_man3_MANS += debuginfod_set_progressfn.3
 notrans_dist_man3_MANS += debuginfod_set_user_data.3
 notrans_dist_man1_MANS += debuginfod-find.1
 endif
-

@@ -108,6 +108,8 @@ struct Dwarf_CFI_s
   size_t search_table_entries;
   uint8_t search_table_encoding;
 
+  uint16_t e_machine;
+
   /* True if the file has a byte order different from the host.  */
   bool other_byte_order;
 
