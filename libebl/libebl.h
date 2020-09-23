@@ -45,8 +45,10 @@
 #include "elf-knowledge.h"
 
 
-/* Opaque type for the handle.  */
+/* Opaque type for the handle.  libasm.h defined the same thing.  */
+#ifndef _LIBASM_H
 typedef struct ebl Ebl;
+#endif
 
 
 #ifdef __cplusplus

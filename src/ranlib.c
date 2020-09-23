@@ -245,25 +245,31 @@ handle_file (const char *fname)
 	  else
 	    rest_off = SARMAG;
 
-	  if ((symtab.symsnamelen != 0
-	       && ((write_retry (newfd, symtab.symsoff,
-				 symtab.symsofflen)
-		    != (ssize_t) symtab.symsofflen)
-		   || (write_retry (newfd, symtab.symsname,
-				    symtab.symsnamelen)
-		       != (ssize_t) symtab.symsnamelen)))
-	      /* Even if the original file had content before the
-		 symbol table, we write it in the correct order.  */
-	      || (index_off > SARMAG
-		  && copy_content (arelf, newfd, SARMAG, index_off - SARMAG))
-	      || copy_content (arelf, newfd, rest_off, st.st_size - rest_off)
-	      /* Set the mode of the new file to the same values the
-		 original file has.  */
-	      || fchmod (newfd, st.st_mode & ALLPERMS) != 0
-	      /* Never complain about fchown failing.  */
-	      || (({asm ("" :: "r" (fchown (newfd, st.st_uid, st.st_gid))); }),
-		  close (newfd) != 0)
-	      || (newfd = -1, rename (tmpfname, fname) != 0))
+	  if (symtab.symsnamelen != 0
+	      && ((write_retry (newfd, symtab.symsoff,
+				symtab.symsofflen)
+		   != (ssize_t) symtab.symsofflen)
+		  || (write_retry (newfd, symtab.symsname,
+				   symtab.symsnamelen)
+		      != (ssize_t) symtab.symsnamelen)))
+	    goto nonew_unlink;
+
+	  /* Even if the original file had content before the
+	     symbol table, we write it in the correct order.  */
+	  if ((index_off > SARMAG
+	       && copy_content (arelf, newfd, SARMAG, index_off - SARMAG))
+	      || copy_content (arelf, newfd, rest_off, st.st_size - rest_off))
+	    goto nonew_unlink;
+
+	  /* Never complain about fchown failing.  */
+	  if (fchown (newfd, st.st_uid, st.st_gid) != 0) { ; }
+	  /* Set the mode of the new file to the same values the
+	     original file has.  */
+	  if (fchmod (newfd, st.st_mode & ALLPERMS) != 0
+	      || close (newfd) != 0)
+	    goto nonew_unlink;
+	  newfd = -1;
+	  if (rename (tmpfname, fname) != 0)
 	    goto nonew_unlink;
 	}
     }

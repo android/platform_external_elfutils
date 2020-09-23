@@ -149,8 +149,6 @@ ELFUTILS_0.126 {
   global:
     dwarf_getelf;
 
-  local:
-    *;
 } ELFUTILS_0.122;
 
 ELFUTILS_0.127 {
@@ -161,8 +159,6 @@ ELFUTILS_0.127 {
     dwfl_report_begin_add;
     dwfl_module_address_section;
 
-  local:
-    *;
 } ELFUTILS_0.126;
 
 ELFUTILS_0.130 {
@@ -172,8 +168,6 @@ ELFUTILS_0.130 {
     dwfl_module_build_id;
     dwfl_module_report_build_id;
 
-  local:
-    *;
 } ELFUTILS_0.127;
 
 ELFUTILS_0.136 {
@@ -181,8 +175,6 @@ ELFUTILS_0.136 {
     dwfl_addrsegment;
     dwfl_report_segment;
 
-  local:
-    *;
 } ELFUTILS_0.130;
 
 ELFUTILS_0.138 {
@@ -190,8 +182,6 @@ ELFUTILS_0.138 {
     # Replaced ELFUTILS_0.130 version, which has bug-compatibility wrapper.
     dwfl_module_build_id;
 
-  local:
-    *;
 } ELFUTILS_0.136;
 
 ELFUTILS_0.142 {

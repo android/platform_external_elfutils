@@ -1,3 +1,26 @@
+2020-09-08  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.181.
+	* NEWS: Add 0.181 section.
+
+2020-08-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (--enable-libdebuginfod): AC_DEFINE ENABLE_LIBDEBUGINFOD.
+
+2020-07-17  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set -DBAD_FTS=1 also for CXXFLAGS.
+
+2020-06-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (SUBDIRS): Always add debuginfod.
+	* configure.ac (debuginfod): Split off...
+	(libdebuginfod): ... this. Also add DUMME_DEBUGINFOD.
+
+2020-06-15  Sergei Trofimovich <slyfox@gentoo.org>
+
+	* configure.ac: Use READELF in build-id check.
+
 2020-06-11  Mark Wielaard  <mark@klomp.org>
 
 	* configure.ac: Set version to 0.180.

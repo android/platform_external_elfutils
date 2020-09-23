@@ -1,3 +1,11 @@
+2020-07-19  Mark Wielaard  <mark@klomp.org>
+
+	* libasmP.h: Include libebl.h after libasm.h.
+
+2020-07-05  Mark Wielaard  <mark@klomp.org>
+
+	* libasm.h: Include gelf.h.
+
 2020-04-25  Mark Wielaard  <mark@klomp.org>
 
 	* asm_end.c (text_end): Call fflush instead of fclose.

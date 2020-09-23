@@ -1,3 +1,12 @@
+2020-09-03  Mark Wielaard  <mark@klomp.org>
+
+	* eblobjnote.c (ebl_object_note): For EM_AARCH64 handle BTI and PAC
+	in GNU_PROPERTY_AARCH64_FEATURE_1_AND.
+
+2020-07-19  Mark Wielaard  <mark@klomp.org>
+
+	* libebl.h: Only typedef Ebl if _LIBASM_H is undefined.
+
 2020-06-10  Mark Wielaard  <mark@klomp.org>
 
 	* eblopenbackend.c (i386_init, sh_init, x86_64_init, ia64_init,

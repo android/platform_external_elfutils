@@ -1,0 +1,75 @@
+genrule {
+    name: "i386_mnemonics",
+    srcs: [
+        "defs/i386",
+    ],
+    out: ["i386.mnemonics"],
+    cmd: "M4=$(location m4) $(location android_mnemonic_preprocess.sh) i386 $(in) $(out)",
+    tool_files: [
+        "android_mnemonic_preprocess.sh",
+    ],
+    tools : [
+        "m4",
+    ]
+}
+
+genrule {
+    name: "x86_64_mnemonics",
+    srcs : [
+        "defs/i386",
+    ],
+    out : ["x86_64.mnemonics"],
+    cmd : "M4=$(location m4) $(location android_mnemonic_preprocess.sh) x86_64 $(in) $(out)",
+    tool_files : [
+        "android_mnemonic_preprocess.sh",
+    ],
+    tools : [
+        "m4",
+    ]
+}
+
+cc_binary_host {
+    name: "i386_gendis",
+    defaults: ["elfutils_defaults"],
+    srcs: [
+        "i386_parse.y",
+        "i386_lex.l",
+        "i386_gendis.c",
+    ],
+    yacc: {
+        flags: ["-pi386_",]
+    },
+    lex: {
+        flags: ["-Pi386_",]
+    },
+    static_libs: [
+        "libeu",
+    ],
+}
+
+genrule {
+    name: "i386_dis",
+    srcs: [
+        "defs/i386",
+    ],
+    out: ["i386_dis.h"],
+    cmd: "$(location m4) -Di386 -DDISASSEMBLER $(in) > i386_defs && $(location i386_gendis) i386_defs > $(out)",
+    tools: [
+        "i386_gendis",
+        "m4",
+    ],
+}
+
+genrule {
+    name: "x86_64_dis",
+    srcs: [
+        "defs/i386",
+    ],
+    out: ["x86_64_dis.h"],
+    cmd: "$(location m4) -Dx86_64 -DDISASSEMBLER $(in) > x86_64_defs && $(location i386_gendis) x86_64_defs > $(out)",
+    tools: [
+        "i386_gendis",
+        "m4",
+    ],
+}
+

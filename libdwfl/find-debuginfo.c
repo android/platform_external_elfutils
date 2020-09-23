@@ -401,6 +401,7 @@ dwfl_standard_find_debuginfo (Dwfl_Module *mod,
       free (canon);
     }
 
+#ifdef ENABLE_LIBDEBUGINFOD
   /* Still nothing? Try if we can use the debuginfod client.
      But note that we might be looking for the alt file.
      We use the same trick as dwfl_build_id_find_debuginfo.
@@ -422,6 +423,7 @@ dwfl_standard_find_debuginfo (Dwfl_Module *mod,
       if (bits_len > 0)
 	fd = __libdwfl_debuginfod_find_debuginfo (mod->dwfl, bits, bits_len);
     }
+#endif
 
   return fd;
 }

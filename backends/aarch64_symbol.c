@@ -106,3 +106,29 @@ aarch64_data_marker_symbol (const GElf_Sym *sym, const char *sname)
 	  && GELF_ST_TYPE (sym->st_info) == STT_NOTYPE
 	  && (strcmp (sname, "$d") == 0 || strncmp (sname, "$d.", 3) == 0));
 }
+
+const char *
+aarch64_dynamic_tag_name (int64_t tag, char *buf __attribute__ ((unused)),
+			  size_t len __attribute__ ((unused)))
+{
+  switch (tag)
+    {
+    case DT_AARCH64_BTI_PLT:
+      return "AARCH64_BTI_PLT";
+    case DT_AARCH64_PAC_PLT:
+      return "AARCH64_PAC_PLT";
+    case DT_AARCH64_VARIANT_PCS:
+      return "AARCH64_VARIANT_PCS";
+    default:
+      break;
+    }
+  return NULL;
+}
+
+bool
+aarch64_dynamic_tag_check (int64_t tag)
+{
+  return (tag == DT_AARCH64_BTI_PLT
+	  || tag == DT_AARCH64_PAC_PLT
+	  || tag == DT_AARCH64_VARIANT_PCS);
+}

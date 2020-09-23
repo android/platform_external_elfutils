@@ -1,3 +1,45 @@
+2020-07-03  Alice Zhang <alizhang@redhat.com>
+
+	* debuginfod-client.c (debuginfod_query_server): Use strncasecmp
+	to compare effective_url. Try CURLINFO_SCHEME as fallback.
+
+2020-06-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (bin_PROGRAMS): Guard with DEBUGINFOD and
+	LIBDEBUGINFOD.
+	(debuginfod_LDADD): Remove libcurl.
+	(libdebuginfod): When static and DUMMY_LIBDEBUGINFO remove libcurl.
+	(noinst_LIBRARIES): Guard with LIBDEBUGINFOD.
+	(AM_CPPFLAGS): Add -Wno-unused-parameter when DUMMY_LIBDEBUGINFOD.
+	(pkginclude_headers): Guard with LIBDEBUGINFOD
+	(libdebuginfod_so_LIBS): Likewise.
+	(+libdebuginfod_so_LDLIBS): Likewise.
+	(install): Likewise.
+	(uninstall): Likewise.
+	* debuginfod-client.c: Include dummy functions when
+	DUMMY_LIBDEBUGINFOD.
+	* debuginfod.cxx: Remove curl.h include.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-client.c (debuginfod_query_server): Check malloc.
+	Move curl_multi_init call before handle_data malloc call.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-client.c (debuginfod_query_server): Replace sizeof
+	build_id_bytes check with strlen build_id check.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-client.c (debuginfod_query_server): Increase suffix
+	array and prepare having to escape 1 character with 2.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-client.c (debuginfod_clean_cache): Handle failing
+	fopen (interval_path).
+
 2020-03-29  Mark Wielaard  <mark@klomp.org>
 
 	* debuginfod-client.c (debuginfod_add_http_header): Check header

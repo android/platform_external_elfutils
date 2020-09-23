@@ -342,7 +342,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	   argp_parse.  */
 
 	int result = INTUSE(dwfl_report_end) (dwfl, NULL, NULL);
-	assert (result == 0);
+	if (result != 0)
+	  return fail (dwfl, -1, arg, state);
 
 	/* Update the input all along, so a parent parser can see it.
 	   As we free OPT the update below will be no longer active.  */

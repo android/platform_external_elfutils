@@ -1,3 +1,45 @@
+2020-08-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (libdwfl_a_SOURCES): Conditionalize
+	debuginfod-client.c on LIBDEBUGINFOD.
+	* dwfl_build_id_find_elf.c (dwfl_build_id_find_elf): Conditionalize
+	__libdwfl_debuginfod_find_executable invocation on
+	ENABLE_LIBDEBUGINFOD.
+	* dwfl_end.c (dwfl_end): Conditionalize __libdwfl_debuginfod_end
+	invocation on ENABLE_LIBDEBUGINFOD.
+	* find-debuginfo.c (dwfl_standard_find_debuginfo): Conditionalize
+	__libdwfl_debuginfod_find_debuginfo invocation on
+	ENABLE_LIBDEBUGINFOD.
+	* libdwflP.h: Guard debuginfod.h include with ENABLE_LIBDEBUGINFOD.
+	(struct Dwfl): Guard debuginfod field with ENABLE_LIBDEBUGINFOD.
+	(__libdwfl_debuginfod_find_executable,
+	__libdwfl_debuginfod_find_debuginfo, __libdwfl_debuginfod_end):
+	Guard declarations with ENABLE_LIBDEBUGINFOD.
+
+2020-07-05  Mark Wielaard  <mark@klomp.org>
+
+	* argp-std.c (parse_opt): Don't assert, but call fail when
+	dwfl_report_end fails.
+	* dwfl_build_id_find_elf.c (__libdwfl_open_by_build_id): Don't
+	assert, but goto bad_id when snprintf fails.
+	* frame_unwind.c (__libdwfl_frame_unwind): Don't assert, but
+	return when dwfl_frame_pc fails.
+	* linux-core-attach.c (core_set_initial_registers): Don't assert,
+	but return false when gelf_getnote fails or the core note is not
+	as expected.
+	* linux-pid-attach.c (dwfl_linux_proc_attach): Don't assert, but
+	goto fail when snprintf fails.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* frame_unwind.c (handle_cfi): Flag an error if
+	return_address_register is invalid.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* linux-kernel-modules.c (try_kernel_name): Don't try other
+	compressed kernels if we already found an compressed image.
+
 2020-05-09  Mark Wielaard  <mark@klomp.org>
 
 	* find-debuginfo.c (dwfl_standard_find_debuginfo): Return failure
