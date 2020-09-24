@@ -51,6 +51,24 @@
       "revId": "f4e4068727f9bf1096b4d47d785f79287d8df1ef",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c9465205_96d8204d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2020-09-24T16:21:31Z",
+      "side": 1,
+      "message": "external_updater _does_ do that. that\u0027s what generated this CL :-)",
+      "parentUuid": "22d6a7fd_339ff824",
+      "revId": "f4e4068727f9bf1096b4d47d785f79287d8df1ef",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
     }
   ]
 }
