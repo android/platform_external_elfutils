@@ -16,6 +16,41 @@
       "revId": "f4e4068727f9bf1096b4d47d785f79287d8df1ef",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "22d6a7fd_339ff824",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2020-09-24T15:50:32Z",
+      "side": 1,
+      "message": "urgh, somewhere else copybara does that for me. could be an excellent feature for `external_updater`",
+      "parentUuid": "2cc0aef1_10e91b39",
+      "revId": "f4e4068727f9bf1096b4d47d785f79287d8df1ef",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "858ef205_345db543",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2020-09-24T15:50:32Z",
+      "side": 1,
+      "message": "Thanks for catching that.",
+      "revId": "f4e4068727f9bf1096b4d47d785f79287d8df1ef",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889",
+      "unresolved": false
     }
   ]
 }
