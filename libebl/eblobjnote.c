@@ -476,6 +476,73 @@ ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name, uint32_t type,
 			    }
 			}
 		    }
+		  else if (prop.pr_type >= GNU_PROPERTY_LOPROC
+			   && prop.pr_type <= GNU_PROPERTY_HIPROC
+			   && ehdr.e_machine == EM_AARCH64)
+		    {
+		      printf ("AARCH64 ");
+		      if (prop.pr_type == GNU_PROPERTY_AARCH64_FEATURE_1_AND)
+			{
+			  printf ("FEATURE_1_AND: ");
+
+			  if (prop.pr_datasz == 4)
+			    {
+			      GElf_Word data;
+			      in.d_type = ELF_T_WORD;
+			      out.d_type = ELF_T_WORD;
+			      in.d_size = 4;
+			      out.d_size = 4;
+			      in.d_buf = (void *) desc;
+			      out.d_buf = (void *) &data;
+
+			      if (gelf_xlatetom (ebl->elf, &out, &in,
+						 elfident[EI_DATA]) == NULL)
+				{
+				  printf ("%s\n", elf_errmsg (-1));
+				  return;
+				}
+			      printf ("%08" PRIx32 " ", data);
+
+			      if ((data & GNU_PROPERTY_AARCH64_FEATURE_1_BTI)
+				  != 0)
+				{
+				  printf ("BTI");
+				  data &= ~GNU_PROPERTY_AARCH64_FEATURE_1_BTI;
+				  if (data != 0)
+				    printf (" ");
+				}
+
+			      if ((data & GNU_PROPERTY_AARCH64_FEATURE_1_PAC)
+				  != 0)
+				{
+				  printf ("PAC");
+				  data &= ~GNU_PROPERTY_AARCH64_FEATURE_1_PAC;
+				  if (data != 0)
+				    printf (" ");
+				}
+
+			      if (data != 0)
+				printf ("UNKNOWN");
+			    }
+			  else
+			    printf ("<bad datasz: %" PRId32 ">",
+				    prop.pr_datasz);
+
+			  printf ("\n");
+			}
+		      else
+			{
+			  printf ("%#" PRIx32, prop.pr_type);
+			  if (prop.pr_datasz > 0)
+			    {
+			      printf (" data: ");
+			      size_t i;
+			      for (i = 0; i < prop.pr_datasz - 1; i++)
+				printf ("%02" PRIx8 " ", (uint8_t) desc[i]);
+			      printf ("%02" PRIx8 "\n", (uint8_t) desc[i]);
+			    }
+			}
+		    }
 		  else
 		    {
 		      if (prop.pr_type >= GNU_PROPERTY_LOPROC

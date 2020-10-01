@@ -80,13 +80,19 @@ backtrace-child-biarch$(EXEEXT): backtrace-child.c
 		     $(AM_LDFLAGS) $(LDFLAGS) $(backtrace_child_LDFLAGS) \
 		     -o $@ $<
 
+if GCOV
+GCOV_FLAGS=-fprofile-arcs -ftest-coverage
+else
+GCOV_FLAGS=
+endif
+
 # test_nlist checks its own symbol table, and expects various symbols
 # to be in the order as specified in the source file. Explicitly set
 # minimal CFLAGS
 test-nlist$(EXEEXT): test-nlist.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	  $(AM_CPPFLAGS) $(CPPFLAGS) \
-	  $(test_nlist_CFLAGS) $(test_nlist_LDADD) -o $@ $<
+	  $(test_nlist_CFLAGS) $(GCOV_FLAGS) -o $@ $< $(test_nlist_LDADD)
 
 TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	update1 update2 update3 update4 \
@@ -119,6 +125,7 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-readelf-test4.sh run-readelf-twofiles.sh \
 	run-readelf-macro.sh run-readelf-loc.sh run-readelf-ranges.sh \
 	run-readelf-aranges.sh run-readelf-line.sh run-readelf-z.sh \
+	run-readelf-frames.sh \
 	run-readelf-n.sh \
 	run-native-test.sh run-bug1-test.sh \
 	run-debuglink.sh run-debugaltlink.sh run-buildid.sh \
@@ -178,7 +185,7 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-elfclassify.sh run-elfclassify-self.sh \
 	run-disasm-riscv64.sh \
 	run-pt_gnu_prop-tests.sh \
-	run-getphdrnum.sh
+	run-getphdrnum.sh run-test-includes.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -204,7 +211,10 @@ endif
 
 if DEBUGINFOD
 check_PROGRAMS += debuginfod_build_id_find
+# With the dummy delegation doesn't work
+if !DUMMY_LIBDEBUGINFOD
 TESTS += run-debuginfod-find.sh
+endif
 endif
 
 EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
@@ -304,12 +314,14 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     testfile-dwzstr.bz2 testfile-dwzstr.multi.bz2 \
 	     run-readelf-addr.sh run-readelf-str.sh \
 	     run-readelf-types.sh \
+	     run-readelf-frames.sh \
 	     run-readelf-n.sh \
 	     testfile-gnu-property-note.bz2 testfile-gnu-property-note.o.bz2 \
 	     testfile_gnu_props.32le.o.bz2 \
 	     testfile_gnu_props.64le.o.bz2 \
 	     testfile_gnu_props.32be.o.bz2 \
 	     testfile_gnu_props.64be.o.bz2 \
+	     testfile-gnu-property-note-aarch64.bz2 \
 	     run-allfcts-multi.sh \
 	     test-offset-loop.bz2 test-offset-loop.alt.bz2 \
 	     run-prelink-addr-test.sh \
@@ -496,7 +508,8 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     debuginfod-tars/pacman-sources/hello.c \
 	     run-pt_gnu_prop-tests.sh \
 	     testfile_pt_gnu_prop.bz2 testfile_pt_gnu_prop32.bz2 \
-	     run-getphdrnum.sh testfile-phdrs.elf.bz2
+	     run-getphdrnum.sh testfile-phdrs.elf.bz2 \
+	     run-test-includes.sh
 
 
 if USE_VALGRIND

@@ -48,6 +48,7 @@ __libdwfl_open_by_build_id (Dwfl_Module *mod, bool debug, char **file_name,
 #define MAX_BUILD_ID_BYTES 64
   if (id_len < MIN_BUILD_ID_BYTES || id_len > MAX_BUILD_ID_BYTES)
     {
+    bad_id:
       __libdwfl_seterrno (DWFL_E_WRONG_ID_ELF);
       return -1;
     }
@@ -59,12 +60,14 @@ __libdwfl_open_by_build_id (Dwfl_Module *mod, bool debug, char **file_name,
   strcpy (id_name, "/.build-id/");
   int n = snprintf (&id_name[sizeof "/.build-id/" - 1],
 		    4, "%02" PRIx8 "/", (uint8_t) id[0]);
-  assert (n == 3);
+  if (n != 3)
+    goto bad_id;;
   for (size_t i = 1; i < id_len; ++i)
     {
       n = snprintf (&id_name[sizeof "/.build-id/" - 1 + 3 + (i - 1) * 2],
 		    3, "%02" PRIx8, (uint8_t) id[i]);
-      assert (n == 2);
+      if (n != 2)
+	goto bad_id;
     }
   if (debug)
     strcpy (&id_name[sizeof "/.build-id/" - 1 + 3 + (id_len - 1) * 2],
@@ -189,12 +192,14 @@ dwfl_build_id_find_elf (Dwfl_Module *mod,
     }
   else
     {
+#ifdef ENABLE_LIBDEBUGINFOD
       /* If all else fails and a build-id is available, query the
 	 debuginfo-server if enabled.  */
       if (fd < 0 && mod->build_id_len > 0)
 	fd = __libdwfl_debuginfod_find_executable (mod->dwfl,
 						   mod->build_id_bits,
 						   mod->build_id_len);
+#endif
     }
 
   if (fd < 0 && errno == 0 && mod->build_id_len > 0)

@@ -827,7 +827,8 @@ process_current_path (int *status)
       break;
     case do_print0:
       if (checks_passed == flag_print_matching)
-        fwrite (current_path, strlen (current_path) + 1, 1, stdout);
+        if (fwrite (current_path, strlen (current_path) + 1, 1, stdout) < 1)
+	  issue (errno, N_("writing to standard output"));
       break;
     case no_print:
       if (!checks_passed)

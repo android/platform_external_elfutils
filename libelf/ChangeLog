@@ -1,3 +1,12 @@
+2020-08-28  Mark Wielaard  <mark@klomp.org>
+
+	* elf.h: Update from glibc.
+
+2020-08-19  Mark Wielaard  <mark@klomp.org>
+
+	* elf32_updatenull.c (updatenull_wrlock): Fixup the sh_addralign
+	of an SHF_COMPRESSED section if necessary.
+
 2020-06-04  Mark Wielaard  <mark@klomp.org>
 
 	* elf.h: Update from glibc.

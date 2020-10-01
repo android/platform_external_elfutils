@@ -1,3 +1,16 @@
+2020-08-28  Mark Wielard  <mark@klomp.org>
+
+	* aarch64_init.c (aarch64_init): Hook dynamic_tag_name and
+	dynamic_tag_check.
+	* aarch64_symbol.c (aarch64_dynamic_tag_name): New function.
+	(aarch64_dynamic_tag_check): Likewise.
+
+2020-06-16  Mark Wielard  <mark@klomp.org>
+
+	* common-reloc.c (reloc_nametable): Make zero a 1 char array.
+	Initialize it as an array { '\0' }.
+	(reloc_type_name): Access zero as an array.
+
 2020-06-10  Mark Wielard  <mark@klomp.org>
 
 	* aarch64_init.c (aarch64_init): Remove ehlen, return eh.

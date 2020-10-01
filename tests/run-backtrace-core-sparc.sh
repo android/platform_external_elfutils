@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 # Copyright (C) 2015 Oracle, Inc.
 # This file is part of elfutils.
 #

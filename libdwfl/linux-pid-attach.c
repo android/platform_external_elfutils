@@ -422,7 +422,11 @@ dwfl_linux_proc_attach (Dwfl *dwfl, pid_t pid, bool assume_ptrace_stopped)
 
   char name[64];
   int i = snprintf (name, sizeof (name), "/proc/%ld/task", (long) pid);
-  assert (i > 0 && i < (ssize_t) sizeof (name) - 1);
+  if (i <= 0 || i >= (ssize_t) sizeof (name) - 1)
+    {
+      errno = -ENOMEM;
+      goto fail;
+    }
   DIR *dir = opendir (name);
   if (dir == NULL)
     {

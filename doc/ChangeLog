@@ -1,3 +1,7 @@
+2020-06-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am: Guard all client manpages with LIBDEBUGINFOD.
+
 2020-03-29  Mark Wielaard  <mark@klomp.org>
 
 	* debuginfod_find_debuginfo.3 (HTTP HEADER): Document the expected

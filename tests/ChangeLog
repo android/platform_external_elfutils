@@ -1,3 +1,77 @@
+2020-09-03  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-frames.sh: New test.
+	* Makefile.am (TESTS): Add run-readelf-frames.sh.
+	(EXTRA_DIST): Likewise.
+
+2020-09-03  Mark Wielaard  <mark@klomp.org>
+
+	* testfile-gnu-property-note-aarch64.bz2: New file.
+	* run-readelf-n.sh: Handle testfile-gnu-property-note-aarch64.
+	* Makefile.am (EXTRA_DIST): Add
+	testfile-gnu-property-note-aarch64.bz2.
+
+2020-07-19  Mark Wielaard  <mark@klomp.org>
+
+	* asm-tst1.c: Include libebl.h after libasm.h.
+	* asm-tst2.c: Likewise.
+	* asm-tst3.c: Likewise.
+	* asm-tst4.c: Likewise.
+	* asm-tst5.c: Likewise.
+	* asm-tst6.c: Likewise.
+	* asm-tst7.c: Likewise.
+	* asm-tst8.c: Likewise.
+	* asm-tst9.c: Likewise.
+
+2020-07-05  Mark Wielaard  <mark@klomp.org>
+
+	* run-test-includes.sh: New test.
+	* Makefile.am (TESTS): Add run-test-includes.sh.
+	(EXTRA_DIST): Likewise.
+
+2020-07-03  Alice Zhang  <alizhang@redhat.com>
+
+	* run-debuginfod-find.sh: Add scheme free url testcase.
+
+2020-06-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (TESTS): Don't add run-debuginfod-find.sh when
+	DUMMY_LIBDEBUGINFOD.
+
+2020-06-16  Mark Wielaard  <mark@klomp.org>
+
+	* coverage.sh: Use /usr/bin/env bash.
+	* run-ar.sh: Likewise.
+	* run-backtrace-core-aarch64.sh: Likewise.
+	* run-backtrace-core-i386.sh: Likewise.
+	* run-backtrace-core-ppc.sh: Likewise.
+	* run-backtrace-core-s390.sh: Likewise.
+	* run-backtrace-core-s390x.sh: Likewise.
+	* run-backtrace-core-sparc.sh: Likewise.
+	* run-backtrace-core-x32.sh: Likewise.
+	* run-backtrace-core-x86_64.sh: Likewise.
+	* run-backtrace-data.sh: Likewise.
+	* run-backtrace-demangle.sh: Likewise.
+	* run-backtrace-dwarf.sh: Likewise.
+	* run-backtrace-fp-core-aarch64.sh: Likewise.
+	* run-backtrace-fp-core-i386.sh: Likewise.
+	* run-backtrace-fp-core-ppc64le.sh: Likewise.
+	* run-backtrace-fp-core-x86_64.sh: Likewise.
+	* run-backtrace-native-biarch.sh: Likewise.
+	* run-backtrace-native-core-biarch.sh: Likewise.
+	* run-backtrace-native-core.sh: Likewise.
+	* run-backtrace-native.sh: Likewise.
+	* run-debuginfod-find.sh: Likewise.
+	* run-deleted.sh: Likewise.
+	* run-dwelf_elf_e_machine_string.sh: Likewise.
+	* run-large-elf-file.sh: Likewise.
+	* run-lfs-symbols.sh: Likewise.
+	* run-linkmap-cut.sh: Likewise.
+
+2020-06-11  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (nlist-test): Add GCOV flags when necessary.
+
 2020-06-06  Mark Wielaard  <mark@klomp.org>
 
 	* testfilesyms32.bz2: New test file.

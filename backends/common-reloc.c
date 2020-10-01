@@ -45,14 +45,14 @@
 
 static const struct EBLHOOK(reloc_nametable)
 {
-  char zero;
+  char zero[1];
 #define	RELOC_TYPE(type, uses) \
   char name_##type[sizeof R_NAME (type)];
 #include RELOC_TYPES
 #undef RELOC_TYPE
 } EBLHOOK(reloc_nametable) =
   {
-    '\0',
+    { '\0' },
 #define	RELOC_TYPE(type, uses) R_NAME (type),
 #include RELOC_TYPES
 #undef RELOC_TYPE
@@ -92,7 +92,7 @@ EBLHOOK(reloc_type_name) (int reloc,
 #endif
 
   if (reloc >= 0 && reloc < nreloc && EBLHOOK(reloc_nameidx)[reloc] != 0)
-    return &reloc_namestr[EBLHOOK(reloc_nameidx)[reloc]];
+    return reloc_namestr[EBLHOOK(reloc_nameidx)[reloc]];
   return NULL;
 }
 
