@@ -1,3 +1,15 @@
+2020-09-18  Mark Wielaard  <mark@klomp.org>
+
+	* zstd.c: New file.
+	* libdwflP.h: Add DWFL_E_ZSTD and __libdw_unzstd.
+	* Makefile.am (libdwfl_a_SOURCES): add zstd.c if ZSTD.
+	* gzip.c: Add defines and includes for ZSTD.
+	(zlib_fail): Don't define for ZSTD.
+	(unzip): Change pread_retry failure from zlib_fail to fail.
+	Add ZSTD support.
+	* open.c (decompress): Also try __libdw_unzstd.
+	* linux-kernel-modules.c (check_suffix): Also TRY ".ko.zst".
+
 2020-08-20  Dmitry V. Levin  <ldv@altlinux.org>
 
 	* Makefile.am (libdwfl_a_SOURCES): Conditionalize

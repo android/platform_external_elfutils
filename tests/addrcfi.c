@@ -92,7 +92,7 @@ print_register (void *arg,
 
   printf ("\t%s reg%u (%s%s): ", setname, regno, prefix, regname);
 
-  Dwarf_Op ops_mem[2];
+  Dwarf_Op ops_mem[3];
   Dwarf_Op *ops;
   size_t nops;
   int result = dwarf_frame_register (stuff->frame, regno, ops_mem, &ops, &nops);

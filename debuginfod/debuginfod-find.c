@@ -13,9 +13,9 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    General Public License for more details.
 
-   You should have received copies of the GNU General Public License and
-   the GNU Lesser General Public License along with this program.  If
-   not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
 
 #include "config.h"
 #include "printversion.h"
@@ -138,9 +138,10 @@ main(int argc, char** argv)
     }
   if (fd >= 0)
     {
-      elf = elf_begin (fd, ELF_C_READ_MMAP_PRIVATE, NULL);
+      elf = dwelf_elf_begin (fd);
       if (elf == NULL)
-        fprintf (stderr, "Cannot elf_begin %s: %s\n", build_id, elf_errmsg(-1));
+        fprintf (stderr, "Cannot open as ELF file %s: %s\n", build_id,
+		 elf_errmsg (-1));
     }
   if (elf != NULL)
     {

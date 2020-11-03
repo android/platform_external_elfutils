@@ -56,7 +56,6 @@ x86_64_init (Elf *elf __attribute__ ((unused)),
     HOOK (eh, core_note);
   HOOK (eh, return_value_location);
   HOOK (eh, register_info);
-  HOOK (eh, syscall_abi);
   HOOK (eh, auxv_info);
   HOOK (eh, disasm);
   HOOK (eh, abi_cfi);

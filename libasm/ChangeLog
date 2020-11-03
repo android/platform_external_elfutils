@@ -1,3 +1,8 @@
+2020-10-29  Mark Wielaard  <mark@klomp.org>
+
+	* asm_align.c (__libasm_ensure_section_space): Use calloc, not
+	malloc to allocate extra space.
+
 2020-07-19  Mark Wielaard  <mark@klomp.org>
 
 	* libasmP.h: Include libebl.h after libasm.h.

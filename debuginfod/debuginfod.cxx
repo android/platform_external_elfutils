@@ -388,7 +388,9 @@ static string db_path;
 static sqlite3 *db; // single connection, serialized across all our threads!
 static unsigned verbose;
 static volatile sig_atomic_t interrupted = 0;
+static volatile sig_atomic_t forced_rescan_count = 0;
 static volatile sig_atomic_t sigusr1 = 0;
+static volatile sig_atomic_t forced_groom_count = 0;
 static volatile sig_atomic_t sigusr2 = 0;
 static unsigned http_port = 8002;
 static unsigned rescan_s = 300;
@@ -548,23 +550,31 @@ struct sqlite_exception: public reportable_exception
 struct libc_exception: public reportable_exception
 {
   libc_exception(int rc, const string& msg):
-    reportable_exception(string("libc error: ") + msg + ": " + string(strerror(rc) ?: "?")) {}
+    reportable_exception(string("libc error: ") + msg + ": " + string(strerror(rc) ?: "?")) {
+    inc_metric("error_count","libc",strerror(rc));
+  }
 };
 
 
 struct archive_exception: public reportable_exception
 {
   archive_exception(const string& msg):
-    reportable_exception(string("libarchive error: ") + msg) {}
+    reportable_exception(string("libarchive error: ") + msg) {
+      inc_metric("error_count","libarchive",msg);
+  }
   archive_exception(struct archive* a, const string& msg):
-    reportable_exception(string("libarchive error: ") + msg + ": " + string(archive_error_string(a) ?: "?")) {}
+    reportable_exception(string("libarchive error: ") + msg + ": " + string(archive_error_string(a) ?: "?")) {
+    inc_metric("error_count","libarchive",msg);
+  }
 };
 
 
 struct elfutils_exception: public reportable_exception
 {
   elfutils_exception(int rc, const string& msg):
-    reportable_exception(string("elfutils error: ") + msg + ": " + string(elf_errmsg(rc) ?: "?")) {}
+    reportable_exception(string("elfutils error: ") + msg + ": " + string(elf_errmsg(rc) ?: "?")) {
+    inc_metric("error_count","elfutils",elf_errmsg(rc));
+  }
 };
 
 
@@ -597,6 +607,14 @@ public:
     // optional: q.clear();
     dead = true;
     cv.notify_all();
+  }
+
+  // clear the workqueue, when scanning is interrupted with USR2
+  void clear() {
+    unique_lock<mutex> lock(mtx);
+    q.clear();
+    set_metric("thread_work_pending","role","scan", q.size());
+    cv.notify_all(); // maybe wake up waiting idlers
   }
 
   // block this scanner thread until there is work to do and no active
@@ -890,18 +908,15 @@ add_mhd_last_modified (struct MHD_Response *resp, time_t mtime)
 
 
 static struct MHD_Response*
-handle_buildid_f_match (int64_t b_mtime,
+handle_buildid_f_match (bool internal_req_t,
+                        int64_t b_mtime,
                         const string& b_source0,
                         int *result_fd)
 {
+  (void) internal_req_t; // ignored
   int fd = open(b_source0.c_str(), O_RDONLY);
   if (fd < 0)
-    {
-      if (verbose)
-        obatched(clog) << "cannot open " << b_source0 << endl;
-      // if still missing, a periodic groom pass will delete this buildid record
-      return 0;
-    }
+    throw libc_exception (errno, string("open ") + b_source0);
 
   // NB: use manual close(2) in error case instead of defer_dtor, because
   // in the normal case, we want to hand the fd over to libmicrohttpd for
@@ -911,10 +926,8 @@ handle_buildid_f_match (int64_t b_mtime,
   int rc = fstat(fd, &s);
   if (rc < 0)
     {
-      if (verbose)
-        clog << "cannot fstat " << b_source0 << endl;
       close(fd);
-      return 0;
+      throw libc_exception (errno, string("fstat ") + b_source0);
     }
 
   if ((int64_t) s.st_mtime != b_mtime)
@@ -1083,6 +1096,15 @@ private:
   long max_mbs;
 
 public:
+  void set_metrics()
+  {
+    double total_mb = 0.0;
+    for (auto i = lru.begin(); i < lru.end(); i++)
+      total_mb += i->fd_size_mb;
+    set_metric("fdcache_bytes", (int64_t)(total_mb*1024.0*1024.0));
+    set_metric("fdcache_count", lru.size());
+  }
+
   void intern(const string& a, const string& b, string fd, off_t sz, bool front_p)
   {
     {
@@ -1093,19 +1115,27 @@ public:
             {
               unlink (i->fd.c_str());
               lru.erase(i);
+              inc_metric("fdcache_op_count","op","dequeue");
               break; // must not continue iterating
             }
         }
       double mb = (sz+65535)/1048576.0; // round up to 64K block
       fdcache_entry n = { a, b, fd, mb };
       if (front_p)
-        lru.push_front(n);
+        {
+          inc_metric("fdcache_op_count","op","enqueue_front");
+          lru.push_front(n);
+        }
       else
-        lru.push_back(n);
-    if (verbose > 3)
-      obatched(clog) << "fdcache interned a=" << a << " b=" << b
-                     << " fd=" << fd << " mb=" << mb << " front=" << front_p << endl;
+        {
+          inc_metric("fdcache_op_count","op","enqueue_back");
+          lru.push_back(n);
+        }
+      if (verbose > 3)
+        obatched(clog) << "fdcache interned a=" << a << " b=" << b
+                       << " fd=" << fd << " mb=" << mb << " front=" << front_p << endl;
     }
+    set_metrics();
 
     // NB: we age the cache at lookup time too
     if (front_p)
@@ -1124,7 +1154,7 @@ public:
               fdcache_entry n = *i;
               lru.erase(i); // invalidates i, so no more iteration!
               lru.push_front(n);
-
+              inc_metric("fdcache_op_count","op","requeue_front");
               fd = open(n.fd.c_str(), O_RDONLY); // NB: no problem if dup() fails; looks like cache miss
               break;
             }
@@ -1143,8 +1173,12 @@ public:
     for (auto i = lru.begin(); i < lru.end(); i++)
       {
         if (i->archive == a && i->entry == b)
-          return true;
+          {
+            inc_metric("fdcache_op_count","op","probe_hit");
+            return true;
+          }
       }
+    inc_metric("fdcache_op_count","op","probe_miss");
     return false;
   }
 
@@ -1157,13 +1191,15 @@ public:
           { // found it; move it to head of lru
             fdcache_entry n = *i;
             lru.erase(i); // invalidates i, so no more iteration!
+            inc_metric("fdcache_op_count","op","clear");
             unlink (n.fd.c_str());
+            set_metrics();
             return;
           }
       }
   }
 
-  void limit(long maxfds, long maxmbs)
+  void limit(long maxfds, long maxmbs, bool metrics_p = true)
   {
     if (verbose > 3 && (this->max_fds != maxfds || this->max_mbs != maxmbs))
       obatched(clog) << "fdcache limited to maxfds=" << maxfds << " maxmbs=" << maxmbs << endl;
@@ -1188,19 +1224,23 @@ public:
                 if (verbose > 3)
                   obatched(clog) << "fdcache evicted a=" << j->archive << " b=" << j->entry
                                  << " fd=" << j->fd << " mb=" << j->fd_size_mb << endl;
+                if (metrics_p)
+                  inc_metric("fdcache_op_count","op","evict");
                 unlink (j->fd.c_str());
               }
 
             lru.erase(i, lru.end()); // erase the nodes generally
             break;
           }
-
       }
+    if (metrics_p) set_metrics();
   }
 
   ~libarchive_fdcache()
   {
-    limit(0, 0);
+    // unlink any fdcache entries in $TMPDIR
+    // don't update metrics; those globals may be already destroyed 
+    limit(0, 0, false);
   }
 };
 static libarchive_fdcache fdcache;
@@ -1226,7 +1266,8 @@ string canonicalized_archive_entry_pathname(struct archive_entry *e)
 
 
 static struct MHD_Response*
-handle_buildid_r_match (int64_t b_mtime,
+handle_buildid_r_match (bool internal_req_p,
+                        int64_t b_mtime,
                         const string& b_source0,
                         const string& b_source1,
                         int *result_fd)
@@ -1330,7 +1371,8 @@ handle_buildid_r_match (int64_t b_mtime,
   // 3) extract some number of prefetched entries (just into fdcache)
   // 4) abort any further processing
   struct MHD_Response* r = 0;                 // will set in stage 2
-  unsigned prefetch_count = fdcache_prefetch; // will decrement in stage 3
+  unsigned prefetch_count =
+    internal_req_p ? 0 : fdcache_prefetch;    // will decrement in stage 3
 
   while(r == 0 || prefetch_count > 0) // stage 1, 2, or 3
     {
@@ -1363,7 +1405,8 @@ handle_buildid_r_match (int64_t b_mtime,
         throw libc_exception (errno, "cannot create temporary file");
       // NB: don't unlink (tmppath), as fdcache will take charge of it.
 
-      rc = archive_read_data_into_fd (a, fd);
+      // NB: this can take many uninterruptible seconds for a huge file
+      rc = archive_read_data_into_fd (a, fd); 
       if (rc != ARCHIVE_OK) // e.g. ENOSPC!
         {
           close (fd);
@@ -1424,18 +1467,28 @@ handle_buildid_r_match (int64_t b_mtime,
 
 
 static struct MHD_Response*
-handle_buildid_match (int64_t b_mtime,
+handle_buildid_match (bool internal_req_p,
+                      int64_t b_mtime,
                       const string& b_stype,
                       const string& b_source0,
                       const string& b_source1,
                       int *result_fd)
 {
-  if (b_stype == "F")
-    return handle_buildid_f_match(b_mtime, b_source0, result_fd);
-  else if (b_stype == "R")
-    return handle_buildid_r_match(b_mtime, b_source0, b_source1, result_fd);
-  else
-    return 0;
+  try
+    {
+      if (b_stype == "F")
+        return handle_buildid_f_match(internal_req_p, b_mtime, b_source0, result_fd);
+      else if (b_stype == "R")
+        return handle_buildid_r_match(internal_req_p, b_mtime, b_source0, b_source1, result_fd);
+    }
+  catch (const reportable_exception &e)
+    {
+      e.report(clog);
+      // Report but swallow libc etc. errors here; let the caller
+      // iterate to other matches of the content.
+    }
+  
+  return 0;
 }
 
 
@@ -1505,6 +1558,8 @@ handle_buildid (MHD_Connection* conn,
                           "order by sharedprefix(source0,source0ref) desc, mtime desc");
       pp->reset();
       pp->bind(1, buildid);
+      // NB: we don't store the non-canonicalized path names any more, but old databases
+      // might have them (and no canon ones), so we keep searching for both.
       pp->bind(2, suffix);
       pp->bind(3, canon_pathname(suffix));
     }
@@ -1529,7 +1584,8 @@ handle_buildid (MHD_Connection* conn,
 
       // Try accessing the located match.
       // XXX: in case of multiple matches, attempt them in parallel?
-      auto r = handle_buildid_match (b_mtime, b_stype, b_source0, b_source1, result_fd);
+      auto r = handle_buildid_match (conn ? false : true,
+                                     b_mtime, b_stype, b_source0, b_source1, result_fd);
       if (r)
         return r;
     }
@@ -1630,6 +1686,8 @@ handle_buildid (MHD_Connection* conn,
 static map<string,int64_t> metrics; // arbitrary data for /metrics query
 // NB: store int64_t since all our metrics are integers; prometheus accepts double
 static mutex metrics_lock;
+// NB: these objects get released during the process exit via global dtors
+// do not call them from within other global dtors
 
 // utility function for assembling prometheus-compatible
 // name="escaped-value" strings
@@ -2171,7 +2229,9 @@ scan_source_file (const string& rps, const stat_t& st,
         elf_classify (fd, executable_p, debuginfo_p, buildid, sourcefiles);
       else
         throw libc_exception(errno, string("open ") + rps);
-      inc_metric ("scanned_total","source","file");
+      add_metric ("scanned_bytes_total","source","file",
+                  st.st_size);
+      inc_metric ("scanned_files_total","source","file");
     }
   // NB: we catch exceptions here too, so that we can
   // cache the corrupt-elf case (!executable_p &&
@@ -2254,40 +2314,26 @@ scan_source_file (const string& rps, const stat_t& st,
             .bind(1, srps)
             .step_ok_done();
 
-          // register the dwarfsrc name in the interning table too
-          ps_upsert_files
-            .reset()
-            .bind(1, dwarfsrc)
-            .step_ok_done();
-
-          ps_upsert_s
-            .reset()
-            .bind(1, buildid)
-            .bind(2, dwarfsrc)
-            .bind(3, srps)
-            .bind(4, sfs.st_mtime)
-            .step_ok_done();
-
-          // PR25548: also store canonicalized source path
+          // PR25548: store canonicalized dwarfsrc path
           string dwarfsrc_canon = canon_pathname (dwarfsrc);
           if (dwarfsrc_canon != dwarfsrc)
             {
               if (verbose > 3)
                 obatched(clog) << "canonicalized src=" << dwarfsrc << " alias=" << dwarfsrc_canon << endl;
-
-              ps_upsert_files
-                .reset()
-                .bind(1, dwarfsrc_canon)
-                .step_ok_done();
-
-              ps_upsert_s
-                .reset()
-                .bind(1, buildid)
-                .bind(2, dwarfsrc_canon)
-                .bind(3, srps)
-                .bind(4, sfs.st_mtime)
-                .step_ok_done();
             }
+
+          ps_upsert_files
+            .reset()
+            .bind(1, dwarfsrc_canon)
+            .step_ok_done();
+
+          ps_upsert_s
+            .reset()
+            .bind(1, buildid)
+            .bind(2, dwarfsrc_canon)
+            .bind(3, srps)
+            .bind(4, sfs.st_mtime)
+            .step_ok_done();
 
           inc_metric("found_sourcerefs_total","source","files");
         }
@@ -2368,9 +2414,12 @@ archive_classify (const string& rps, string& archive_extension,
   if (verbose > 3)
     obatched(clog) << "libarchive scanning " << rps << endl;
 
-  while(1) // parse cpio archive entries
+  while(1) // parse archive entries
     {
-      try
+    if (interrupted)
+      break;
+
+    try
         {
           struct archive_entry *e;
           rc = archive_read_next_header (a, &e);
@@ -2439,36 +2488,25 @@ archive_classify (const string& rps, string& archive_extension,
                       continue;
                     }
 
-                  ps_upsert_files
-                    .reset()
-                    .bind(1, s)
-                    .step_ok_done();
-
-                  ps_upsert_sref
-                    .reset()
-                    .bind(1, buildid)
-                    .bind(2, s)
-                    .step_ok_done();
-
-                  // PR25548: also store canonicalized source path
+                  // PR25548: store canonicalized source path
                   const string& dwarfsrc = s;
                   string dwarfsrc_canon = canon_pathname (dwarfsrc);
                   if (dwarfsrc_canon != dwarfsrc)
                     {
                       if (verbose > 3)
                         obatched(clog) << "canonicalized src=" << dwarfsrc << " alias=" << dwarfsrc_canon << endl;
-
-                      ps_upsert_files
-                        .reset()
-                        .bind(1, dwarfsrc_canon)
-                        .step_ok_done();
-
-                      ps_upsert_sref
-                        .reset()
-                        .bind(1, buildid)
-                        .bind(2, dwarfsrc_canon)
-                        .step_ok_done();
                     }
+
+                  ps_upsert_files
+                    .reset()
+                    .bind(1, dwarfsrc_canon)
+                    .step_ok_done();
+
+                  ps_upsert_sref
+                    .reset()
+                    .bind(1, buildid)
+                    .bind(2, dwarfsrc_canon)
+                    .step_ok_done();
 
                   fts_sref ++;
                 }
@@ -2570,7 +2608,9 @@ scan_archive_file (const string& rps, const stat_t& st,
                         st.st_mtime,
                         my_fts_executable, my_fts_debuginfo, my_fts_sref, my_fts_sdef,
                         my_fts_sref_complete_p);
-      inc_metric ("scanned_total","source",archive_extension + " archive");
+      add_metric ("scanned_bytes_total","source",archive_extension + " archive",
+                  st.st_size);
+      inc_metric ("scanned_files_total","source",archive_extension + " archive");
       add_metric("found_debuginfo_total","source",archive_extension + " archive",
                  my_fts_debuginfo);
       add_metric("found_executable_total","source",archive_extension + " archive",
@@ -2679,7 +2719,8 @@ thread_main_scanner (void* arg)
       add_metric("thread_busy", "role", "scan", -1);
       bool gotone = scanq.wait_front(p);
       add_metric("thread_busy", "role", "scan", 1);
-      if (! gotone) continue; // or break
+
+      if (! gotone) continue; // go back to waiting
 
       try
         {
@@ -2718,7 +2759,9 @@ thread_main_scanner (void* arg)
           e.report(cerr);
         }
 
-      inc_metric("thread_work_total", "role","scan");
+      // finished a scanning step -- not a "loop", because we just
+      // consume the traversal loop's work, whenever
+      inc_metric("thread_work_total","role","scan");
     }
 
   add_metric("thread_busy", "role", "scan", -1);
@@ -2762,35 +2805,50 @@ scan_source_paths()
   {
     if (interrupted) break;
 
+    if (sigusr2 != forced_groom_count) // stop early if groom triggered 
+      {
+        scanq.clear(); // clear previously issued work for scanner threads
+        break;
+      }
+    
     fts_scanned ++;
 
     if (verbose > 2)
       obatched(clog) << "fts traversing " << f->fts_path << endl;
 
-    /* Found a file.  Convert it to an absolute path, so
-       the buildid database does not have relative path
-       names that are unresolvable from a subsequent run
-       in a different cwd. */
-    char *rp = realpath(f->fts_path, NULL);
-    if (rp == NULL)
-      continue; // ignore dangling symlink or such
-    string rps = string(rp);
-    free (rp);
-
-    bool ri = !regexec (&file_include_regex, rps.c_str(), 0, 0, 0);
-    bool rx = !regexec (&file_exclude_regex, rps.c_str(), 0, 0, 0);
-    if (!ri || rx)
-      {
-        if (verbose > 3)
-          obatched(clog) << "fts skipped by regex " << (!ri ? "I" : "") << (rx ? "X" : "") << endl;
-        fts_regex ++;
-        continue;
-      }
-
     switch (f->fts_info)
       {
       case FTS_F:
-        scanq.push_back (make_pair(rps, *f->fts_statp));
+        {
+          /* Found a file.  Convert it to an absolute path, so
+             the buildid database does not have relative path
+             names that are unresolvable from a subsequent run
+             in a different cwd. */
+          char *rp = realpath(f->fts_path, NULL);
+          if (rp == NULL)
+            continue; // ignore dangling symlink or such
+          string rps = string(rp);
+          free (rp);
+          
+          bool ri = !regexec (&file_include_regex, rps.c_str(), 0, 0, 0);
+          bool rx = !regexec (&file_exclude_regex, rps.c_str(), 0, 0, 0);
+          if (!ri || rx)
+            {
+              if (verbose > 3)
+                obatched(clog) << "fts skipped by regex "
+                               << (!ri ? "I" : "") << (rx ? "X" : "") << endl;
+              fts_regex ++;
+              if (!ri)
+                inc_metric("traversed_total","type","file-skipped-I");
+              if (rx)
+                inc_metric("traversed_total","type","file-skipped-X");
+            }
+          else
+            {
+              scanq.push_back (make_pair(rps, *f->fts_statp));
+              inc_metric("traversed_total","type","file");
+            }
+        }
         break;
 
       case FTS_ERR:
@@ -2800,11 +2858,20 @@ scan_source_paths()
           auto x = libc_exception(f->fts_errno, string("fts traversal ") + string(f->fts_path));
           x.report(cerr);
         }
+        inc_metric("traversed_total","type","error");
         break;
 
-      default:
-        ;
-        /* ignore */
+      case FTS_SL: // ignore, but count because debuginfod -L would traverse these
+        inc_metric("traversed_total","type","symlink");
+        break;
+
+      case FTS_D: // ignore
+        inc_metric("traversed_total","type","directory");
+        break;
+        
+      default: // ignore
+        inc_metric("traversed_total","type","other");
+        break;
       }
   }
   gettimeofday (&tv_end, NULL);
@@ -2820,7 +2887,6 @@ thread_main_fts_source_paths (void* arg)
 {
   (void) arg; // ignore; we operate on global data
 
-  sig_atomic_t forced_rescan_count = 0;
   set_metric("thread_tid", "role","traverse", tid());
   add_metric("thread_count", "role", "traverse", 1);
 
@@ -2850,6 +2916,7 @@ thread_main_fts_source_paths (void* arg)
             set_metric("thread_busy", "role","traverse", 1);
             scan_source_paths();
             last_rescan = time(NULL); // NB: now was before scanning
+            // finished a traversal loop
             inc_metric("thread_work_total", "role","traverse");
             set_metric("thread_busy", "role","traverse", 0);
           }
@@ -2901,6 +2968,8 @@ void groom()
   struct timeval tv_start, tv_end;
   gettimeofday (&tv_start, NULL);
 
+  database_stats_report();
+  
   // scan for files that have disappeared
   sqlite_ps files (db, "check old files", "select s.mtime, s.file, f.name from "
                        BUILDIDS "_file_mtime_scanned s, " BUILDIDS "_files f "
@@ -2928,7 +2997,13 @@ void groom()
           files_del_f_de.reset().bind(1,fileid).bind(2,mtime).step_ok_done();
           files_del_r_de.reset().bind(1,fileid).bind(2,mtime).step_ok_done();
           files_del_scan.reset().bind(1,fileid).bind(2,mtime).step_ok_done();
+          inc_metric("groomed_total", "decision", "stale");
         }
+      else
+        inc_metric("groomed_total", "decision", "fresh");
+
+      if (sigusr1 != forced_rescan_count) // stop early if scan triggered
+        break;
     }
   files.reset();
 
@@ -2965,7 +3040,6 @@ void groom()
 static void*
 thread_main_groom (void* /*arg*/)
 {
-  sig_atomic_t forced_groom_count = 0;
   set_metric("thread_tid", "role", "groom", tid());
   add_metric("thread_count", "role", "groom", 1);
 
@@ -2994,6 +3068,7 @@ thread_main_groom (void* /*arg*/)
             set_metric("thread_busy", "role", "groom", 1);
             groom ();
             last_groom = time(NULL); // NB: now was before grooming
+            // finished a grooming loop
             inc_metric("thread_work_total", "role", "groom");
             set_metric("thread_busy", "role", "groom", 0);
           }

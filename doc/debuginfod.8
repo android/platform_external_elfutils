@@ -155,7 +155,8 @@ before doing it again.  A rescan for unchanged files is fast (because
 the index also stores the file mtimes).  A time of zero is acceptable,
 and means that only one initial scan should performed.  The default
 rescan time is 300 seconds.  Receiving a SIGUSR1 signal triggers a new
-scan, independent of the rescan time (including if it was zero).
+scan, independent of the rescan time (including if it was zero),
+interrupting a groom pass (if any).
 
 .TP
 .B "\-g SECONDS" "\-\-groom\-time=SECONDS"
@@ -167,7 +168,8 @@ it can deindex obsolete files.  See also the \fIDATA MANAGEMENT\fP
 section.  The default groom time is 86400 seconds (1 day).  A time of
 zero is acceptable, and means that only one initial groom should be
 performed.  Receiving a SIGUSR2 signal triggers a new grooming pass,
-independent of the groom time (including if it was zero).
+independent of the groom time (including if it was zero), interrupting
+a rescan pass (if any)..
 
 .TP
 .B "\-G"

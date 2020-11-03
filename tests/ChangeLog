@@ -1,3 +1,77 @@
+2020-10-31  Mark Wielaard  <mark@klomp.org>
+
+	* dwfl-proc-attach.c (dlopen): New external function override.
+
+2020-10-31  Mark Wielaard  <mark@klomp.org>
+
+	* test-wrapper.sh: Use =, not == for string compare.
+
+2020-10-29  Mark Wielaard  <mark@klomp.org>
+
+	* test-wrapper.sh: Determine whether the test is a script or not
+	and run binaries directly under valgrind.
+	* dwfl-bug-fd-leak.c (main): Call getrlimit before calling setrlimit.
+	* dwfl-proc-attach.c (main): Call dwfl_end, pthread_cancel and
+	pthread_join.
+	* vdsosyms.c (main): Call dwfl_end.
+
+2020-10-31  Frank Ch. Eigler  <fche@redhat.com>
+
+	* run-debuginfod-find.sh: Modify for tweaked/new metrics.
+
+2020-10-30  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26775
+	* run-debuginfod-find.sh: Modify test for restored
+	thread_work_total semantics for grooming.
+
+2020-10-29  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26775
+	* run-debuginfod-find.sh: Modify test for different
+	thread_work_total semantics for grooming.
+
+2020-10-29  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26810
+	* run-debuginfod-find.sh: Add tests for successful archive fetches across
+	renamed RPMs, even without grooming.
+
+2020-10-25  Mark Wielaard  <mark@klomp.org>
+
+	* read_unaligned.c: New test.
+	* Makefile.am (check_PROGRAMS, TESTS): Add read_unaligned.
+	(read_unaligned_LDADD): New variable.
+
+2020-10-28  Tom Tromey  <tom@tromey.com>
+
+	PR26773
+	* Makefile.am (check_PROGRAMS, TESTS): Add leb128.
+	(leb128_LDADD): New variable.
+	* leb128.c: New file.
+
+2020-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* addrcfi.c (print_register): Make ops_mem 3 elements.
+
+2020-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* testfile60.bz2: Removed.
+	* Makefile.am (EXTRA_DIST): Remove testfile60.bz2.
+	* run-allregs.sh: Remove tilegx testfile60 testcase.
+
+2020-10-20  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26756: more prometheus metrics
+	* run-debuginfod-find.sh: Trigger some errors with dummy "nothing.rpm"
+	and check for new metrics.
+
+2020-09-18  Mark Wielaard  <mark@klomp.org>
+
+	* run-readelf-compressed-zstd.sh: New test.
+	* Makefile.am (EXTRA_DISTS): Add run-readelf-compressed-zstd.sh.
+	(TESTS): Add run-readelf-compressed-zstd.sh if HAVE_ZSTD.
+
 2020-09-03  Mark Wielaard  <mark@klomp.org>
 
 	* run-readelf-frames.sh: New test.
