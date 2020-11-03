@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "f48b00c0_cf1dcf8a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2020-11-03T21:49:03Z",
+      "side": 1,
+      "message": "manually +maennich because i don\u0027t know whether he has a project watch or not...",
+      "revId": "458804488fb9bda3de21ac843b67974994b62899",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    }
+  ]
+}
