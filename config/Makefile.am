@@ -30,12 +30,19 @@
 ##
 EXTRA_DIST = elfutils.spec.in known-dwarf.awk 10-default-yama-scope.conf \
 	     libelf.pc.in libdw.pc.in libdebuginfod.pc.in \
-	     debuginfod.service debuginfod.sysconfig
+	     debuginfod.service debuginfod.sysconfig profile.sh.in profile.csh.in
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libelf.pc libdw.pc
 if DEBUGINFOD
 pkgconfig_DATA += libdebuginfod.pc
+
+install-data-local:
+	$(INSTALL_DATA) profile.sh -D $(DESTDIR)$(sysconfdir)/profile.d/debuginfod.sh
+	$(INSTALL_DATA) profile.csh -D $(DESTDIR)$(sysconfdir)/profile.d/debuginfod.csh
+
+uninstall-local:
+	rm -f $(DESTDIR)$(sysconfdir)/profile.d/debuginfod.sh $(DESTDIR)$(sysconfdir)/profile.d/debuginfod.csh
 endif
 
 if MAINTAINER_MODE

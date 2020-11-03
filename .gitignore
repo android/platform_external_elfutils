@@ -151,6 +151,7 @@ Makefile.in
 /tests/get-units-invalid
 /tests/get-units-split
 /tests/hash
+/tests/leb128
 /tests/line2addr
 /tests/low_high_pc
 /tests/msg_tst

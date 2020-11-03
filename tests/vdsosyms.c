@@ -103,6 +103,8 @@ main (int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)))
   if (dwfl_getmodules (dwfl, module_callback, NULL, 0) != 0)
     error (1, 0, "dwfl_getmodules: %s", dwfl_errmsg (-1));
 
+  dwfl_end (dwfl);
+
   /* No symbols is ok, then we haven't seen the vdso at all on this arch.  */
   return vdso_syms >= 0 ? 0 : -1;
 }

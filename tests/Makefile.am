@@ -63,7 +63,7 @@ check_PROGRAMS = arextract arsymtest newfile saridx scnnames sectiondump \
 		  all-dwarf-ranges unit-info next_cfi \
 		  elfcopy addsections xlate_notes elfrdwrnop \
 		  dwelf_elf_e_machine_string \
-		  getphdrnum
+		  getphdrnum leb128 read_unaligned
 
 asm_TESTS = asm-tst1 asm-tst2 asm-tst3 asm-tst4 asm-tst5 \
 	    asm-tst6 asm-tst7 asm-tst8 asm-tst9
@@ -185,7 +185,8 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-elfclassify.sh run-elfclassify-self.sh \
 	run-disasm-riscv64.sh \
 	run-pt_gnu_prop-tests.sh \
-	run-getphdrnum.sh run-test-includes.sh
+	run-getphdrnum.sh run-test-includes.sh \
+	leb128 read_unaligned
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -202,6 +203,10 @@ endif
 
 if LZMA
 TESTS += run-readelf-s.sh run-dwflsyms.sh
+endif
+
+if HAVE_ZSTD
+TESTS += run-readelf-compressed-zstd.sh
 endif
 
 if HAVE_LIBASM
@@ -256,6 +261,7 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-nm-syms.sh testfilesyms32.bz2 testfilesyms64.bz2 \
 	     run-nm-self.sh run-readelf-self.sh run-readelf-info-plus.sh \
 	     run-readelf-compressed.sh \
+	     run-readelf-compressed-zstd.sh \
 	     run-readelf-const-values.sh testfile-const-values.debug.bz2 \
 	     run-addrcfi.sh run-dwarfcfi.sh \
 	     testfile11-debugframe.bz2 testfile12-debugframe.bz2 \
@@ -362,7 +368,7 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     run-macro-test.sh testfile-macinfo.bz2 testfile-macros.bz2 \
 	     run-elf_cntl_gelf_getshdr.sh \
 	     run-test-archive64.sh testarchive64.a.bz2 \
-	     testfile60.bz2 testfile61.bz2 \
+	     testfile61.bz2 \
 	     run-readelf-vmcoreinfo.sh testfile62.bz2 \
 	     run-readelf-mixed-corenote.sh testfile63.bz2 testfile64.bz2 \
 	     testfile65.bz2 testfile67.bz2 testfile68.bz2 \
@@ -689,6 +695,8 @@ xlate_notes_LDADD = $(libelf)
 elfrdwrnop_LDADD = $(libelf)
 dwelf_elf_e_machine_string_LDADD = $(libelf) $(libdw)
 getphdrnum_LDADD = $(libelf) $(libdw)
+leb128_LDADD = $(libelf) $(libdw)
+read_unaligned_LDADD = $(libelf) $(libdw)
 
 # We want to test the libelf header against the system elf.h header.
 # Don't include any -I CPPFLAGS. Except when we install our own elf.h.

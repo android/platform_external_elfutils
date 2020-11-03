@@ -24,6 +24,7 @@ BuildRequires: flex
 BuildRequires: zlib-devel
 BuildRequires: bzip2-devel
 BuildRequires: xz-devel
+BuildRequires: libzstd-devel
 
 # For debuginfod
 BuildRequires: pkgconfig(libmicrohttpd) >= 0.9.33
@@ -33,6 +34,7 @@ BuildRequires: pkgconfig(libarchive) >= 3.1.2
 
 # For tests need to bunzip2 test files.
 BuildRequires: bzip2
+BuildRequires: zstd
 # For the run-debuginfod-find.sh test case in %check for /usr/sbin/ss
 BuildRequires: iproute
 BuildRequires: bsdtar
@@ -179,7 +181,7 @@ such servers to download those files on demand.
 %setup -q
 
 %build
-%configure --program-prefix=%{_programprefix} --enable-debuginfod
+%configure --program-prefix=%{_programprefix} --enable-debuginfod --enable-debuginfod-urls
 make -s %{?_smp_mflags}
 
 %install
@@ -189,6 +191,8 @@ mkdir -p ${RPM_BUILD_ROOT}%{_prefix}
 %make_install
 
 chmod +x ${RPM_BUILD_ROOT}%{_prefix}/%{_lib}/lib*.so*
+mkdir -p ${RPM_BUILD_ROOT}%{_localstatedir}/cache/debuginfod
+touch ${RPM_BUILD_ROOT}%{_localstatedir}/cache/debuginfod/debuginfod.sqlite
 
 # XXX Nuke unpackaged files
 ( cd ${RPM_BUILD_ROOT}
@@ -294,7 +298,8 @@ fi
 %{_libdir}/libdebuginfod.so.*
 %{_bindir}/debuginfod-find
 %{_mandir}/man1/debuginfod-find.1*
-
+%config(noreplace) %{_sysconfdir}/profile.d/*
+  
 %files debuginfod-client-devel
 %defattr(-,root,root)
 %{_libdir}/pkgconfig/libdebuginfod.pc
@@ -305,13 +310,13 @@ fi
 %files debuginfod
 %defattr(-,root,root)
 %{_bindir}/debuginfod
-%config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/sysconfig/debuginfod
+%config(noreplace) %{_sysconfdir}/sysconfig/debuginfod
 %{_unitdir}/debuginfod.service
 %{_sysconfdir}/sysconfig/debuginfod
 %{_mandir}/man8/debuginfod.8*
 
 %dir %attr(0700,debuginfod,debuginfod) %{_localstatedir}/cache/debuginfod
-%verify(not md5 size mtime) %attr(0600,debuginfod,debuginfod) %{_localstatedir}/cache/debuginfod/debuginfod.sqlite
+%ghost %attr(0600,debuginfod,debuginfod) %{_localstatedir}/cache/debuginfod/debuginfod.sqlite
 
 %pre debuginfod
 getent group debuginfod >/dev/null || groupadd -r debuginfod
@@ -327,6 +332,15 @@ exit 0
 %systemd_postun_with_restart debuginfod.service
 
 %changelog
+* Sat Oct 31 2020 Mark Wielaard <mark@klomp.org> 0.182-1
+- backends: Support for tilegx has been removed.
+- config: New /etc/profile.d files to provide default $DEBUGINFOD_URLS.
+- debuginfod: More efficient package traversal, tolerate various
+  errors during scanning, grooming progress is more visible and
+  interruptible, more prometheus metrics.
+- debuginfod-client: Now supports compressed (kernel) ELF images.
+- libdwfl: Add ZSTD compression support.
+
 * Tue Sep  8 2020 Mark Wielaard <mark@klomp.org> 0.181-1
 - libelf: elf_update now compensates (fixes up) a bad sh_addralign
   for SHF_COMPRESSED sections.

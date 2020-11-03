@@ -357,6 +357,9 @@ check_suffix (const FTSENT *f, size_t namelen)
 #if USE_LZMA
   TRY (".ko.xz");
 #endif
+#if USE_ZSTD
+  TRY (".ko.zst");
+#endif
 
   return 0;
 

@@ -1,3 +1,38 @@
+2020-10-31  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (install-data-local, uninstall-local): Conditionalize
+	on DEBUGINFOD.
+
+2020-10-30  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.182.
+
+2020-10-31  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.service: Bump up TimeoutStopSec.
+
+2020-10-30  Frank Ch. Eigler  <fche@redhat.com>
+
+	* elfutils.spec.in: Fix debuginfod config/state file attributes
+	for non-lossy updates.
+
+2020-10-08  Frank Ch. Eigler  <fche@redhat.com>
+
+	* Makefile.am (uninstall-local): Uninstall the new profile.d files.
+
+2020-10-01  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR25461
+	* profile.sh.in, profile.csh.in: New files for /etc/profile.d
+	to define $DEBUGINFOD_URLS.
+	* elfutils.spec.in: Configure with --enable-debuginfod-urls.
+	* Makefile.am: Install them.
+
+2020-09-18  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Add BuildRequires for libzstd-devel and zstd.
+	* libdw.pc.in: Requires.private libzstd.
+
 2020-09-08  Mark Wielaard  <mark@klomp.org>
 
 	* elfutils.spec.in: Update for 0.181.
