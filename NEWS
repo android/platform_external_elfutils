@@ -1,3 +1,17 @@
+Version 0.182
+
+backends: Support for tilegx has been removed.
+
+config: New /etc/profile.d files to provide default $DEBUGINFOD_URLS.
+
+debuginfod: More efficient package traversal, tolerate various errors
+            during scanning, grooming progress is more visible and
+            interruptible, more prometheus metrics.
+
+debuginfod-client: Now supports compressed (kernel) ELF images.
+
+libdwfl: Add ZSTD compression support.
+
 Version 0.181
 
 libelf: elf_update now compensates (fixes up) a bad sh_addralign for

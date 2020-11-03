@@ -1061,9 +1061,11 @@ extern int dwarf_frame_cfa (Dwarf_Frame *frame, Dwarf_Op **ops, size_t *nops)
    caller's REGNO is "same_value", i.e. this frame did not change it;
    ask the caller frame where to find it.
 
-   For common simple expressions *OPS is OPS_MEM.  For arbitrary DWARF
-   expressions in the CFI, *OPS is an internal pointer that can be used as
-   long as the Dwarf_CFI used to create FRAME remains alive.  */
+   For common simple expressions *OPS is OPS_MEM (which is a caller
+   owned array for at least 3 Dwarf_Ops).  For arbitrary DWARF
+   expressions in the CFI, *OPS is an internal pointer that can be
+   used as long as the Dwarf_CFI used to create FRAME remains
+   alive.  */
 extern int dwarf_frame_register (Dwarf_Frame *frame, int regno,
 				 Dwarf_Op ops_mem[3],
 				 Dwarf_Op **ops, size_t *nops)

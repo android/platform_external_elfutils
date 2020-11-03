@@ -241,14 +241,6 @@ extern ssize_t ebl_register_info (Ebl *ebl,
 				  const char **prefix, const char **setname,
 				  int *bits, int *type);
 
-/* Fill in the DWARF register numbers for the registers used in system calls.
-   The SP and PC are what kernel reports call the user stack pointer and PC.
-   The CALLNO and ARGS are the system call number and incoming arguments.
-   Each of these is filled with the DWARF register number corresponding,
-   or -1 if there is none.  Returns zero when the information is available.  */
-extern int ebl_syscall_abi (Ebl *ebl, int *sp, int *pc,
-			    int *callno, int args[6]);
-
 /* Supply the ABI-specified state of DWARF CFI before CIE initial programs.
 
    The DWARF 3.0 spec says that the default initial states of all registers

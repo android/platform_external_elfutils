@@ -1,3 +1,21 @@
+2020-10-28  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Set version to 0.182.
+	* NEWS: Add 0.182 section.
+
+2020-10-28  Tom Tromey  <tom@tromey.com>
+
+	* .gitignore: Add /tests/leb128.
+
+2020-10-01  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR25461
+	* configure.ac: Add --enable-debuginfod-urls[=URLS] option.
+
+2020-09-18  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac: Check availability of libzstd and zstd.
+
 2020-09-08  Mark Wielaard  <mark@klomp.org>
 
 	* configure.ac: Set version to 0.181.

@@ -61,6 +61,7 @@ typedef struct Dwfl_Process Dwfl_Process;
   DWFL_ERROR (ZLIB, N_("gzip decompression failed"))			      \
   DWFL_ERROR (BZLIB, N_("bzip2 decompression failed"))			      \
   DWFL_ERROR (LZMA, N_("LZMA decompression failed"))			      \
+  DWFL_ERROR (ZSTD, N_("zstd decompression failed"))			      \
   DWFL_ERROR (UNKNOWN_MACHINE, N_("no support library found for machine"))    \
   DWFL_ERROR (NOREL, N_("Callbacks missing for ET_REL file"))		      \
   DWFL_ERROR (BADRELTYPE, N_("Unsupported relocation type"))		      \
@@ -609,6 +610,10 @@ extern Dwfl_Error __libdw_bunzip2 (int fd, off_t start_offset,
 				   void **whole, size_t *whole_size)
   internal_function;
 extern Dwfl_Error __libdw_unlzma (int fd, off_t start_offset,
+				  void *mapped, size_t mapped_size,
+				  void **whole, size_t *whole_size)
+  internal_function;
+extern Dwfl_Error __libdw_unzstd (int fd, off_t start_offset,
 				  void *mapped, size_t mapped_size,
 				  void **whole, size_t *whole_size)
   internal_function;

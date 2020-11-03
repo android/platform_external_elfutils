@@ -113,19 +113,22 @@ __libdw_get_uleb128_unchecked (const unsigned char **addrp)
 #define get_sleb128_step(var, addr, nth)				      \
   do {									      \
     unsigned char __b = *(addr)++;					      \
+    (var) |= (typeof (var)) (__b & 0x7f) << ((nth) * 7);		      \
     if (likely ((__b & 0x80) == 0))					      \
       {									      \
-	struct { signed int i:7; } __s = { .i = __b };			      \
-	(var) |= (typeof (var)) __s.i * ((typeof (var)) 1 << ((nth) * 7));    \
+	if ((__b & 0x40) != 0)						      \
+	  (var) |= - ((typeof (var)) 1 << (((nth) + 1) * 7));		      \
 	return (var);							      \
       }									      \
-    (var) |= (typeof (var)) (__b & 0x7f) << ((nth) * 7);		      \
   } while (0)
 
 static inline int64_t
 __libdw_get_sleb128 (const unsigned char **addrp, const unsigned char *end)
 {
-  int64_t acc = 0;
+  /* Do the work in an unsigned type, but use implementation-defined
+     behavior to cast to signed on return.  This avoids some undefined
+     behavior when shifting.  */
+  uint64_t acc = 0;
 
   /* Unroll the first step to help the compiler optimize
      for the common single-byte case.  */
@@ -134,6 +137,20 @@ __libdw_get_sleb128 (const unsigned char **addrp, const unsigned char *end)
   const size_t max = __libdw_max_len_sleb128 (*addrp - 1, end);
   for (size_t i = 1; i < max; ++i)
     get_sleb128_step (acc, *addrp, i);
+  if (*addrp == end)
+    return INT64_MAX;
+
+  /* There might be one extra byte.  */
+  unsigned char b = **addrp;
+  ++*addrp;
+  if (likely ((b & 0x80) == 0))
+    {
+      /* We only need the low bit of the final byte, and as it is the
+	 sign bit, we don't need to do anything else here.  */
+      acc |= ((typeof (acc)) b) << 7 * max;
+      return acc;
+    }
+
   /* Other implementations set VALUE to INT_MAX in this
      case.  So we better do this as well.  */
   return INT64_MAX;
@@ -142,7 +159,10 @@ __libdw_get_sleb128 (const unsigned char **addrp, const unsigned char *end)
 static inline int64_t
 __libdw_get_sleb128_unchecked (const unsigned char **addrp)
 {
-  int64_t acc = 0;
+  /* Do the work in an unsigned type, but use implementation-defined
+     behavior to cast to signed on return.  This avoids some undefined
+     behavior when shifting.  */
+  uint64_t acc = 0;
 
   /* Unroll the first step to help the compiler optimize
      for the common single-byte case.  */
@@ -152,6 +172,18 @@ __libdw_get_sleb128_unchecked (const unsigned char **addrp)
   const size_t max = len_leb128 (int64_t) - 1;
   for (size_t i = 1; i < max; ++i)
     get_sleb128_step (acc, *addrp, i);
+
+  /* There might be one extra byte.  */
+  unsigned char b = **addrp;
+  ++*addrp;
+  if (likely ((b & 0x80) == 0))
+    {
+      /* We only need the low bit of the final byte, and as it is the
+	 sign bit, we don't need to do anything else here.  */
+      acc |= ((typeof (acc)) b) << 7 * max;
+      return acc;
+    }
+
   /* Other implementations set VALUE to INT_MAX in this
      case.  So we better do this as well.  */
   return INT64_MAX;
@@ -363,7 +395,7 @@ read_3ubyte_unaligned (Dwarf *dbg, const unsigned char *p)
 
 
 #define read_3ubyte_unaligned_inc(Dbg, Addr) \
-  ({ uint32_t t_ = read_2ubyte_unaligned (Dbg, Addr);			      \
+  ({ uint32_t t_ = read_3ubyte_unaligned (Dbg, Addr);			      \
      Addr = (__typeof (Addr)) (((uintptr_t) (Addr)) + 3);		      \
      t_; })
 

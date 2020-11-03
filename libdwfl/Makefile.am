@@ -78,6 +78,9 @@ endif
 if LZMA
 libdwfl_a_SOURCES += lzma.c
 endif
+if ZSTD
+libdwfl_a_SOURCES += zstd.c
+endif
 if LIBDEBUGINFOD
 libdwfl_a_SOURCES += debuginfod-client.c
 endif

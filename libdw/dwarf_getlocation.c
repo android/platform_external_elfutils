@@ -130,9 +130,8 @@ store_implicit_value (Dwarf *dbg, void **cache, Dwarf_Op *op)
   struct loc_block_s *block = libdw_alloc (dbg, struct loc_block_s,
 					   sizeof (struct loc_block_s), 1);
   const unsigned char *data = (const unsigned char *) (uintptr_t) op->number2;
-  uint64_t len = __libdw_get_uleb128 (&data, data + len_leb128 (Dwarf_Word));
-  if (unlikely (len != op->number))
-    return -1;
+  /* Skip the block length.  */
+  __libdw_get_uleb128_unchecked (&data);
   block->addr = op;
   block->data = (unsigned char *) data;
   block->length = op->number;
