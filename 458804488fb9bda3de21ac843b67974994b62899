@@ -16,6 +16,23 @@
       "message": "manually +maennich because i don\u0027t know whether he has a project watch or not...",
       "revId": "458804488fb9bda3de21ac843b67974994b62899",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8b5f31a5_fbd1f0a9",
+        "filename": "libdwfl/zstd.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2020-11-03T22:22:39Z",
+      "side": 1,
+      "message": "This drags in gzip/zstd.h as a dependency. Has this been an issue?",
+      "revId": "458804488fb9bda3de21ac843b67974994b62899",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     }
   ]
 }
