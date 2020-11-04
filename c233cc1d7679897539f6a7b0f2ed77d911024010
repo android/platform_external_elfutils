@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "45be314a_1eb21066",
+        "filename": "Android.bp",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003224
+      },
+      "writtenOn": "2020-11-04T00:13:46Z",
+      "side": 1,
+      "message": "ah, i hadn\u0027t seen that you\u0027d already excluded the other compression variants. yeah, this makes even more sense then!",
+      "revId": "c233cc1d7679897539f6a7b0f2ed77d911024010",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    }
+  ]
+}
