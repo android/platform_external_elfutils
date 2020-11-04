@@ -16,6 +16,24 @@
       "message": "ah, i hadn\u0027t seen that you\u0027d already excluded the other compression variants. yeah, this makes even more sense then!",
       "revId": "c233cc1d7679897539f6a7b0f2ed77d911024010",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ab7c2802_da4b2790",
+        "filename": "Android.bp",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2020-11-04T07:59:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "45be314a_1eb21066",
+      "revId": "c233cc1d7679897539f6a7b0f2ed77d911024010",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     }
   ]
 }
