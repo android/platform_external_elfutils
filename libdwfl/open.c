@@ -44,6 +44,10 @@
 # define __libdw_unlzma(...)	DWFL_E_BADELF
 #endif
 
+#if !USE_ZSTD
+# define __libdw_unzstd(...)	DWFL_E_BADELF
+#endif
+
 /* Consumes and replaces *ELF only on success.  */
 static Dwfl_Error
 decompress (int fd __attribute__ ((unused)), Elf **elf)
@@ -64,6 +68,8 @@ decompress (int fd __attribute__ ((unused)), Elf **elf)
     error = __libdw_bunzip2 (fd, offset, mapped, mapped_size, &buffer, &size);
   if (error == DWFL_E_BADELF)
     error = __libdw_unlzma (fd, offset, mapped, mapped_size, &buffer, &size);
+  if (error == DWFL_E_BADELF)
+    error = __libdw_unzstd (fd, offset, mapped, mapped_size, &buffer, &size);
 
   if (error == DWFL_E_NOERROR)
     {

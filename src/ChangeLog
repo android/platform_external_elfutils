@@ -1,3 +1,16 @@
+2020-10-27  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* unstrip.c (make_directories): Use strndup, not strndupa.
+
+2020-09-28  Mark Wielaard  <mark@klomp.org>
+
+	* readelf.c (next_listptr_offset): Take idx as pointer, to be updated
+	and use new Dwarf_Off as offset to match.
+	(listptr_attr): New function.
+	(print_debug_loclists_section): Check for DW_AT_GNU_locviews to show
+	view pairs.
+	(print_debug_loc_section): Adjust next_listptr_offset call.
+
 2020-09-03  Mark Wielaard  <mark@klomp.org>
 
 	* readelf.c (print_cfa_program): Take ehdr as argument. Use it to

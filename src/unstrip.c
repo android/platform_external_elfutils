@@ -311,12 +311,18 @@ make_directories (const char *path)
   if (lastslash == path)
     return;
 
-  char *dir = strndupa (path, lastslash - path);
+  char *dir = strndup (path, lastslash - path);
+  if (dir == NULL)
+    error(EXIT_FAILURE, errno, _("memory exhausted"));
+
   while (mkdir (dir, 0777) < 0 && errno != EEXIST)
-    if (errno == ENOENT)
-      make_directories (dir);
-    else
-      error (EXIT_FAILURE, errno, _("cannot create directory '%s'"), dir);
+    {
+      if (errno == ENOENT)
+        make_directories (dir);
+      else
+        error (EXIT_FAILURE, errno, _("cannot create directory '%s'"), dir);
+    }
+  free (dir);
 }
 
 /* Keep track of new section data we are creating, so we can free it

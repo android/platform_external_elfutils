@@ -1,3 +1,77 @@
+2020-10-31  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.cxx (scan_source_file, scan_archive_file): Add new scanned_bytes_total,
+	scanned_files_total metrics.
+	(archive_classify): Exit early if interrupted.
+	(scan_source_paths): Perform realpath/regex checks only on FTS_F files.
+	Tweak metrics.
+
+2020-10-30  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26775 cont'd.
+	* debuginfod.cxx (thread_main_scanner): Ensure control doesn't
+	leave infinite loop until program exit, even if SIGUSR2.
+	(scan_source_paths): Have traverser clean scanq on
+	SIGUSR2.  Emit additional traversed_total metrics.
+	(groom): Emit additional groomed_total metrics.
+	(thread_main_groom): Restore previous thread_work_total
+	metric.
+
+2020-10-29  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26775
+	* debuginfod.cxx (forced_*_count): Make these global.
+	(runq::clear): New function.
+	(thread_main_scanner): Check for pending SIGUSR2; interrupt.
+	(scan_source_paths): Check for pending SIGUSR2; interrupt.
+	(groom): Report prometheus stats before groom also.  Check for
+	pending SIGUSR1; interrupt.  Increment thread_work_total for
+	each file scanned, not the entire cycle.
+
+2020-10-29  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26810
+	* debuginfod.cxx (handle_buildid_*_match): Throw exceptions for
+	more lower level libc errors.
+	(handle_buildid_match): Catch & report exceptions but return 0
+	for continued iteration in the caller.
+
+2020-10-25  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-client.c (debuginfod_query_server): Translate
+	CURLE_PEER_FAILED_VERIFICATION to ECONNREFUSED.
+
+2020-10-20  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26756: more prometheus metrics
+	* debuginfod.cxx (*_exception): Add counters for error occurrences.
+	(fdcache::*): Add counters for fdcache operations and status.
+	(fdcache::set_metric): New fn for overall stat counts.
+	(fdcache::limit): ... allow metric-less use from dtors.
+
+2020-10-20  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.cxx (handle_buildid*): Add a parameter for detecting
+	internally-originated lookups for dwz resolution.
+
+2020-09-18  Frank Ch. Eigler <fche@redhat.com>
+
+	* debuginfod.cxx (scan_source_file, archive_classify): Store only
+	canonicalized file names in sdef & sref records in the database.
+
+2020-09-08  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (BUILD_STATIC): Include libcurl_LIBS in libdebuginfod
+	when NOT DUMMY_LIBDEBUGINFOD.
+
+2020-09-16  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-find.c: Fix license block comment.
+
+2020-09-15  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-find.c (main): Use dwelf_elf_begin.
+
 2020-07-03  Alice Zhang <alizhang@redhat.com>
 
 	* debuginfod-client.c (debuginfod_query_server): Use strncasecmp

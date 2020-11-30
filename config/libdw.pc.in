@@ -17,6 +17,6 @@ Requires: libelf = @VERSION@
 
 # We support various compressed ELF images, but don't export any of the
 # data structures or functions.  zlib (gz) is always required, bzip2 (bz2)
-# and lzma (xz) are optional.  But bzip2 doesn't have a pkg-config file.
-Requires.private: zlib @LIBLZMA@
+# lzma (xz) and zstd () are optional. But bzip2 doesn't have a pkg-config file.
+Requires.private: zlib @LIBLZMA@ @LIBZSTD@
 Libs.private: @BZ2_LIB@

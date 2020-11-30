@@ -1,3 +1,18 @@
+2020-10-29  Frank Ch. Eigler  <fche@redhat.com>
+
+	PR26775
+	* debuginfod.8: Document that SIGUSR1 interrupts the groom
+	cycle, and SIGUSR2 interrupts rescan.
+
+2020-10-25  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod_find_debuginfo.3 (ECONNREFUSED): Document that this
+	is also returned for a bad HTTPS server certificate.
+
+2020-10-07  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod-find.1: Add missing .br for SYNOPSIS section.
+
 2020-06-19  Mark Wielaard  <mark@klomp.org>
 
 	* Makefile.am: Guard all client manpages with LIBDEBUGINFOD.

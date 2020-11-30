@@ -46,9 +46,9 @@ libasm = ../libasm/libasm.a
 libdw = ../libdw/libdw.a -lz $(zip_LIBS) $(libelf) $(libebl) -ldl -lpthread
 libelf = ../libelf/libelf.a -lz
 if DUMMY_LIBDEBUGINFOD
-libdebuginfod = ./libdebuginfod.a $(libcurl_LIBS)
-else
 libdebuginfod = ./libdebuginfod.a
+else
+libdebuginfod = ./libdebuginfod.a $(libcurl_LIBS)
 endif
 else
 libasm = ../libasm/libasm.so

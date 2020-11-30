@@ -44,6 +44,7 @@ case "$1" in
 *.sh)
   export built_library_path program_transform_name elfutils_testrun
   export elfutils_tests_rpath
+  is_shell_script="yes"
   ;;
 *)
   if [ $elfutils_testrun = built ]; then
@@ -55,6 +56,7 @@ case "$1" in
     LD_LIBRARY_PATH="${libdir}:${libdir}/elfutils$old_path"
   fi
   export LD_LIBRARY_PATH
+  is_shell_script="no"
   ;;
 esac
 
@@ -62,4 +64,10 @@ if [ "x$VALGRIND_CMD" != "x" ]; then
   export VALGRIND_CMD
 fi
 
-exec "$@"
+# When it is a run-*.sh script the VALGRIND_CMD will be passed on
+# otherwise we'll need to run the binary explicitly under valgrind.
+if [ "x$is_shell_script" = xyes ]; then
+  exec "$@"
+else
+  exec $VALGRIND_CMD "$@"
+fi

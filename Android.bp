@@ -113,6 +113,7 @@ cc_library_host_static {
         // Do not enabled compression support
         "libdwfl/bzip2.c",
         "libdwfl/lzma.c",
+        "libdwfl/zstd.c",
         // Those headers are incompatible with clang due to nested function
         // definitions.
         "libdwfl/dwfl_segment_report_module.c",
