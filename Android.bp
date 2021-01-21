@@ -12,6 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+package {
+    default_applicable_licenses: ["external_elfutils_license"],
+}
+
+license {
+    name: "external_elfutils_license",
+    visibility: [":__subpackages__"],
+    license_kinds: ["SPDX-license-identifier-Apache-2.0","SPDX-license-identifier-BSD","SPDX-license-identifier-CC-BY-SA","SPDX-license-identifier-GPL","SPDX-license-identifier-GPL-2.0","SPDX-license-identifier-GPL-3.0","SPDX-license-identifier-LGPL","SPDX-license-identifier-LGPL-2.1","SPDX-license-identifier-LGPL-3.0","legacy_notice","legacy_restricted","legacy_unencumbered"],
+    license_text: ["NOTICE"],
+}
+
 cc_defaults {
     name: "elfutils_defaults",
     cflags: [
@@ -142,4 +153,3 @@ cc_library_host_static {
     ],
     compile_multilib: "64",
 }
-
