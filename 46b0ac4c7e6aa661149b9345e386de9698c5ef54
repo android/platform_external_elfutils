@@ -126,6 +126,78 @@
       },
       "revId": "46b0ac4c7e6aa661149b9345e386de9698c5ef54",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7c6255a8_d340cbfa",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-01-22T17:02:44Z",
+      "side": 1,
+      "message": "Thank you for your comments. The interface for the large-scale-change makes it not practical to add comments, but you have identified a couple false-positives I need to address.\n\nm4/ax_cxx_compile_stdcxx.m4 has a notice license.\n\nI treated \"GNU Free Documentation License\" as a restricted license similar to GPL; although, I probably should have the lawyers look that one over first.\n\nThe CC-BY-SA is a false positive embedded in the \"GNU Free Documentation License\". There are only 4 instances of that license so I will have to check each of those by hand.\n\nThe scanner incorrectly picked up the legacy_unencumbered by falsely identifying \"*not* in the public domain\" as a public domain declaration. I\u0027ll need to fix that.",
+      "parentUuid": "5706b8ee_8fce8633",
+      "range": {
+        "startLine": 22,
+        "startChar": 187,
+        "endLine": 22,
+        "endChar": 218
+      },
+      "revId": "46b0ac4c7e6aa661149b9345e386de9698c5ef54",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7533e59a_fd45e5e6",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-01-22T17:02:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "84703ea6_dfdceaa3",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 380
+      },
+      "revId": "46b0ac4c7e6aa661149b9345e386de9698c5ef54",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "00e2a41a_8e2a51b5",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-01-22T17:02:44Z",
+      "side": 1,
+      "message": "I see there is a false positive CC-BY-SA in projects using the GPL document license. I will fix that.",
+      "parentUuid": "7acbe8d9_278f758f",
+      "range": {
+        "startLine": 22,
+        "startChar": 358,
+        "endLine": 22,
+        "endChar": 377
+      },
+      "revId": "46b0ac4c7e6aa661149b9345e386de9698c5ef54",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     }
   ]
 }
