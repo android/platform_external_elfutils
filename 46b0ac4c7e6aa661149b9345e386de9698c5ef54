@@ -46,6 +46,52 @@
       },
       "revId": "46b0ac4c7e6aa661149b9345e386de9698c5ef54",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7acbe8d9_278f758f",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-01-22T15:01:10Z",
+      "side": 1,
+      "message": "Classifying this as CC-BY-SA seems incorrect. The matching part of the code does not actually express this as a license.",
+      "range": {
+        "startLine": 22,
+        "startChar": 358,
+        "endLine": 22,
+        "endChar": 377
+      },
+      "revId": "46b0ac4c7e6aa661149b9345e386de9698c5ef54",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5706b8ee_8fce8633",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-01-22T15:01:10Z",
+      "side": 1,
+      "message": "As pointed out by the project license definition, \"The libraries and backends are dual GPLv2+/LGPLv3+. The utilities are GPLv3+.\"\n\nPlease add a comment for\n\n\"legacy_notice\",\"legacy_restricted\",and \"legacy_unencumbered\"",
+      "range": {
+        "startLine": 22,
+        "startChar": 187,
+        "endLine": 22,
+        "endChar": 218
+      },
+      "revId": "46b0ac4c7e6aa661149b9345e386de9698c5ef54",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     }
   ]
 }
