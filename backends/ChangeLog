@@ -1,3 +1,27 @@
+2020-10-19  Mark Wielard  <mark@klomp.org>
+
+	* Makefile.am (modules): Remove tilegx.
+	(tilegx_SRCS): Removed.
+	(libebl_backends_a_SOURCES): Remove tilegx_SRCS.
+	* tilegx_corenote.c: Removed.
+	* tilegx_init.c: Removed.
+	* tilegx_regs.c: Removed.
+	* tilegx_reloc.def: Removed.
+	* tilegx_retval.c: Removed.
+	* tilegx_symbol.c: Removed.
+
+2020-10-19  Mark Wielard  <mark@klomp.org>
+
+	* Makefile.am (i386_SRCS): Remove i386_syscall.c.
+	(x86_64_SRCS): Remove x86_64_syscall.c.
+	(ppc_SRCS): Remove ppc_syscall.c.
+	* i386_init.c (i386_init): Remove syscall_abi HOOK.
+	* i386_syscall.c: Delete.
+	* ppc64_init.c (ppc64_init): Remove syscall_abi HOOK.
+	* ppc_syscall.c: Delete.
+	* x86_64_init.c (x86_64_init): Remove syscall_abi HOOK.
+	* x86_64_syscall.c: Delete.
+
 2020-08-28  Mark Wielard  <mark@klomp.org>
 
 	* aarch64_init.c (aarch64_init): Hook dynamic_tag_name and

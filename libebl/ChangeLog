@@ -1,3 +1,17 @@
+2020-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* eblopenbackend.c (tilegx_init): Removed.
+	(machines): Set init to NULL for tilegx.
+
+2020-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* Makefile.am (libebl_a_SOURCES): Remove ebl_syscall_abi.c.
+	* ebl-hooks.h (syscall_abi): Remove.
+	* ebl_syscall_abi.c: Delete.
+	* eblopenbackend.c (default_syscall_abi): Remove.
+	(fill_defaults): Remove syscall_abi assignment.
+	* libebl.h (ebl_syscall_abi): Remove.
+
 2020-09-03  Mark Wielaard  <mark@klomp.org>
 
 	* eblobjnote.c (ebl_object_note): For EM_AARCH64 handle BTI and PAC

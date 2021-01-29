@@ -1,3 +1,25 @@
+2020-10-28  Tom Tromey  <tom@tromey.com>
+
+	PR26773
+	* dwarf_getlocation.c (store_implicit_value): Use
+	__libdw_get_uleb128_unchecked.
+	* memory-access.h (get_sleb128_step): Assume unsigned type for
+	'var'.
+	(__libdw_get_sleb128, __libdw_get_sleb128_unchecked): Work in
+	unsigned type.  Handle final byte.
+
+2020-10-19  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf_frame_register.c (dwarf_frame_register): Declare ops_mem
+	as array of (at least) 3 elements.
+	* libdw.h (dwarf_frame_register): Add extra explanation of ops_mem
+	argument.
+
+2020-10-23  Tom Tromey  <tom@tromey.com>
+
+	* memory-access.h (read_3ubyte_unaligned_inc): Call
+	read_3ubyte_unaligned.
+
 2020-09-03  Mark Wielaard  <mark@klomp.org>
 
 	* dwarf.h: Add DW_CFA_AARCH64_negate_ra_state.

@@ -97,7 +97,26 @@ main (int argc __attribute__ ((unused)),
   if (dwfl_getthreads (dwfl, thread_callback, &threads) != DWARF_CB_OK)
     error (-1, 0, "dwfl_getthreads failed: %s", dwfl_errmsg (-1));
 
+  dwfl_end (dwfl);
+
+  pthread_cancel (thread1);
+  pthread_cancel (thread2);
+  pthread_join (thread1, NULL);
+  pthread_join (thread2, NULL);
+
   return (threads == 3) ? 0 : -1;
+}
+
+/* HACK. This is a simple workaround for a combination of old glibc
+   and valgrind. libdw will try to dlopen libdebuginfod this causes
+   some unsuppressable memory leak warnings when the process is
+   multi-threaded under valgrind because of some bad backtraces.
+   So simply override dlopen and always return NULL so libdebuginfod
+   (and libcurl) are never loaded.  This test doesn't rely on
+   libdebuginfod anyway.  */
+void *dlopen (void)
+{
+  return NULL;
 }
 
 #endif /* __linux__ */

@@ -1,3 +1,7 @@
+2020-10-28  Mark Wielaard  <mark@klomp.org>
+
+	* elf.h: Update from glibc.
+
 2020-08-28  Mark Wielaard  <mark@klomp.org>
 
 	* elf.h: Update from glibc.

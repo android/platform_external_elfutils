@@ -871,6 +871,7 @@ debuginfod_query_server (debuginfod_client *c,
                 case CURLE_COULDNT_RESOLVE_HOST: rc = -EHOSTUNREACH; break; // no NXDOMAIN
                 case CURLE_URL_MALFORMAT: rc = -EINVAL; break;
                 case CURLE_COULDNT_CONNECT: rc = -ECONNREFUSED; break;
+                case CURLE_PEER_FAILED_VERIFICATION: rc = -ECONNREFUSED; break;
                 case CURLE_REMOTE_ACCESS_DENIED: rc = -EACCES; break;
                 case CURLE_WRITE_ERROR: rc = -EIO; break;
                 case CURLE_OUT_OF_MEMORY: rc = -ENOMEM; break;

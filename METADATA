@@ -1,3 +1,6 @@
+# *** THIS PACKAGE HAS SPECIAL LICENSING CONDITIONS.  PLEASE
+#     CONSULT THE OWNERS AND opensource-licensing@google.com BEFORE
+#     DEPENDING ON IT IN YOUR PROJECT. ***
 name: "elfutils"
 description: "elfutils is a collection of utilities and libraries to read, create and modify ELF binary files, find and handle DWARF debug data, symbols, thread state and stacktraces for processes and core files on GNU/Linux."
 third_party {
@@ -9,11 +12,12 @@ third_party {
     type: GIT
     value: "git://sourceware.org/git/elfutils.git"
   }
-  version: "elfutils-0.181"
-  license_type: RESTRICTED
+  version: "elfutils-0.182"
+  # would be RESTRICTED save for doc/COPYING-GFDL
+  license_type: BY_EXCEPTION_ONLY
   last_upgrade_date {
     year: 2020
-    month: 9
-    day: 23
+    month: 11
+    day: 2
   }
 }

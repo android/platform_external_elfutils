@@ -101,7 +101,14 @@ main (void)
   /* Set locale.  */
   (void) setlocale (LC_ALL, "");
 
-  struct rlimit fd_limit = { .rlim_cur = 32, .rlim_max = 32 };
+  /* Get both the soft and hard limits first. The soft limit is what
+     will be enforced against the process.  The hard limit is the max
+     that can be set for the soft limit.  We don't want to lower it
+     because we might not be able to (under valgrind).  */
+  struct rlimit fd_limit;
+  if (getrlimit (RLIMIT_NOFILE, &fd_limit) < 0)
+    error (2, errno, "getrlimit");
+  fd_limit.rlim_cur = 32;
   if (setrlimit (RLIMIT_NOFILE, &fd_limit) < 0)
     error (2, errno, "setrlimit");
 

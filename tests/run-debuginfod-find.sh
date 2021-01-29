@@ -95,6 +95,10 @@ wait_ready()
   fi
 }
 
+# create a 000 empty .rpm file to evoke a metric-visible error
+touch R/nothing.rpm
+chmod 000 R/nothing.rpm
+
 env LD_LIBRARY_PATH=$ldpath DEBUGINFOD_URLS= ${abs_builddir}/../debuginfod/debuginfod $VERBOSE -F -R -d $DB -p $PORT1 -t0 -g0 --fdcache-fds 1 --fdcache-mbs 2 -Z .tar.xz -Z .tar.bz2=bzcat -v R F Z L > vlog4 2>&1 &
 PID1=$!
 tempfiles vlog4
@@ -240,13 +244,13 @@ fi
 
 cp -rvp ${abs_srcdir}/debuginfod-tars Z
 kill -USR1 $PID1
-# All rpms need to be in the index
-rpms=$(find R -name \*rpm | wc -l)
-wait_ready $PORT1 'scanned_total{source=".rpm archive"}' $rpms
+# All rpms need to be in the index, except the dummy permission-000 one
+rpms=$(find R -name \*rpm | grep -v nothing | wc -l)
+wait_ready $PORT1 'scanned_files_total{source=".rpm archive"}' $rpms
 txz=$(find Z -name \*tar.xz | wc -l)
-wait_ready $PORT1 'scanned_total{source=".tar.xz archive"}' $txz
+wait_ready $PORT1 'scanned_files_total{source=".tar.xz archive"}' $txz
 tb2=$(find Z -name \*tar.bz2 | wc -l)
-wait_ready $PORT1 'scanned_total{source=".tar.bz2 archive"}' $tb2
+wait_ready $PORT1 'scanned_files_total{source=".tar.bz2 archive"}' $tb2
 
 kill -USR1 $PID1  # two hits of SIGUSR1 may be needed to resolve .debug->dwz->srefs
 # Expect all source files found in the rpms (they are all called hello.c :)
@@ -255,7 +259,7 @@ kill -USR1 $PID1  # two hits of SIGUSR1 may be needed to resolve .debug->dwz->sr
 mkdir extracted
 cd extracted
 subdir=0;
-newrpms=$(find ../R -name \*\.rpm)
+newrpms=$(find ../R -name \*\.rpm | grep -v nothing)
 for i in $newrpms; do
     subdir=$[$subdir+1];
     mkdir $subdir;
@@ -341,7 +345,7 @@ RPM_BUILDID=d44d42cbd7d915bc938c81333a21e355a6022fb7 # in rhel6/ subdir, for a l
 rm -r R/debuginfod-rpms/rhel6/*
 kill -USR2 $PID1  # groom cycle
 # Expect 3 rpms to be deleted by the groom
-# 1 groom already took place at/soon-after startup, so -USR2 makes 2
+# 1 groom cycle already took place at/soon-after startup, so -USR2 makes 2
 wait_ready $PORT1 'thread_work_total{role="groom"}' 2
 wait_ready $PORT1 'groom{statistic="file d/e"}' 3
 
@@ -350,6 +354,38 @@ rm -rf $DEBUGINFOD_CACHE_PATH # clean it from previous tests
 testrun ${abs_top_builddir}/debuginfod/debuginfod-find executable $RPM_BUILDID && false || true
 
 testrun ${abs_top_builddir}/debuginfod/debuginfod-find executable $BUILDID2
+
+########################################################################
+
+# PR26810: Now rename some files in the R directory, then rescan, so
+# there are two copies of the same buildid in the index, one for the
+# no-longer-existing file name, and one under the new name.
+
+# run a groom cycle to force server to drop its fdcache
+kill -USR2 $PID1  # groom cycle
+wait_ready $PORT1 'thread_work_total{role="groom"}' 3
+# move it around a couple of times to make it likely to hit a nonexistent entry during iteration
+mv R/debuginfod-rpms/rhel7 R/debuginfod-rpms/rhel7renamed
+kill -USR1 $PID1  # scan cycle
+wait_ready $PORT1 'thread_work_total{role="traverse"}' 6
+wait_ready $PORT1 'thread_work_pending{role="scan"}' 0
+wait_ready $PORT1 'thread_busy{role="scan"}' 0
+mv R/debuginfod-rpms/rhel7renamed R/debuginfod-rpms/rhel7renamed2
+kill -USR1 $PID1  # scan cycle
+wait_ready $PORT1 'thread_work_total{role="traverse"}' 7
+wait_ready $PORT1 'thread_work_pending{role="scan"}' 0
+wait_ready $PORT1 'thread_busy{role="scan"}' 0
+mv R/debuginfod-rpms/rhel7renamed2 R/debuginfod-rpms/rhel7renamed3
+kill -USR1 $PID1  # scan cycle
+wait_ready $PORT1 'thread_work_total{role="traverse"}' 8
+wait_ready $PORT1 'thread_work_pending{role="scan"}' 0
+wait_ready $PORT1 'thread_busy{role="scan"}' 0
+
+# retest rhel7
+archive_test bc1febfd03ca05e030f0d205f7659db29f8a4b30 /usr/src/debug/hello-1.0/hello.c $SHA
+archive_test f0aa15b8aba4f3c28cac3c2a73801fefa644a9f2 /usr/src/debug/hello-1.0/hello.c $SHA
+
+egrep '(libc.error.*rhel7)|(bc1febfd03ca)|(f0aa15b8aba)' vlog4
 
 ########################################################################
 
@@ -383,9 +419,9 @@ if type bsdtar 2>/dev/null; then
     kill -USR1 $PID2
     # All debs need to be in the index
     debs=$(find D -name \*.deb | wc -l)
-    wait_ready $PORT2 'scanned_total{source=".deb archive"}' `expr $debs`
+    wait_ready $PORT2 'scanned_files_total{source=".deb archive"}' `expr $debs`
     ddebs=$(find D -name \*.ddeb | wc -l)
-    wait_ready $PORT2 'scanned_total{source=".ddeb archive"}' `expr $ddebs`
+    wait_ready $PORT2 'scanned_files_total{source=".ddeb archive"}' `expr $ddebs`
 
     # ubuntu
     archive_test f17a29b5a25bd4960531d82aa6b07c8abe84fa66 "" ""
@@ -440,6 +476,10 @@ curl -s http://127.0.0.1:$PORT1/metrics | grep 'http_responses_duration_millisec
 curl -s http://127.0.0.1:$PORT1/metrics | grep 'http_responses_duration_milliseconds_sum'
 curl -s http://127.0.0.1:$PORT1/metrics | grep 'http_responses_transfer_bytes_count'
 curl -s http://127.0.0.1:$PORT1/metrics | grep 'http_responses_transfer_bytes_sum'
+curl -s http://127.0.0.1:$PORT1/metrics | grep 'fdcache_'
+curl -s http://127.0.0.1:$PORT1/metrics | grep 'error_count'
+curl -s http://127.0.0.1:$PORT1/metrics | grep 'traversed_total'
+curl -s http://127.0.0.1:$PORT1/metrics | grep 'scanned_bytes_total'
 
 # And generate a few errors into the second debuginfod's logs, for analysis just below
 curl -s http://127.0.0.1:$PORT2/badapi > /dev/null || true
