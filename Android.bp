@@ -33,6 +33,8 @@ cc_defaults {
     visibility: [
         "//external/dwarves:__subpackages__",
         "//external/elfutils:__subpackages__",
+        "//external/libabigail:__subpackages__",
+        "//external/libbpf:__subpackages__",
     ],
 }
 
