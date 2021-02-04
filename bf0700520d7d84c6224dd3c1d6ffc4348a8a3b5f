@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5e70aa4f_3991f7d5",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-04T23:03:17Z",
+      "side": 1,
+      "message": "this lacks the BSD variant and is not a valid identifier",
+      "range": {
+        "startLine": 45,
+        "startChar": 9,
+        "endLine": 45,
+        "endChar": 36
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "87ba2e73_b0947519",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-04T23:03:17Z",
+      "side": 1,
+      "message": "which version? those are always versioned at https://spdx.org/licenses/",
+      "range": {
+        "startLine": 46,
+        "startChar": 9,
+        "endLine": 46,
+        "endChar": 37
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c84766dd_156d2290",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-04T23:03:17Z",
+      "side": 1,
+      "message": "This does not look correct. There is no such SPDX license identifier listed at https://spdx.org/licenses/\n\nGPL SPDX headers are always versioned.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 38
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "69dd020e_f64e3199",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-04T23:03:17Z",
+      "side": 1,
+      "message": "not a valid identifier",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 39
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "bbfd00d7_86ad08d2",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-04T23:03:17Z",
+      "side": 1,
+      "message": "Elfutils is licensed \"The libraries and backends are dual GPLv2+/LGPLv3+. The utilities are GPLv3+.\"\n\nAccordingly, the correct SPDX identifiers are:\n        \"SPDX-license-identifier-GPL-2.0-or-later\",\n        \"SPDX-license-identifier-GPL-3.0-or-later\",\n        \"SPDX-license-identifier-LGPL-3.0-or-later\",",
+      "range": {
+        "startLine": 48,
+        "startChar": 7,
+        "endLine": 52,
+        "endChar": 43
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "871bf953_50d4f54b",
+        "filename": "lib/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-04T23:03:17Z",
+      "side": 1,
+      "message": "I believe we do not need this block. It likely gets outdated when the definition of \"external_elfutils_license\" changes and might be even misleading then. Can we please drop it?",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 37
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    }
+  ]
+}
