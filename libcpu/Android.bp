@@ -1,3 +1,11 @@
+package {
+    // A large-scale-change added 'default_applicable_licenses' to import
+    // the below license kinds from "external_elfutils_license":
+    //   SPDX-license-identifier-GPL
+    //   SPDX-license-identifier-LGPL
+    default_applicable_licenses: ["external_elfutils_license"],
+}
+
 genrule {
     name: "i386_mnemonics",
     srcs: [
@@ -72,4 +80,3 @@ genrule {
         "m4",
     ],
 }
-
