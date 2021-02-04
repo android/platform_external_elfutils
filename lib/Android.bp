@@ -1,7 +1,16 @@
+package {
+// http://go/android-license-faq
+    // A large-scale-change added 'default_applicable_licenses' to import
+    // the below license kinds from "external_elfutils_license":
+    //   SPDX-license-identifier-BSD
+    //   SPDX-license-identifier-GPL
+    //   SPDX-license-identifier-LGPL
+    default_applicable_licenses: ["external_elfutils_license"],
+}
+
 cc_library_host_static {
     name: "libeu",
     defaults: ["elfutils_defaults"],
     srcs: ["*.c"],
     exclude_srcs: ["dynamicsizehash*.c"],
 }
-
