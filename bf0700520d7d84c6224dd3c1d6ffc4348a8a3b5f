@@ -24,6 +24,30 @@
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "7524b739_cd14d0fb",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-02-05T09:03:38Z",
+      "side": 1,
+      "message": "Ack\n\nThe scanner used by the large-scale-change does not distinguish among the variants.",
+      "parentUuid": "5e70aa4f_3991f7d5",
+      "range": {
+        "startLine": 45,
+        "startChar": 9,
+        "endLine": 45,
+        "endChar": 36
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "87ba2e73_b0947519",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-02-04T23:03:17Z",
       "side": 1,
       "message": "which version? those are always versioned at https://spdx.org/licenses/",
+      "range": {
+        "startLine": 46,
+        "startChar": 9,
+        "endLine": 46,
+        "endChar": 37
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "e442cceb_50a3398f",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-02-05T09:03:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "87ba2e73_b0947519",
       "range": {
         "startLine": 46,
         "startChar": 9,
@@ -70,6 +118,30 @@
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "cc3d0d73_ef87c84b",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-02-05T09:03:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c84766dd_156d2290",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 38
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "69dd020e_f64e3199",
@@ -83,6 +155,30 @@
       "writtenOn": "2021-02-04T23:03:17Z",
       "side": 1,
       "message": "not a valid identifier",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 39
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7e769bf2_58818802",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-02-05T09:03:38Z",
+      "side": 1,
+      "message": "Ack\n\nBut it is a valid license_kind defined in build/soong/licenses/Android.bp, which is what matters more here.",
+      "parentUuid": "69dd020e_f64e3199",
       "range": {
         "startLine": 50,
         "startChar": 8,
@@ -116,6 +212,30 @@
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "ca89afec_14a7ff14",
+        "filename": "Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-02-05T09:03:38Z",
+      "side": 1,
+      "message": "You are welcome to change them.",
+      "parentUuid": "bbfd00d7_86ad08d2",
+      "range": {
+        "startLine": 48,
+        "startChar": 7,
+        "endLine": 52,
+        "endChar": 43
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "871bf953_50d4f54b",
@@ -129,6 +249,30 @@
       "writtenOn": "2021-02-04T23:03:17Z",
       "side": 1,
       "message": "I believe we do not need this block. It likely gets outdated when the definition of \"external_elfutils_license\" changes and might be even misleading then. Can we please drop it?",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 37
+      },
+      "revId": "bf0700520d7d84c6224dd3c1d6ffc4348a8a3b5f",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "3788c01e_ff3d46ef",
+        "filename": "lib/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-02-05T09:03:38Z",
+      "side": 1,
+      "message": "You are welcome to delete it.",
+      "parentUuid": "871bf953_50d4f54b",
       "range": {
         "startLine": 2,
         "startChar": 0,
