@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "c6188a4c_af2ed92c",
+        "filename": "METADATA",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-09T09:00:29Z",
+      "side": 0,
+      "message": "This needs to stay. Probably you need to adapt your tooling for this.",
+      "revId": "362254736dccc7bb12c01a1ae5a97c2c9dfa9049",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "9ae24186_d2c9b2ba",
+        "filename": "METADATA",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-02-09T09:00:29Z",
+      "side": 0,
+      "message": "same here.",
+      "revId": "362254736dccc7bb12c01a1ae5a97c2c9dfa9049",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    }
+  ]
+}
