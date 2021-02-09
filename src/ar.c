@@ -177,12 +177,12 @@ main (int argc, char *argv[])
     {
       /* Only valid for certain operations.  */
       if (operation != oper_move && operation != oper_replace)
-	error (1, 0, gettext ("\
+	error (1, 0, _("\
 'a', 'b', and 'i' are only allowed with the 'm' and 'r' options"));
 
       if (remaining == argc)
 	{
-	  error (0, 0, gettext ("\
+	  error (0, 0, _("\
 MEMBER parameter required for 'a', 'b', and 'i' modifiers"));
 	  argp_help (&argp, stderr, ARGP_HELP_USAGE | ARGP_HELP_SEE,
 		     program_invocation_short_name);
@@ -198,12 +198,12 @@ MEMBER parameter required for 'a', 'b', and 'i' modifiers"));
     {
       /* Only valid for certain operations.  */
       if (operation != oper_extract && operation != oper_delete)
-	error (1, 0, gettext ("\
+	error (1, 0, _("\
 'N' is only meaningful with the 'x' and 'd' options"));
 
       if (remaining == argc)
 	{
-	  error (0, 0, gettext ("COUNT parameter required"));
+	  error (0, 0, _("COUNT parameter required"));
 	  argp_help (&argp, stderr, ARGP_HELP_SEE,
 		     program_invocation_short_name);
 	  exit (EXIT_FAILURE);
@@ -215,20 +215,20 @@ MEMBER parameter required for 'a', 'b', and 'i' modifiers"));
 	   && errno == ERANGE)
 	  || instance <= 0
 	  || *endp != '\0')
-	error (1, 0, gettext ("invalid COUNT parameter %s"), argv[remaining]);
+	error (1, 0, _("invalid COUNT parameter %s"), argv[remaining]);
 
       ++remaining;
     }
 
   if ((dont_replace_existing || allow_truncate_fname)
       && unlikely (operation != oper_extract))
-    error (1, 0, gettext ("'%c' is only meaningful with the 'x' option"),
+    error (1, 0, _("'%c' is only meaningful with the 'x' option"),
 	   dont_replace_existing ? 'C' : 'T');
 
   /* There must at least be one more parameter specifying the archive.   */
   if (remaining == argc)
     {
-      error (0, 0, gettext ("archive name required"));
+      error (0, 0, _("archive name required"));
       argp_help (&argp, stderr, ARGP_HELP_SEE, program_invocation_short_name);
       exit (EXIT_FAILURE);
     }
@@ -241,7 +241,7 @@ MEMBER parameter required for 'a', 'b', and 'i' modifiers"));
   switch (operation)
     {
     case oper_none:
-      error (0, 0, gettext ("command option required"));
+      error (0, 0, _("command option required"));
       argp_help (&argp, stderr, ARGP_HELP_STD_ERR,
 		 program_invocation_short_name);
       status = 1;
@@ -292,7 +292,7 @@ parse_opt (int key, char *arg __attribute__ ((unused)),
     case 'x':
       if (operation != oper_none)
 	{
-	  error (0, 0, gettext ("More than one operation specified"));
+	  error (0, 0, _("More than one operation specified"));
 	  argp_help (&argp, stderr, ARGP_HELP_SEE,
 		     program_invocation_short_name);
 	  exit (EXIT_FAILURE);
@@ -386,7 +386,7 @@ open_archive (const char *arfname, int flags, int mode, Elf **elf,
       if (miss_allowed)
 	return -1;
 
-      error (EXIT_FAILURE, errno, gettext ("cannot open archive '%s'"),
+      error (EXIT_FAILURE, errno, _("cannot open archive '%s'"),
 	     arfname);
     }
 
@@ -396,15 +396,15 @@ open_archive (const char *arfname, int flags, int mode, Elf **elf,
 
       *elf = elf_begin (fd, cmd, NULL);
       if (*elf == NULL)
-	error (EXIT_FAILURE, 0, gettext ("cannot open archive '%s': %s"),
+	error (EXIT_FAILURE, 0, _("cannot open archive '%s': %s"),
 	       arfname, elf_errmsg (-1));
 
       if (flags == O_RDONLY && elf_kind (*elf) != ELF_K_AR)
-	error (EXIT_FAILURE, 0, gettext ("%s: not an archive file"), arfname);
+	error (EXIT_FAILURE, 0, _("%s: not an archive file"), arfname);
     }
 
   if (st != NULL && fstat (fd, st) != 0)
-    error (EXIT_FAILURE, errno, gettext ("cannot stat archive '%s'"),
+    error (EXIT_FAILURE, errno, _("cannot stat archive '%s'"),
 	   arfname);
 
   return fd;
@@ -416,7 +416,7 @@ not_found (int argc, char *argv[argc], bool found[argc])
 {
   for (int i = 0; i < argc; ++i)
     if (!found[i])
-      printf (gettext ("no entry %s in archive\n"), argv[i]);
+      printf (_("no entry %s in archive\n"), argv[i]);
 }
 
 
@@ -436,6 +436,21 @@ copy_content (Elf *elf, int newfd, off_t off, size_t n)
   return write_retry (newfd, rawfile + off, n) != (ssize_t) n;
 }
 
+static inline bool
+should_truncate_fname (size_t *name_max)
+{
+  if (errno == ENAMETOOLONG && allow_truncate_fname)
+    {
+      if (*name_max == 0)
+	{
+	  long int len = pathconf (".", _PC_NAME_MAX);
+	  if (len > 0)
+	    *name_max = len;
+	}
+      return *name_max != 0;
+    }
+  return false;
+}
 
 static int
 do_oper_extract (int oper, const char *arfname, char **argv, int argc,
@@ -445,21 +460,6 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
   memset (found, '\0', sizeof (found));
 
   size_t name_max = 0;
-  inline bool should_truncate_fname (void)
-  {
-    if (errno == ENAMETOOLONG && allow_truncate_fname)
-      {
-	if (name_max == 0)
-	  {
-	    long int len = pathconf (".", _PC_NAME_MAX);
-	    if (len > 0)
-	      name_max = len;
-	  }
-	return name_max != 0;
-      }
-    return false;
-  }
-
   off_t index_off = -1;
   size_t index_size = 0;
   off_t cur_off = SARMAG;
@@ -469,14 +469,14 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
   int fd = open_archive (arfname, O_RDONLY, 0, &elf, NULL, false);
 
   if (hcreate (2 * argc) == 0)
-    error (EXIT_FAILURE, errno, gettext ("cannot create hash table"));
+    error (EXIT_FAILURE, errno, _("cannot create hash table"));
 
   for (int cnt = 0; cnt < argc; ++cnt)
     {
       ENTRY entry = { .key = argv[cnt], .data = &argv[cnt] };
       if (hsearch (entry, ENTER) == NULL)
 	error (EXIT_FAILURE, errno,
-	       gettext ("cannot insert into hash table"));
+	       _("cannot insert into hash table"));
     }
 
   struct stat st;
@@ -484,7 +484,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
     {
       if (fstat (fd, &st) != 0)
 	{
-	  error (0, errno, gettext ("cannot stat '%s'"), arfname);
+	  error (0, errno, _("cannot stat '%s'"), arfname);
 	  close (fd);
 	  return 1;
 	}
@@ -586,7 +586,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 	  char *data = elf_rawfile (subelf, &nleft);
 	  if (data == NULL)
 	    {
-	      error (0, 0, gettext ("cannot read content of %s: %s"),
+	      error (0, 0, _("cannot read content of %s: %s"),
 		     arhdr->ar_name, elf_errmsg (-1));
 	      status = 1;
 	      goto next;
@@ -615,7 +615,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 		    {
 		      int printlen = INT_MAX;
 
-		      if (should_truncate_fname ())
+		      if (should_truncate_fname (&name_max))
 			{
 			  /* Try to truncate the name.  First find out by how
 			     much.  */
@@ -629,7 +629,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 
 		      if (xfd == -1)
 			{
-			  error (0, errno, gettext ("cannot open %.*s"),
+			  error (0, errno, _("cannot open %.*s"),
 				 (int) printlen, arhdr->ar_name);
 			  status = 1;
 			  goto next;
@@ -651,7 +651,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 
 	  if (unlikely (n == -1))
 	    {
-	      error (0, errno, gettext ("failed to write %s"), arhdr->ar_name);
+	      error (0, errno, _("failed to write %s"), arhdr->ar_name);
 	      status = 1;
 	      unlink (tempfname);
 	      close (xfd);
@@ -663,7 +663,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 	      /* Fix up the mode.  */
 	      if (unlikely (fchmod (xfd, arhdr->ar_mode) != 0))
 		{
-		  error (0, errno, gettext ("cannot change mode of %s"),
+		  error (0, errno, _("cannot change mode of %s"),
 			 arhdr->ar_name);
 		  status = 0;
 		}
@@ -679,7 +679,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 		  if (unlikely (futimens (xfd, tv) != 0))
 		    {
 		      error (0, errno,
-			     gettext ("cannot change modification time of %s"),
+			     _("cannot change modification time of %s"),
 			     arhdr->ar_name);
 		      status = 1;
 		    }
@@ -704,7 +704,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 		    {
 		      int printlen = INT_MAX;
 
-		      if (should_truncate_fname ())
+		      if (should_truncate_fname (&name_max))
 			{
 			  /* Try to truncate the name.  First find out by how
 			     much.  */
@@ -725,7 +725,7 @@ do_oper_extract (int oper, const char *arfname, char **argv, int argc,
 
 		      if (r != 0)
 			{
-			  error (0, errno, gettext ("\
+			  error (0, errno, _("\
 cannot rename temporary file to %.*s"),
 				 printlen, arhdr->ar_name);
 			  unlink (tempfname);
@@ -761,7 +761,7 @@ cannot rename temporary file to %.*s"),
 	  if (unlikely (newfd == -1))
 	    {
 	    nonew:
-	      error (0, errno, gettext ("cannot create new file"));
+	      error (0, errno, _("cannot create new file"));
 	      status = 1;
 	    }
 	  else
@@ -848,7 +848,7 @@ write_member (struct armem *memb, off_t *startp, off_t *lenp, Elf *elf,
 	      off_t end_off, int newfd)
 {
   struct ar_hdr arhdr;
-  /* The ar_name is not actually zero teminated, but we need that for
+  /* The ar_name is not actually zero terminated, but we need that for
      snprintf.  Also if the name is too long, then the string starts
      with '/' plus an index off number (decimal).  */
   char tmpbuf[sizeof (arhdr.ar_name) + 2];
@@ -924,14 +924,14 @@ do_oper_delete (const char *arfname, char **argv, int argc,
   int fd = open_archive (arfname, O_RDONLY, 0, &elf, &st, false);
 
   if (hcreate (2 * argc) == 0)
-    error (EXIT_FAILURE, errno, gettext ("cannot create hash table"));
+    error (EXIT_FAILURE, errno, _("cannot create hash table"));
 
   for (int cnt = 0; cnt < argc; ++cnt)
     {
       ENTRY entry = { .key = argv[cnt], .data = &argv[cnt] };
       if (hsearch (entry, ENTER) == NULL)
 	error (EXIT_FAILURE, errno,
-	       gettext ("cannot insert into hash table"));
+	       _("cannot insert into hash table"));
     }
 
   arlib_init ();
@@ -1016,7 +1016,7 @@ do_oper_delete (const char *arfname, char **argv, int argc,
       if (newfd != -1)
 	close (newfd);
     nonew:
-      error (0, errno, gettext ("cannot create new file"));
+      error (0, errno, _("cannot create new file"));
       status = 1;
       goto errout;
     }
@@ -1131,7 +1131,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
   if (oper != oper_qappend)
     {
       if (hcreate (2 * argc) == 0)
-	error (EXIT_FAILURE, errno, gettext ("cannot create hash table"));
+	error (EXIT_FAILURE, errno, _("cannot create hash table"));
 
       for (int cnt = 0; cnt < argc; ++cnt)
 	{
@@ -1140,7 +1140,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 	  entry.data = &argv[cnt];
 	  if (hsearch (entry, ENTER) == NULL)
 	    error (EXIT_FAILURE, errno,
-		   gettext ("cannot insert into hash table"));
+		   _("cannot insert into hash table"));
 	}
     }
 
@@ -1222,7 +1222,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 
  no_old:
   if (member != NULL)
-    error (EXIT_FAILURE, 0, gettext ("position member %s not found"),
+    error (EXIT_FAILURE, 0, _("position member %s not found"),
 	   member);
 
   if (oper == oper_move)
@@ -1232,7 +1232,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 	{
 	  if (found[cnt] == NULL)
 	    {
-	      fprintf (stderr, gettext ("%s: no entry %s in archive!\n"),
+	      fprintf (stderr, _("%s: no entry %s in archive!\n"),
 		       program_invocation_short_name, argv[cnt]);
 	      status = 1;
 	    }
@@ -1261,18 +1261,18 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 	  int newfd = open (argv[cnt], O_RDONLY);
 	  if (newfd == -1)
 	    {
-	      error (0, errno, gettext ("cannot open %s"), argv[cnt]);
+	      error (0, errno, _("cannot open %s"), argv[cnt]);
 	      status = 1;
 	    }
 	  else if (fstat (newfd, &newst) == -1)
 	    {
-	      error (0, errno, gettext ("cannot stat %s"), argv[cnt]);
+	      error (0, errno, _("cannot stat %s"), argv[cnt]);
 	      close (newfd);
 	      status = 1;
 	    }
 	  else if (!S_ISREG (newst.st_mode))
 	    {
-	      error (0, errno, gettext ("%s is no regular file"), argv[cnt]);
+	      error (0, errno, _("%s is no regular file"), argv[cnt]);
 	      close (newfd);
 	      status = 1;
 	    }
@@ -1285,7 +1285,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 		   == NULL)
 	    {
 	      fprintf (stderr,
-		       gettext ("cannot get ELF descriptor for %s: %s\n"),
+		       _("cannot get ELF descriptor for %s: %s\n"),
 		       argv[cnt], elf_errmsg (-1));
 	      status = 1;
 	    }
@@ -1305,7 +1305,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 	      found[cnt]->mem = elf_rawfile (newelf, &found[cnt]->size);
 	      if (found[cnt]->mem == NULL
 		  || elf_cntl (newelf, ELF_C_FDDONE) != 0)
-		error (EXIT_FAILURE, 0, gettext ("cannot read %s: %s"),
+		error (EXIT_FAILURE, 0, _("cannot read %s: %s"),
 		       argv[cnt], elf_errmsg (-1));
 
 	      close (newfd);
@@ -1420,7 +1420,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 	    close (newfd);
 	}
     nonew:
-      error (0, errno, gettext ("cannot create new file"));
+      error (0, errno, _("cannot create new file"));
       status = 1;
       goto errout;
     }
@@ -1458,7 +1458,7 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 
 	      /* Create the header.  */
 	      struct ar_hdr arhdr;
-	      /* The ar_name is not actually zero teminated, but we
+	      /* The ar_name is not actually zero terminated, but we
 		 need that for snprintf.  Also if the name is too
 		 long, then the string starts with '/' plus an index
 		 off number (decimal).  */
@@ -1480,31 +1480,31 @@ do_oper_insert (int oper, const char *arfname, char **argv, int argc,
 	      if (! no0print (false, arhdr.ar_date, sizeof (arhdr.ar_date),
 			      all->sec))
 		{
-		  error (0, errno, gettext ("cannot represent ar_date"));
+		  error (0, errno, _("cannot represent ar_date"));
 		  goto nonew_unlink;
 		}
 	      if (! no0print (false, arhdr.ar_uid, sizeof (arhdr.ar_uid),
 			      all->uid))
 		{
-		  error (0, errno, gettext ("cannot represent ar_uid"));
+		  error (0, errno, _("cannot represent ar_uid"));
 		  goto nonew_unlink;
 		}
 	      if (! no0print (false, arhdr.ar_gid, sizeof (arhdr.ar_gid),
 			      all->gid))
 		{
-		  error (0, errno, gettext ("cannot represent ar_gid"));
+		  error (0, errno, _("cannot represent ar_gid"));
 		  goto nonew_unlink;
 		}
 	      if (! no0print (true, arhdr.ar_mode, sizeof (arhdr.ar_mode),
 			all->mode))
 		{
-		  error (0, errno, gettext ("cannot represent ar_mode"));
+		  error (0, errno, _("cannot represent ar_mode"));
 		  goto nonew_unlink;
 		}
 	      if (! no0print (false, arhdr.ar_size, sizeof (arhdr.ar_size),
 			all->size))
 		{
-		  error (0, errno, gettext ("cannot represent ar_size"));
+		  error (0, errno, _("cannot represent ar_size"));
 		  goto nonew_unlink;
 		}
 	      memcpy (arhdr.ar_fmag, ARFMAG, sizeof (arhdr.ar_fmag));

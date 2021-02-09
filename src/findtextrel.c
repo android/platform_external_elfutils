@@ -202,14 +202,14 @@ process_file (const char *fname, bool more_than_one)
   int fd = open (real_fname, O_RDONLY);
   if (fd == -1)
     {
-      error (0, errno, gettext ("cannot open '%s'"), fname);
+      error (0, errno, _("cannot open '%s'"), fname);
       return 1;
     }
 
   Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
   if (elf == NULL)
     {
-      error (0, 0, gettext ("cannot create ELF descriptor for '%s': %s"),
+      error (0, 0, _("cannot create ELF descriptor for '%s': %s"),
 	     fname, elf_errmsg (-1));
       goto err_close;
     }
@@ -219,7 +219,7 @@ process_file (const char *fname, bool more_than_one)
   GElf_Ehdr *ehdr = gelf_getehdr (elf, &ehdr_mem);
   if (ehdr == NULL)
     {
-      error (0, 0, gettext ("cannot get ELF header '%s': %s"),
+      error (0, 0, _("cannot get ELF header '%s': %s"),
 	     fname, elf_errmsg (-1));
     err_elf_close:
       elf_end (elf);
@@ -230,7 +230,7 @@ process_file (const char *fname, bool more_than_one)
 
   if (ehdr->e_type != ET_DYN)
     {
-      error (0, 0, gettext ("'%s' is not a DSO or PIE"), fname);
+      error (0, 0, _("'%s' is not a DSO or PIE"), fname);
       goto err_elf_close;
     }
 
@@ -250,7 +250,7 @@ process_file (const char *fname, bool more_than_one)
       if (shdr == NULL)
 	{
 	  error (0, 0,
-		 gettext ("getting get section header of section %zu: %s"),
+		 _("getting get section header of section %zu: %s"),
 		 elf_ndxscn (scn), elf_errmsg (-1));
 	  goto err_elf_close;
 	}
@@ -274,7 +274,7 @@ process_file (const char *fname, bool more_than_one)
 		  dyn = gelf_getdyn (data, cnt, &dynmem);
 		  if (dyn == NULL)
 		    {
-		      error (0, 0, gettext ("cannot read dynamic section: %s"),
+		      error (0, 0, _("cannot read dynamic section: %s"),
 			     elf_errmsg (-1));
 		      goto err_elf_close;
 		    }
@@ -295,7 +295,7 @@ process_file (const char *fname, bool more_than_one)
 
   if (!have_textrel)
     {
-      error (0, 0, gettext ("no text relocations reported in '%s'"), fname);
+      error (0, 0, _("no text relocations reported in '%s'"), fname);
       goto err_elf_close;
     }
 
@@ -307,11 +307,11 @@ process_file (const char *fname, bool more_than_one)
   struct segments *segments
     = (struct segments *) malloc (nsegments_max * sizeof (segments[0]));
   if (segments == NULL)
-    error (1, errno, gettext ("while reading ELF file"));
+    error (1, errno, _("while reading ELF file"));
 
   size_t phnum;
   if (elf_getphdrnum (elf, &phnum) != 0)
-    error (1, 0, gettext ("cannot get program header count: %s"),
+    error (1, 0, _("cannot get program header count: %s"),
            elf_errmsg (-1));
 
 
@@ -322,7 +322,7 @@ process_file (const char *fname, bool more_than_one)
       if (phdr == NULL)
 	{
 	  error (0, 0,
-		 gettext ("cannot get program header index at offset %zd: %s"),
+		 _("cannot get program header index at offset %zd: %s"),
 		 i, elf_errmsg (-1));
 	  result = 1;
 	  goto next;
@@ -339,7 +339,7 @@ process_file (const char *fname, bool more_than_one)
 					       * sizeof (segments[0]));
 	      if (segments == NULL)
 		{
-		  error (0, 0, gettext ("\
+		  error (0, 0, _("\
 cannot get program header index at offset %zd: %s"),
 			 i, elf_errmsg (-1));
 		  result = 1;
@@ -391,7 +391,7 @@ cannot get program header index at offset %zd: %s"),
 	  if (shdr == NULL)
 	    {
 	      error (0, 0,
-		     gettext ("cannot get section header of section %zu: %s"),
+		     _("cannot get section header of section %zu: %s"),
 		     elf_ndxscn (scn), elf_errmsg (-1));
 	      result = 1;
 	      goto next;
@@ -403,7 +403,7 @@ cannot get program header index at offset %zd: %s"),
 	      symscn = elf_getscn (elf, shdr->sh_link);
 	      if (symscn == NULL)
 		{
-		  error (0, 0, gettext ("\
+		  error (0, 0, _("\
 cannot get symbol table section %zu in '%s': %s"),
 			 (size_t) shdr->sh_link, fname, elf_errmsg (-1));
 		  result = 1;
@@ -424,7 +424,7 @@ cannot get symbol table section %zu in '%s': %s"),
 		  GElf_Rel *rel = gelf_getrel (data, cnt, &rel_mem);
 		  if (rel == NULL)
 		    {
-		      error (0, 0, gettext ("\
+		      error (0, 0, _("\
 cannot get relocation at index %d in section %zu in '%s': %s"),
 			     cnt, elf_ndxscn (scn), fname, elf_errmsg (-1));
 		      result = 1;
@@ -447,7 +447,7 @@ cannot get relocation at index %d in section %zu in '%s': %s"),
 		  GElf_Rela *rela = gelf_getrela (data, cnt, &rela_mem);
 		  if (rela == NULL)
 		    {
-		      error (0, 0, gettext ("\
+		      error (0, 0, _("\
 cannot get relocation at index %d in section %zu in '%s': %s"),
 			     cnt, elf_ndxscn (scn), fname, elf_errmsg (-1));
 		      result = 1;
@@ -513,7 +513,7 @@ check_rel (size_t nsegments, struct segments segments[nsegments],
 	       pointer comparison.  */
 	    if (tfind (src, knownsrcs, ptrcompare) == NULL)
 	      {
-		printf (gettext ("%s not compiled with -fpic/-fPIC\n"), src);
+		printf (_("%s not compiled with -fpic/-fPIC\n"), src);
 		tsearch (src, knownsrcs, ptrcompare);
 	      }
 	    return;
@@ -567,14 +567,14 @@ check_rel (size_t nsegments, struct segments segments[nsegments],
 			/* It is this function.  */
 			if (tfind (lowstr, knownsrcs, ptrcompare) == NULL)
 			  {
-			    printf (gettext ("\
+			    printf (_("\
 the file containing the function '%s' is not compiled with -fpic/-fPIC\n"),
 				    lowstr);
 			    tsearch (lowstr, knownsrcs, ptrcompare);
 			  }
 		      }
 		    else if (highidx == -1)
-		      printf (gettext ("\
+		      printf (_("\
 the file containing the function '%s' might not be compiled with -fpic/-fPIC\n"),
 			      lowstr);
 		    else
@@ -582,7 +582,7 @@ the file containing the function '%s' might not be compiled with -fpic/-fPIC\n")
 			sym = gelf_getsym (symdata, highidx, &sym_mem);
 			assert (sym != NULL);
 
-			printf (gettext ("\
+			printf (_("\
 either the file containing the function '%s' or the file containing the function '%s' is not compiled with -fpic/-fPIC\n"),
 				lowstr, elf_strptr (elf, shdr->sh_link,
 						    sym->st_name));
@@ -594,7 +594,7 @@ either the file containing the function '%s' or the file containing the function
 		    sym = gelf_getsym (symdata, highidx, &sym_mem);
 		    assert (sym != NULL);
 
-		    printf (gettext ("\
+		    printf (_("\
 the file containing the function '%s' might not be compiled with -fpic/-fPIC\n"),
 			    elf_strptr (elf, shdr->sh_link, sym->st_name));
 		    return;
@@ -602,7 +602,7 @@ the file containing the function '%s' might not be compiled with -fpic/-fPIC\n")
 	      }
 	  }
 
-	printf (gettext ("\
+	printf (_("\
 a relocation modifies memory at offset %llu in a write-protected segment\n"),
 		(unsigned long long int) addr);
 	break;

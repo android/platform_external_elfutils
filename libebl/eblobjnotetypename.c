@@ -74,7 +74,7 @@ ebl_object_note_type_name (Ebl *ebl, const char *name, uint32_t type,
 	    return goknowntypes[type];
 	  else
 	    {
-	      snprintf (buf, len, "%s: %" PRIu32, gettext ("<unknown>"), type);
+	      snprintf (buf, len, "%s: %" PRIu32, _("<unknown>"), type);
 	      return buf;
 	    }
 	}
@@ -106,7 +106,7 @@ ebl_object_note_type_name (Ebl *ebl, const char *name, uint32_t type,
 	  if (descsz == 0 && type == NT_VERSION)
 	    return "VERSION";
 
-	  snprintf (buf, len, "%s: %" PRIu32, gettext ("<unknown>"), type);
+	  snprintf (buf, len, "%s: %" PRIu32, _("<unknown>"), type);
 	  return buf;
 	}
 
@@ -127,7 +127,7 @@ ebl_object_note_type_name (Ebl *ebl, const char *name, uint32_t type,
 	res = knowntypes[type];
       else
 	{
-	  snprintf (buf, len, "%s: %" PRIu32, gettext ("<unknown>"), type);
+	  snprintf (buf, len, "%s: %" PRIu32, _("<unknown>"), type);
 
 	  res = buf;
 	}

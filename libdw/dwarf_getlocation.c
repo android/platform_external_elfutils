@@ -50,7 +50,7 @@ attr_ok (Dwarf_Attribute *attr)
 
   /* Otherwise must be one of the attributes listed below.  Older
      DWARF versions might have encoded the exprloc as block, and we
-     cannot easily distinquish attributes in the loclist class because
+     cannot easily distinguish attributes in the loclist class because
      the same forms are used for different classes.  */
   switch (attr->code)
     {
@@ -388,7 +388,7 @@ __libdw_intern_expression (Dwarf *dbg, bool other_byte_order,
 	    invalid:
 	      __libdw_seterrno (DWARF_E_INVALID_DWARF);
 	    returnmem:
-	      /* Free any dynamicly allocated loclists, if any.  */
+	      /* Free any dynamically allocated loclists, if any.  */
 	      while (n > MAX_STACK_LOCS)
 		{
 		  struct loclist *loc = loclist;

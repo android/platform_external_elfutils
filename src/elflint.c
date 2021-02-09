@@ -107,7 +107,7 @@ static unsigned int error_count;
 /* True if we should perform very strict testing.  */
 static bool be_strict;
 
-/* True if no message is to be printed if the run is succesful.  */
+/* True if no message is to be printed if the run is successful.  */
 static bool be_quiet;
 
 /* True if binary is from strip -f, not a normal ELF file.  */
@@ -177,11 +177,11 @@ main (int argc, char *argv[])
 
 	  /* Now we can close the descriptor.  */
 	  if (elf_end (elf) != 0)
-	    ERROR (gettext ("error while closing Elf descriptor: %s\n"),
+	    ERROR (_("error while closing Elf descriptor: %s\n"),
 		   elf_errmsg (-1));
 
 	  if (prev_error_count == error_count && !be_quiet)
-	    puts (gettext ("No errors"));
+	    puts (_("No errors"));
 	}
 
       close (fd);
@@ -216,7 +216,7 @@ parse_opt (int key, char *arg __attribute__ ((unused)),
       break;
 
     case ARGP_KEY_NO_ARGS:
-      fputs (gettext ("Missing file name.\n"), stderr);
+      fputs (_("Missing file name.\n"), stderr);
       argp_help (&argp, stderr, ARGP_HELP_SEE, program_invocation_short_name);
       exit (EXIT_FAILURE);
 
@@ -281,7 +281,7 @@ process_file (int fd, Elf *elf, const char *prefix, const char *suffix,
 	    /* Get next archive element.  */
 	    cmd = elf_next (subelf);
 	    if (elf_end (subelf) != 0)
-	      ERROR (gettext (" error while freeing sub-ELF descriptor: %s\n"),
+	      ERROR (_(" error while freeing sub-ELF descriptor: %s\n"),
 		     elf_errmsg (-1));
 	  }
       }
@@ -289,7 +289,7 @@ process_file (int fd, Elf *elf, const char *prefix, const char *suffix,
 
     default:
       /* We cannot do anything.  */
-      ERROR (gettext ("\
+      ERROR (_("\
 Not an ELF file - it has the wrong magic bytes at the start\n"));
       break;
     }
@@ -354,16 +354,16 @@ check_elf_header (Ebl *ebl, GElf_Ehdr *ehdr, size_t size)
 
   if (ehdr->e_ident[EI_CLASS] != ELFCLASS32
       && ehdr->e_ident[EI_CLASS] != ELFCLASS64)
-    ERROR (gettext ("e_ident[%d] == %d is no known class\n"),
+    ERROR (_("e_ident[%d] == %d is no known class\n"),
 	   EI_CLASS, ehdr->e_ident[EI_CLASS]);
 
   if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB
       && ehdr->e_ident[EI_DATA] != ELFDATA2MSB)
-    ERROR (gettext ("e_ident[%d] == %d is no known data encoding\n"),
+    ERROR (_("e_ident[%d] == %d is no known data encoding\n"),
 	   EI_DATA, ehdr->e_ident[EI_DATA]);
 
   if (ehdr->e_ident[EI_VERSION] != EV_CURRENT)
-    ERROR (gettext ("unknown ELF header version number e_ident[%d] == %d\n"),
+    ERROR (_("unknown ELF header version number e_ident[%d] == %d\n"),
 	   EI_VERSION, ehdr->e_ident[EI_VERSION]);
 
   /* We currently don't handle any OS ABIs other than Linux and the
@@ -371,46 +371,46 @@ check_elf_header (Ebl *ebl, GElf_Ehdr *ehdr, size_t size)
   if (ehdr->e_ident[EI_OSABI] != ELFOSABI_NONE
       && ehdr->e_ident[EI_OSABI] != ELFOSABI_LINUX
       && ehdr->e_ident[EI_OSABI] != ELFOSABI_FREEBSD)
-    ERROR (gettext ("unsupported OS ABI e_ident[%d] == '%s'\n"),
+    ERROR (_("unsupported OS ABI e_ident[%d] == '%s'\n"),
 	   EI_OSABI,
 	   ebl_osabi_name (ebl, ehdr->e_ident[EI_OSABI], buf, sizeof (buf)));
 
   /* No ABI versions other than zero are supported either.  */
   if (ehdr->e_ident[EI_ABIVERSION] != 0)
-    ERROR (gettext ("unsupported ABI version e_ident[%d] == %d\n"),
+    ERROR (_("unsupported ABI version e_ident[%d] == %d\n"),
 	   EI_ABIVERSION, ehdr->e_ident[EI_ABIVERSION]);
 
   for (cnt = EI_PAD; cnt < EI_NIDENT; ++cnt)
     if (ehdr->e_ident[cnt] != 0)
-      ERROR (gettext ("e_ident[%zu] is not zero\n"), cnt);
+      ERROR (_("e_ident[%zu] is not zero\n"), cnt);
 
   /* Check the e_type field.  */
   if (ehdr->e_type != ET_REL && ehdr->e_type != ET_EXEC
       && ehdr->e_type != ET_DYN && ehdr->e_type != ET_CORE)
-    ERROR (gettext ("unknown object file type %d\n"), ehdr->e_type);
+    ERROR (_("unknown object file type %d\n"), ehdr->e_type);
 
   /* Check the e_machine field.  */
   for (cnt = 0; cnt < nvalid_e_machine; ++cnt)
     if (valid_e_machine[cnt] == ehdr->e_machine)
       break;
   if (cnt == nvalid_e_machine)
-    ERROR (gettext ("unknown machine type %d\n"), ehdr->e_machine);
+    ERROR (_("unknown machine type %d\n"), ehdr->e_machine);
 
   /* Check the e_version field.  */
   if (ehdr->e_version != EV_CURRENT)
-    ERROR (gettext ("unknown object file version\n"));
+    ERROR (_("unknown object file version\n"));
 
   /* Check the e_phoff and e_phnum fields.  */
   if (ehdr->e_phoff == 0)
     {
       if (ehdr->e_phnum != 0)
-	ERROR (gettext ("invalid program header offset\n"));
+	ERROR (_("invalid program header offset\n"));
       else if (ehdr->e_type == ET_EXEC || ehdr->e_type == ET_DYN)
-	ERROR (gettext ("\
+	ERROR (_("\
 executables and DSOs cannot have zero program header offset\n"));
     }
   else if (ehdr->e_phnum == 0)
-    ERROR (gettext ("invalid number of program header entries\n"));
+    ERROR (_("invalid number of program header entries\n"));
 
   /* Check the e_shoff field.  */
   shnum = ehdr->e_shnum;
@@ -418,10 +418,10 @@ executables and DSOs cannot have zero program header offset\n"));
   if (ehdr->e_shoff == 0)
     {
       if (ehdr->e_shnum != 0)
-	ERROR (gettext ("invalid section header table offset\n"));
+	ERROR (_("invalid section header table offset\n"));
       else if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN
 	       && ehdr->e_type != ET_CORE)
-	ERROR (gettext ("section header table must be present\n"));
+	ERROR (_("section header table must be present\n"));
     }
   else
     {
@@ -435,7 +435,7 @@ executables and DSOs cannot have zero program header offset\n"));
 	    {
 	      /* The error will be reported later.  */
 	      if (shdr->sh_size == 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 invalid number of section header table entries\n"));
 	      else
 		shnum = shdr->sh_size;
@@ -452,7 +452,7 @@ invalid number of section header table entries\n"));
 	    shstrndx = shdr->sh_link;
 	}
       else if (shstrndx >= shnum)
-	ERROR (gettext ("invalid section header index\n"));
+	ERROR (_("invalid section header index\n"));
     }
 
   /* Check the shdrs actually exist.  And uncompress them before
@@ -470,7 +470,7 @@ invalid number of section header table entries\n"));
 	if (elf_compress (scn, 0, 0) < 0) { ; }
      }
   if (scnt < shnum)
-    ERROR (gettext ("Can only check %u headers, shnum was %u\n"), scnt, shnum);
+    ERROR (_("Can only check %u headers, shnum was %u\n"), scnt, shnum);
   shnum = scnt;
 
   phnum = ehdr->e_phnum;
@@ -484,7 +484,7 @@ invalid number of section header table entries\n"));
 	{
 	  /* The error will be reported later.  */
 	  if (shdr->sh_info < PN_XNUM)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 invalid number of program header table entries\n"));
 	  else
 	    phnum = shdr->sh_info;
@@ -501,48 +501,48 @@ invalid number of program header table entries\n"));
 	  break;
      }
   if (pcnt < phnum)
-    ERROR (gettext ("Can only check %u headers, phnum was %u\n"), pcnt, phnum);
+    ERROR (_("Can only check %u headers, phnum was %u\n"), pcnt, phnum);
   phnum = pcnt;
 
   /* Check the e_flags field.  */
   if (!ebl_machine_flag_check (ebl, ehdr->e_flags))
-    ERROR (gettext ("invalid machine flags: %s\n"),
+    ERROR (_("invalid machine flags: %s\n"),
 	   ebl_machine_flag_name (ebl, ehdr->e_flags, buf, sizeof (buf)));
 
   /* Check e_ehsize, e_phentsize, and e_shentsize fields.  */
   if (gelf_getclass (ebl->elf) == ELFCLASS32)
     {
       if (ehdr->e_ehsize != 0 && ehdr->e_ehsize != sizeof (Elf32_Ehdr))
-	ERROR (gettext ("invalid ELF header size: %hd\n"), ehdr->e_ehsize);
+	ERROR (_("invalid ELF header size: %hd\n"), ehdr->e_ehsize);
 
       if (ehdr->e_phentsize != 0 && ehdr->e_phentsize != sizeof (Elf32_Phdr))
-	ERROR (gettext ("invalid program header size: %hd\n"),
+	ERROR (_("invalid program header size: %hd\n"),
 	       ehdr->e_phentsize);
       else if (ehdr->e_phoff + phnum * ehdr->e_phentsize > size)
-	ERROR (gettext ("invalid program header position or size\n"));
+	ERROR (_("invalid program header position or size\n"));
 
       if (ehdr->e_shentsize != 0 && ehdr->e_shentsize != sizeof (Elf32_Shdr))
-	ERROR (gettext ("invalid section header size: %hd\n"),
+	ERROR (_("invalid section header size: %hd\n"),
 	       ehdr->e_shentsize);
       else if (ehdr->e_shoff + shnum * ehdr->e_shentsize > size)
-	ERROR (gettext ("invalid section header position or size\n"));
+	ERROR (_("invalid section header position or size\n"));
     }
   else if (gelf_getclass (ebl->elf) == ELFCLASS64)
     {
       if (ehdr->e_ehsize != 0 && ehdr->e_ehsize != sizeof (Elf64_Ehdr))
-	ERROR (gettext ("invalid ELF header size: %hd\n"), ehdr->e_ehsize);
+	ERROR (_("invalid ELF header size: %hd\n"), ehdr->e_ehsize);
 
       if (ehdr->e_phentsize != 0 && ehdr->e_phentsize != sizeof (Elf64_Phdr))
-	ERROR (gettext ("invalid program header size: %hd\n"),
+	ERROR (_("invalid program header size: %hd\n"),
 	       ehdr->e_phentsize);
       else if (ehdr->e_phoff + phnum * ehdr->e_phentsize > size)
-	ERROR (gettext ("invalid program header position or size\n"));
+	ERROR (_("invalid program header position or size\n"));
 
       if (ehdr->e_shentsize != 0 && ehdr->e_shentsize != sizeof (Elf64_Shdr))
-	ERROR (gettext ("invalid section header size: %hd\n"),
+	ERROR (_("invalid section header size: %hd\n"),
 	       ehdr->e_shentsize);
       else if (ehdr->e_shoff + shnum * ehdr->e_shentsize > size)
-	ERROR (gettext ("invalid section header position or size\n"));
+	ERROR (_("invalid section header position or size\n"));
     }
 }
 
@@ -587,11 +587,11 @@ check_scn_group (Ebl *ebl, int idx)
 
     out:
       if (cnt == shnum)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': section with SHF_GROUP flag set not part of a section group\n"),
 	       idx, section_name (ebl, idx));
       else
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': section group [%2zu] '%s' does not precede group member\n"),
 	       idx, section_name (ebl, idx),
 	       cnt, section_name (ebl, cnt));
@@ -607,7 +607,7 @@ check_symtab (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -620,7 +620,7 @@ check_symtab (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
 
   if (strshdr->sh_type != SHT_STRTAB)
     {
-      ERROR (gettext ("section [%2d] '%s': referenced as string table for section [%2d] '%s' but type is not SHT_STRTAB\n"),
+      ERROR (_("section [%2d] '%s': referenced as string table for section [%2d] '%s' but type is not SHT_STRTAB\n"),
 	     shdr->sh_link, section_name (ebl, shdr->sh_link),
 	     idx, section_name (ebl, idx));
       strshdr = NULL;
@@ -643,7 +643,7 @@ check_symtab (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
 	    && xndxshdr->sh_link == (GElf_Word) idx)
 	  {
 	    if (found_xndx)
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': symbol table cannot have more than one extended index section\n"),
 		     idx, section_name (ebl, idx));
 
@@ -655,11 +655,11 @@ section [%2d] '%s': symbol table cannot have more than one extended index sectio
 
   size_t sh_entsize = gelf_fsize (ebl->elf, ELF_T_SYM, 1, EV_CURRENT);
   if (shdr->sh_entsize != sh_entsize)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2u] '%s': entry size is does not match ElfXX_Sym\n"),
 	   idx, section_name (ebl, idx));
   else if (shdr->sh_info > shdr->sh_size / sh_entsize)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2u] '%s': number of local entries in 'st_info' larger than table size\n"),
 	   idx, section_name (ebl, idx));
 
@@ -668,30 +668,30 @@ section [%2u] '%s': number of local entries in 'st_info' larger than table size\
   Elf32_Word xndx;
   GElf_Sym *sym = gelf_getsymshndx (data, xndxdata, 0, &sym_mem, &xndx);
   if (sym == NULL)
-      ERROR (gettext ("section [%2d] '%s': cannot get symbol %d: %s\n"),
+      ERROR (_("section [%2d] '%s': cannot get symbol %d: %s\n"),
 	     idx, section_name (ebl, idx), 0, elf_errmsg (-1));
   else
     {
       if (sym->st_name != 0)
-	ERROR (gettext ("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
+	ERROR (_("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
 	       idx, section_name (ebl, idx), "st_name");
       if (sym->st_value != 0)
-	ERROR (gettext ("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
+	ERROR (_("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
 	       idx, section_name (ebl, idx), "st_value");
       if (sym->st_size != 0)
-	ERROR (gettext ("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
+	ERROR (_("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
 	       idx, section_name (ebl, idx), "st_size");
       if (sym->st_info != 0)
-	ERROR (gettext ("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
+	ERROR (_("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
 	       idx, section_name (ebl, idx), "st_info");
       if (sym->st_other != 0)
-	ERROR (gettext ("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
+	ERROR (_("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
 	       idx, section_name (ebl, idx), "st_other");
       if (sym->st_shndx != 0)
-	ERROR (gettext ("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
+	ERROR (_("section [%2d] '%s': '%s' in zeroth entry not zero\n"),
 	       idx, section_name (ebl, idx), "st_shndx");
       if (xndxdata != NULL && xndx != 0)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': XINDEX for zeroth entry not zero\n"),
 	       xndxscnidx, section_name (ebl, xndxscnidx));
     }
@@ -701,16 +701,16 @@ section [%2d] '%s': XINDEX for zeroth entry not zero\n"),
       sym = gelf_getsymshndx (data, xndxdata, cnt, &sym_mem, &xndx);
       if (sym == NULL)
 	{
-	  ERROR (gettext ("section [%2d] '%s': cannot get symbol %zu: %s\n"),
+	  ERROR (_("section [%2d] '%s': cannot get symbol %zu: %s\n"),
 		 idx, section_name (ebl, idx), cnt, elf_errmsg (-1));
 	  continue;
 	}
 
-      const char *name = NULL;
+      const char *name = "<invalid>";
       if (strshdr == NULL)
 	name = "";
       else if (sym->st_name >= strshdr->sh_size)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': symbol %zu: invalid name value\n"),
 	       idx, section_name (ebl, idx), cnt);
       else
@@ -725,15 +725,15 @@ section [%2d] '%s': symbol %zu: invalid name value\n"),
 	  if (xndxdata == NULL)
 	    {
 	      if (!no_xndx_warned)
-		ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: too large section index but no extended section index section\n"),
-		       idx, section_name (ebl, idx), cnt);
+		ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): too large section index but no extended section index section\n"),
+		       idx, section_name (ebl, idx), cnt, name);
 	      no_xndx_warned = true;
 	    }
 	  else if (xndx < SHN_LORESERVE)
-	    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: XINDEX used for index which would fit in st_shndx (%" PRIu32 ")\n"),
-		   xndxscnidx, section_name (ebl, xndxscnidx), cnt,
+	    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): XINDEX used for index which would fit in st_shndx (%" PRIu32 ")\n"),
+		   xndxscnidx, section_name (ebl, xndxscnidx), cnt, name,
 		   xndx);
 	}
       else if ((sym->st_shndx >= SHN_LORESERVE
@@ -743,44 +743,44 @@ section [%2d] '%s': symbol %zu: XINDEX used for index which would fit in st_shnd
 	       || (sym->st_shndx >= shnum
 		   && (sym->st_shndx < SHN_LORESERVE
 		       /* || sym->st_shndx > SHN_HIRESERVE  always false */)))
-	ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: invalid section index\n"),
-	       idx, section_name (ebl, idx), cnt);
+	ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): invalid section index\n"),
+	       idx, section_name (ebl, idx), cnt, name);
       else
 	xndx = sym->st_shndx;
 
       if (GELF_ST_TYPE (sym->st_info) >= STT_NUM
 	  && !ebl_symbol_type_name (ebl, GELF_ST_TYPE (sym->st_info), NULL, 0))
-	ERROR (gettext ("section [%2d] '%s': symbol %zu: unknown type\n"),
-	       idx, section_name (ebl, idx), cnt);
+	ERROR (_("section [%2d] '%s': symbol %zu (%s): unknown type\n"),
+	       idx, section_name (ebl, idx), cnt, name);
 
       if (GELF_ST_BIND (sym->st_info) >= STB_NUM
 	  && !ebl_symbol_binding_name (ebl, GELF_ST_BIND (sym->st_info), NULL,
 				       0))
-	ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: unknown symbol binding\n"),
-	       idx, section_name (ebl, idx), cnt);
+	ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): unknown symbol binding\n"),
+	       idx, section_name (ebl, idx), cnt, name);
       if (GELF_ST_BIND (sym->st_info) == STB_GNU_UNIQUE
 	  && GELF_ST_TYPE (sym->st_info) != STT_OBJECT)
-	ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: unique symbol not of object type\n"),
-	       idx, section_name (ebl, idx), cnt);
+	ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): unique symbol not of object type\n"),
+	       idx, section_name (ebl, idx), cnt, name);
 
       if (xndx == SHN_COMMON)
 	{
 	  /* Common symbols can only appear in relocatable files.  */
 	  if (ehdr->e_type != ET_REL)
-	    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: COMMON only allowed in relocatable files\n"),
-		   idx, section_name (ebl, idx), cnt);
+	    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): COMMON only allowed in relocatable files\n"),
+		   idx, section_name (ebl, idx), cnt, name);
 	  if (cnt < shdr->sh_info)
-	    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: local COMMON symbols are nonsense\n"),
-		   idx, section_name (ebl, idx), cnt);
+	    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): local COMMON symbols are nonsense\n"),
+		   idx, section_name (ebl, idx), cnt, name);
 	  if (GELF_R_TYPE (sym->st_info) == STT_FUNC)
-	    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: function in COMMON section is nonsense\n"),
-		   idx, section_name (ebl, idx), cnt);
+	    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): function in COMMON section is nonsense\n"),
+		   idx, section_name (ebl, idx), cnt, name);
 	}
       else if (xndx > 0 && xndx < shnum)
 	{
@@ -829,24 +829,24 @@ section [%2d] '%s': symbol %zu: function in COMMON section is nonsense\n"),
 				  && strcmp (name, "__edata") != 0
 				  && strcmp (name, "_end") != 0
 				  && strcmp (name, "__end") != 0))
-			    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: st_value out of bounds\n"),
-				   idx, section_name (ebl, idx), cnt);
+			    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): st_value out of bounds\n"),
+				   idx, section_name (ebl, idx), cnt, name);
 			}
 		      else if ((st_value - sh_addr
 				+ sym->st_size) > destshdr->sh_size)
-			ERROR (gettext ("\
-section [%2d] '%s': symbol %zu does not fit completely in referenced section [%2d] '%s'\n"),
-			       idx, section_name (ebl, idx), cnt,
+			ERROR (_("\
+section [%2d] '%s': symbol %zu (%s) does not fit completely in referenced section [%2d] '%s'\n"),
+			       idx, section_name (ebl, idx), cnt, name,
 			       (int) xndx, section_name (ebl, xndx));
 		    }
 		}
 	      else
 		{
 		  if ((destshdr->sh_flags & SHF_TLS) == 0)
-		    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: referenced section [%2d] '%s' does not have SHF_TLS flag set\n"),
-			   idx, section_name (ebl, idx), cnt,
+		    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): referenced section [%2d] '%s' does not have SHF_TLS flag set\n"),
+			   idx, section_name (ebl, idx), cnt, name,
 			   (int) xndx, section_name (ebl, xndx));
 
 		  if (ehdr->e_type == ET_REL)
@@ -854,15 +854,15 @@ section [%2d] '%s': symbol %zu: referenced section [%2d] '%s' does not have SHF_
 		      /* For object files the symbol value must fall
 			 into the section.  */
 		      if (st_value > destshdr->sh_size)
-			ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: st_value out of bounds of referenced section [%2d] '%s'\n"),
-			       idx, section_name (ebl, idx), cnt,
+			ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): st_value out of bounds of referenced section [%2d] '%s'\n"),
+			       idx, section_name (ebl, idx), cnt, name,
 			       (int) xndx, section_name (ebl, xndx));
 		      else if (st_value + sym->st_size
 			       > destshdr->sh_size)
-			ERROR (gettext ("\
-section [%2d] '%s': symbol %zu does not fit completely in referenced section [%2d] '%s'\n"),
-			       idx, section_name (ebl, idx), cnt,
+			ERROR (_("\
+section [%2d] '%s': symbol %zu (%s) does not fit completely in referenced section [%2d] '%s'\n"),
+			       idx, section_name (ebl, idx), cnt, name,
 			       (int) xndx, section_name (ebl, xndx));
 		    }
 		  else
@@ -881,37 +881,37 @@ section [%2d] '%s': symbol %zu does not fit completely in referenced section [%2
 		      if (pcnt == phnum)
 			{
 			  if (no_pt_tls++ == 0)
-			    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: TLS symbol but no TLS program header entry\n"),
-				   idx, section_name (ebl, idx), cnt);
+			    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): TLS symbol but no TLS program header entry\n"),
+				   idx, section_name (ebl, idx), cnt, name);
 			}
 		      else if (phdr == NULL)
 			{
-			    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: TLS symbol but couldn't get TLS program header entry\n"),
-				   idx, section_name (ebl, idx), cnt);
+			    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): TLS symbol but couldn't get TLS program header entry\n"),
+				   idx, section_name (ebl, idx), cnt, name);
 			}
 		      else if (!is_debuginfo)
 			{
 			  if (st_value
 			      < destshdr->sh_offset - phdr->p_offset)
-			    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: st_value short of referenced section [%2d] '%s'\n"),
-				   idx, section_name (ebl, idx), cnt,
+			    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): st_value short of referenced section [%2d] '%s'\n"),
+				   idx, section_name (ebl, idx), cnt, name,
 				   (int) xndx, section_name (ebl, xndx));
 			  else if (st_value
 				   > (destshdr->sh_offset - phdr->p_offset
 				      + destshdr->sh_size))
-			    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: st_value out of bounds of referenced section [%2d] '%s'\n"),
-				   idx, section_name (ebl, idx), cnt,
+			    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): st_value out of bounds of referenced section [%2d] '%s'\n"),
+				   idx, section_name (ebl, idx), cnt, name,
 				   (int) xndx, section_name (ebl, xndx));
 			  else if (st_value + sym->st_size
 				   > (destshdr->sh_offset - phdr->p_offset
 				      + destshdr->sh_size))
-			    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu does not fit completely in referenced section [%2d] '%s'\n"),
-				   idx, section_name (ebl, idx), cnt,
+			    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s) does not fit completely in referenced section [%2d] '%s'\n"),
+				   idx, section_name (ebl, idx), cnt, name,
 				   (int) xndx, section_name (ebl, xndx));
 			}
 		    }
@@ -922,23 +922,23 @@ section [%2d] '%s': symbol %zu does not fit completely in referenced section [%2
       if (GELF_ST_BIND (sym->st_info) == STB_LOCAL)
 	{
 	  if (cnt >= shdr->sh_info)
-	    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: local symbol outside range described in sh_info\n"),
-		   idx, section_name (ebl, idx), cnt);
+	    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): local symbol outside range described in sh_info\n"),
+		   idx, section_name (ebl, idx), cnt, name);
 	}
       else
 	{
 	  if (cnt < shdr->sh_info)
-	    ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: non-local symbol outside range described in sh_info\n"),
-		   idx, section_name (ebl, idx), cnt);
+	    ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): non-local symbol outside range described in sh_info\n"),
+		   idx, section_name (ebl, idx), cnt, name);
 	}
 
       if (GELF_ST_TYPE (sym->st_info) == STT_SECTION
 	  && GELF_ST_BIND (sym->st_info) != STB_LOCAL)
-	ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: non-local section symbol\n"),
-	       idx, section_name (ebl, idx), cnt);
+	ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): non-local section symbol\n"),
+	       idx, section_name (ebl, idx), cnt, name);
 
       if (name != NULL)
 	{
@@ -986,14 +986,14 @@ section [%2d] '%s': symbol %zu: non-local section symbol\n"),
 	      if (sname == NULL)
 		{
 		  if (xndx != SHN_UNDEF || ehdr->e_type != ET_REL)
-		    ERROR (gettext ("\
+		    ERROR (_("\
 section [%2d] '%s': _GLOBAL_OFFSET_TABLE_ symbol refers to \
 bad section [%2d]\n"),
 			   idx, section_name (ebl, idx), xndx);
 		}
 	      else if (strcmp (sname, ".got.plt") != 0
 		       && strcmp (sname, ".got") != 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': _GLOBAL_OFFSET_TABLE_ symbol refers to \
 section [%2d] '%s'\n"),
 		       idx, section_name (ebl, idx), xndx, sname);
@@ -1009,14 +1009,14 @@ section [%2d] '%s'\n"),
 			/* This test is more strict than the psABIs which
 			   usually allow the symbol to be in the middle of
 			   the .got section, allowing negative offsets.  */
-			ERROR (gettext ("\
+			ERROR (_("\
 section [%2d] '%s': _GLOBAL_OFFSET_TABLE_ symbol value %#" PRIx64 " does not match %s section address %#" PRIx64 "\n"),
 			       idx, section_name (ebl, idx),
 			       (uint64_t) sym->st_value,
 			       sname, (uint64_t) destshdr->sh_addr);
 
 		      if (!gnuld && sym->st_size != destshdr->sh_size)
-			ERROR (gettext ("\
+			ERROR (_("\
 section [%2d] '%s': _GLOBAL_OFFSET_TABLE_ symbol size %" PRIu64 " does not match %s section size %" PRIu64 "\n"),
 			       idx, section_name (ebl, idx),
 			       (uint64_t) sym->st_size,
@@ -1024,7 +1024,7 @@ section [%2d] '%s': _GLOBAL_OFFSET_TABLE_ symbol size %" PRIu64 " does not match
 		    }
 		}
 	      else
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': _GLOBAL_OFFSET_TABLE_ symbol present, but no .got section\n"),
 		       idx, section_name (ebl, idx));
 	    }
@@ -1040,14 +1040,14 @@ section [%2d] '%s': _GLOBAL_OFFSET_TABLE_ symbol present, but no .got section\n"
 		if (phdr != NULL && phdr->p_type == PT_DYNAMIC)
 		  {
 		    if (sym->st_value != phdr->p_vaddr)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2d] '%s': _DYNAMIC_ symbol value %#" PRIx64 " does not match dynamic segment address %#" PRIx64 "\n"),
 			     idx, section_name (ebl, idx),
 			     (uint64_t) sym->st_value,
 			     (uint64_t) phdr->p_vaddr);
 
 		    if (!gnuld && sym->st_size != phdr->p_memsz)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2d] '%s': _DYNAMIC symbol size %" PRIu64 " does not match dynamic segment size %" PRIu64 "\n"),
 			     idx, section_name (ebl, idx),
 			     (uint64_t) sym->st_size,
@@ -1060,13 +1060,13 @@ section [%2d] '%s': _DYNAMIC symbol size %" PRIu64 " does not match dynamic segm
 
       if (GELF_ST_VISIBILITY (sym->st_other) != STV_DEFAULT
 	  && shdr->sh_type == SHT_DYNSYM)
-	ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: symbol in dynamic symbol table with non-default visibility\n"),
-	       idx, section_name (ebl, idx), cnt);
+	ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): symbol in dynamic symbol table with non-default visibility\n"),
+	       idx, section_name (ebl, idx), cnt, name);
       if (! ebl_check_st_other_bits (ebl, sym->st_other))
-	ERROR (gettext ("\
-section [%2d] '%s': symbol %zu: unknown bit set in st_other\n"),
-	       idx, section_name (ebl, idx), cnt);
+	ERROR (_("\
+section [%2d] '%s': symbol %zu (%s): unknown bit set in st_other\n"),
+	       idx, section_name (ebl, idx), cnt, name);
 
     }
 }
@@ -1102,7 +1102,7 @@ is_rel_dyn (Ebl *ebl, const GElf_Ehdr *ehdr, int idx, const GElf_Shdr *shdr,
 	  size_t cnt;
 
 	  if (d == NULL)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': cannot get section data.\n"),
 		   idx, section_name (ebl, idx));
 
@@ -1118,7 +1118,7 @@ section [%2d] '%s': cannot get section data.\n"),
 		{
 		  /* Found it.  Does the type match.  */
 		  if (is_rela)
-		    ERROR (gettext ("\
+		    ERROR (_("\
 section [%2d] '%s': DT_RELCOUNT used for this RELA section\n"),
 			   idx, section_name (ebl, idx));
 		  else
@@ -1129,7 +1129,7 @@ section [%2d] '%s': DT_RELCOUNT used for this RELA section\n"),
 		      if (shdr->sh_entsize != 0
 			  && dyn->d_un.d_val > (shdr->sh_size
 						/ shdr->sh_entsize))
-			ERROR (gettext ("\
+			ERROR (_("\
 section [%2d] '%s': DT_RELCOUNT value %d too high for this section\n"),
 			       idx, section_name (ebl, idx),
 			       (int) dyn->d_un.d_val);
@@ -1154,13 +1154,13 @@ section [%2d] '%s': DT_RELCOUNT value %d too high for this section\n"),
 						      GELF_R_TYPE (rel->r_info)))
 			      {
 				if (inner >= dyn->d_un.d_val)
-				  ERROR (gettext ("\
+				  ERROR (_("\
 section [%2d] '%s': relative relocations after index %d as specified by DT_RELCOUNT\n"),
 					 idx, section_name (ebl, idx),
 					 (int) dyn->d_un.d_val);
 			      }
 			    else if (inner < dyn->d_un.d_val)
-			      ERROR (gettext ("\
+			      ERROR (_("\
 section [%2d] '%s': non-relative relocation at index %zu; DT_RELCOUNT specified %d relative relocations\n"),
 				     idx, section_name (ebl, idx),
 				     inner, (int) dyn->d_un.d_val);
@@ -1172,7 +1172,7 @@ section [%2d] '%s': non-relative relocation at index %zu; DT_RELCOUNT specified 
 		{
 		  /* Found it.  Does the type match.  */
 		  if (!is_rela)
-		    ERROR (gettext ("\
+		    ERROR (_("\
 section [%2d] '%s': DT_RELACOUNT used for this REL section\n"),
 			   idx, section_name (ebl, idx));
 		  else
@@ -1182,7 +1182,7 @@ section [%2d] '%s': DT_RELACOUNT used for this REL section\n"),
 			 relocations?  */
 		      if (shdr->sh_entsize != 0
 			  && dyn->d_un.d_val > shdr->sh_size / shdr->sh_entsize)
-			ERROR (gettext ("\
+			ERROR (_("\
 section [%2d] '%s': DT_RELCOUNT value %d too high for this section\n"),
 			       idx, section_name (ebl, idx),
 			       (int) dyn->d_un.d_val);
@@ -1207,13 +1207,13 @@ section [%2d] '%s': DT_RELCOUNT value %d too high for this section\n"),
 						      GELF_R_TYPE (rela->r_info)))
 			      {
 				if (inner >= dyn->d_un.d_val)
-				  ERROR (gettext ("\
+				  ERROR (_("\
 section [%2d] '%s': relative relocations after index %d as specified by DT_RELCOUNT\n"),
 					 idx, section_name (ebl, idx),
 					 (int) dyn->d_un.d_val);
 			      }
 			    else if (inner < dyn->d_un.d_val)
-			      ERROR (gettext ("\
+			      ERROR (_("\
 section [%2d] '%s': non-relative relocation at index %zu; DT_RELCOUNT specified %d relative relocations\n"),
 				     idx, section_name (ebl, idx),
 				     inner, (int) dyn->d_un.d_val);
@@ -1255,7 +1255,7 @@ check_reloc_shdr (Ebl *ebl, const GElf_Ehdr *ehdr, const GElf_Shdr *shdr,
 
   /* Check whether the link to the section we relocate is reasonable.  */
   if (shdr->sh_info >= shnum)
-    ERROR (gettext ("section [%2d] '%s': invalid destination section index\n"),
+    ERROR (_("section [%2d] '%s': invalid destination section index\n"),
 	   idx, section_name (ebl, idx));
   else if (shdr->sh_info != 0)
     {
@@ -1267,7 +1267,7 @@ check_reloc_shdr (Ebl *ebl, const GElf_Ehdr *ehdr, const GElf_Shdr *shdr,
 	    {
 	      reldyn = is_rel_dyn (ebl, ehdr, idx, shdr, true);
 	      if (!reldyn)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': invalid destination section type\n"),
 		       idx, section_name (ebl, idx));
 	      else
@@ -1275,7 +1275,7 @@ section [%2d] '%s': invalid destination section type\n"),
 		  /* There is no standard, but we require that .rel{,a}.dyn
 		     sections have a sh_info value of zero.  */
 		  if (shdr->sh_info != 0)
-		    ERROR (gettext ("\
+		    ERROR (_("\
 section [%2d] '%s': sh_info should be zero\n"),
 			   idx, section_name (ebl, idx));
 		}
@@ -1283,7 +1283,7 @@ section [%2d] '%s': sh_info should be zero\n"),
 
 	  if ((((*destshdrp)->sh_flags & SHF_MERGE) != 0)
 	      && ((*destshdrp)->sh_flags & SHF_STRINGS) != 0)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': no relocations for merge-able string sections possible\n"),
 		   idx, section_name (ebl, idx));
 	}
@@ -1291,7 +1291,7 @@ section [%2d] '%s': no relocations for merge-able string sections possible\n"),
 
   size_t sh_entsize = gelf_fsize (ebl->elf, reltype, 1, EV_CURRENT);
   if (shdr->sh_entsize != sh_entsize)
-    ERROR (gettext (reltype == ELF_T_RELA ? "\
+    ERROR (_(reltype == ELF_T_RELA ? "\
 section [%2d] '%s': section entry size does not match ElfXX_Rela\n" : "\
 section [%2d] '%s': section entry size does not match ElfXX_Rel\n"),
 	   idx, section_name (ebl, idx));
@@ -1351,7 +1351,7 @@ section [%2d] '%s': section entry size does not match ElfXX_Rel\n"),
       while (seg != NULL && !seg->read_only)
 	seg = seg->next;
       if (seg == NULL)
-	ERROR (gettext ("\
+	ERROR (_("\
 text relocation flag set but there is no read-only segment\n"));
     }
 
@@ -1378,7 +1378,7 @@ check_one_reloc (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *relshdr, int idx,
   bool known_broken = gnuld;
 
   if (!ebl_reloc_type_check (ebl, GELF_R_TYPE (r_info)))
-    ERROR (gettext ("section [%2d] '%s': relocation %zu: invalid type\n"),
+    ERROR (_("section [%2d] '%s': relocation %zu: invalid type\n"),
 	   idx, section_name (ebl, idx), cnt);
   else if (((ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN)
 	    /* The executable/DSO can contain relocation sections with
@@ -1386,7 +1386,7 @@ check_one_reloc (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *relshdr, int idx,
 	       are marked non-loaded, though.  */
 	    || (relshdr->sh_flags & SHF_ALLOC) != 0)
 	   && !ebl_reloc_valid_use (ebl, GELF_R_TYPE (r_info)))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': relocation %zu: relocation type invalid for the file type\n"),
 	   idx, section_name (ebl, idx), cnt);
 
@@ -1394,7 +1394,7 @@ section [%2d] '%s': relocation %zu: relocation type invalid for the file type\n"
       && ((GELF_R_SYM (r_info) + 1)
 	  * gelf_fsize (ebl->elf, ELF_T_SYM, 1, EV_CURRENT)
 	  > symshdr->sh_size))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': relocation %zu: invalid symbol index\n"),
 	   idx, section_name (ebl, idx), cnt);
 
@@ -1412,7 +1412,7 @@ section [%2d] '%s': relocation %zu: invalid symbol index\n"),
 	  /* Get the name for the symbol.  */
 	  && (name = elf_strptr (ebl->elf, symshdr->sh_link, sym->st_name))
 	  && strcmp (name, "_GLOBAL_OFFSET_TABLE_") !=0 )
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': relocation %zu: only symbol '_GLOBAL_OFFSET_TABLE_' can be used with %s\n"),
 	       idx, section_name (ebl, idx), cnt,
 	       ebl_reloc_type_name (ebl, GELF_R_SYM (r_info),
@@ -1429,7 +1429,7 @@ section [%2d] '%s': relocation %zu: only symbol '_GLOBAL_OFFSET_TABLE_' can be u
 	  && GELF_R_TYPE (r_info) != 0
 	  && (r_offset - (ehdr->e_type == ET_REL ? 0
 			  : destshdr->sh_addr)) >= destshdr->sh_size)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': relocation %zu: offset out of bounds\n"),
 	       idx, section_name (ebl, idx), cnt);
     }
@@ -1444,7 +1444,7 @@ section [%2d] '%s': relocation %zu: offset out of bounds\n"),
       && GELF_ST_TYPE (sym->st_info) != STT_OBJECT)
     {
       char buf[64];
-      ERROR (gettext ("section [%2d] '%s': relocation %zu: copy relocation against symbol of type %s\n"),
+      ERROR (_("section [%2d] '%s': relocation %zu: copy relocation against symbol of type %s\n"),
 	     idx, section_name (ebl, idx), cnt,
 	     ebl_symbol_type_name (ebl, GELF_ST_TYPE (sym->st_info),
 				   buf, sizeof (buf)));
@@ -1465,7 +1465,7 @@ section [%2d] '%s': relocation %zu: offset out of bounds\n"),
 		  if (textrel)
 		    needed_textrel = true;
 		  else
-		    ERROR (gettext ("section [%2d] '%s': relocation %zu: read-only section modified but text relocation flag not set\n"),
+		    ERROR (_("section [%2d] '%s': relocation %zu: read-only section modified but text relocation flag not set\n"),
 			   idx, section_name (ebl, idx), cnt);
 		}
 
@@ -1480,7 +1480,7 @@ section [%2d] '%s': relocation %zu: offset out of bounds\n"),
       else if ((*statep == state_unloaded && in_loaded_seg)
 	       || (*statep == state_loaded && !in_loaded_seg))
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': relocations are against loaded and unloaded data\n"),
 		 idx, section_name (ebl, idx));
 	  *statep = state_error;
@@ -1495,7 +1495,7 @@ check_rela (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -1520,7 +1520,7 @@ check_rela (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
       GElf_Rela *rela = gelf_getrela (data, cnt, &rela_mem);
       if (rela == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': cannot get relocation %zu: %s\n"),
 		 idx, section_name (ebl, idx), cnt, elf_errmsg (-1));
 	  continue;
@@ -1546,7 +1546,7 @@ check_rel (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -1571,7 +1571,7 @@ check_rel (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
       GElf_Rel *rel = gelf_getrel (data, cnt, &rel_mem);
       if (rel == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': cannot get relocation %zu: %s\n"),
 		 idx, section_name (ebl, idx), cnt, elf_errmsg (-1));
 	  continue;
@@ -1647,25 +1647,25 @@ check_dynamic (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
   memset (has_addr_dt, '\0', sizeof (has_addr_dt));
 
   if (++ndynamic == 2)
-    ERROR (gettext ("more than one dynamic section present\n"));
+    ERROR (_("more than one dynamic section present\n"));
 
   data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
 
   strshdr = gelf_getshdr (elf_getscn (ebl->elf, shdr->sh_link), &strshdr_mem);
   if (strshdr != NULL && strshdr->sh_type != SHT_STRTAB)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': referenced as string table for section [%2d] '%s' but type is not SHT_STRTAB\n"),
 	   shdr->sh_link, section_name (ebl, shdr->sh_link),
 	   idx, section_name (ebl, idx));
   else if (strshdr == NULL)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d]: referenced as string table for section [%2d] '%s' but section link value is invalid\n"),
 	   shdr->sh_link, idx, section_name (ebl, idx));
       return;
@@ -1673,12 +1673,12 @@ section [%2d]: referenced as string table for section [%2d] '%s' but section lin
 
   size_t sh_entsize = gelf_fsize (ebl->elf, ELF_T_DYN, 1, EV_CURRENT);
   if (shdr->sh_entsize != sh_entsize)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': section entry size does not match ElfXX_Dyn\n"),
 	   idx, section_name (ebl, idx));
 
   if (shdr->sh_info != 0)
-    ERROR (gettext ("section [%2d] '%s': sh_info not zero\n"),
+    ERROR (_("section [%2d] '%s': sh_info not zero\n"),
 	   idx, section_name (ebl, idx));
 
   bool non_null_warned = false;
@@ -1688,7 +1688,7 @@ section [%2d] '%s': section entry size does not match ElfXX_Dyn\n"),
       GElf_Dyn *dyn = gelf_getdyn (data, cnt, &dyn_mem);
       if (dyn == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': cannot get dynamic section entry %zu: %s\n"),
 		 idx, section_name (ebl, idx), cnt, elf_errmsg (-1));
 	  continue;
@@ -1696,14 +1696,14 @@ section [%2d] '%s': cannot get dynamic section entry %zu: %s\n"),
 
       if (has_dt[DT_NULL] && dyn->d_tag != DT_NULL && ! non_null_warned)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': non-DT_NULL entries follow DT_NULL entry\n"),
 		 idx, section_name (ebl, idx));
 	  non_null_warned = true;
 	}
 
       if (!ebl_dynamic_tag_check (ebl, dyn->d_tag))
-	ERROR (gettext ("section [%2d] '%s': entry %zu: unknown tag\n"),
+	ERROR (_("section [%2d] '%s': entry %zu: unknown tag\n"),
 	       idx, section_name (ebl, idx), cnt);
 
       if (dyn->d_tag >= 0 && dyn->d_tag < DT_NUM)
@@ -1714,7 +1714,7 @@ section [%2d] '%s': non-DT_NULL entries follow DT_NULL entry\n"),
 	      && dyn->d_tag != DT_POSFLAG_1)
 	    {
 	      char buf[50];
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': entry %zu: more than one entry with tag %s\n"),
 		     idx, section_name (ebl, idx), cnt,
 		     ebl_dynamic_tag_name (ebl, dyn->d_tag,
@@ -1724,7 +1724,7 @@ section [%2d] '%s': entry %zu: more than one entry with tag %s\n"),
 	  if (be_strict && level2[dyn->d_tag])
 	    {
 	      char buf[50];
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': entry %zu: level 2 tag %s used\n"),
 		     idx, section_name (ebl, idx), cnt,
 		     ebl_dynamic_tag_name (ebl, dyn->d_tag,
@@ -1742,7 +1742,7 @@ section [%2d] '%s': entry %zu: level 2 tag %s used\n"),
 
       if (dyn->d_tag == DT_PLTREL && dyn->d_un.d_val != DT_REL
 	  && dyn->d_un.d_val != DT_RELA)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': entry %zu: DT_PLTREL value must be DT_REL or DT_RELA\n"),
 	       idx, section_name (ebl, idx), cnt);
 
@@ -1755,7 +1755,7 @@ section [%2d] '%s': entry %zu: DT_PLTREL value must be DT_REL or DT_RELA\n"),
 	     specified in sh_link.  */
 	  if (strshdr->sh_addr != dyn->d_un.d_val)
 	    {
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': entry %zu: pointer does not match address of section [%2d] '%s' referenced by sh_link\n"),
 		     idx, section_name (ebl, idx), cnt,
 		     shdr->sh_link, section_name (ebl, shdr->sh_link));
@@ -1798,7 +1798,7 @@ section [%2d] '%s': entry %zu: pointer does not match address of section [%2d] '
 	  if (unlikely (n >= phnum))
 	    {
 	      char buf[50];
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': entry %zu: %s value must point into loaded segment\n"),
 		     idx, section_name (ebl, idx), cnt,
 		     ebl_dynamic_tag_name (ebl, dyn->d_tag, buf,
@@ -1813,7 +1813,7 @@ section [%2d] '%s': entry %zu: %s value must point into loaded segment\n"),
 	  if (dyn->d_un.d_ptr >= strshdr->sh_size)
 	    {
 	      char buf[50];
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': entry %zu: %s value must be valid offset in section [%2d] '%s'\n"),
 		     idx, section_name (ebl, idx), cnt,
 		     ebl_dynamic_tag_name (ebl, dyn->d_tag, buf,
@@ -1833,7 +1833,7 @@ section [%2d] '%s': entry %zu: %s value must be valid offset in section [%2d] '%
 	      char buf1[50];
 	      char buf2[50];
 
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': contains %s entry but not %s\n"),
 		     idx, section_name (ebl, idx),
 		     ebl_dynamic_tag_name (ebl, cnt, buf1, sizeof (buf1)),
@@ -1845,7 +1845,7 @@ section [%2d] '%s': contains %s entry but not %s\n"),
 	if (mandatory[cnt])
 	  {
 	    char buf[50];
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': mandatory tag %s not present\n"),
 		   idx, section_name (ebl, idx),
 		   ebl_dynamic_tag_name (ebl, cnt, buf, sizeof (buf)));
@@ -1854,14 +1854,14 @@ section [%2d] '%s': mandatory tag %s not present\n"),
 
   /* Make sure we have an hash table.  */
   if (!has_dt[DT_HASH] && !has_addr_dt[DT_ADDRTAGIDX (DT_GNU_HASH)])
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': no hash section present\n"),
 	   idx, section_name (ebl, idx));
 
   /* The GNU-style hash table also needs a symbol table.  */
   if (!has_dt[DT_HASH] && has_addr_dt[DT_ADDRTAGIDX (DT_GNU_HASH)]
       && !has_dt[DT_SYMTAB])
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': contains %s entry but not %s\n"),
 	   idx, section_name (ebl, idx),
 	   "DT_GNU_HASH", "DT_SYMTAB");
@@ -1869,14 +1869,14 @@ section [%2d] '%s': contains %s entry but not %s\n"),
   /* Check the rel/rela tags.  At least one group must be available.  */
   if ((has_dt[DT_RELA] || has_dt[DT_RELASZ] || has_dt[DT_RELAENT])
       && (!has_dt[DT_RELA] || !has_dt[DT_RELASZ] || !has_dt[DT_RELAENT]))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': not all of %s, %s, and %s are present\n"),
 	   idx, section_name (ebl, idx),
 	   "DT_RELA", "DT_RELASZ", "DT_RELAENT");
 
   if ((has_dt[DT_REL] || has_dt[DT_RELSZ] || has_dt[DT_RELENT])
       && (!has_dt[DT_REL] || !has_dt[DT_RELSZ] || !has_dt[DT_RELENT]))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': not all of %s, %s, and %s are present\n"),
 	   idx, section_name (ebl, idx),
 	   "DT_REL", "DT_RELSZ", "DT_RELENT");
@@ -1886,17 +1886,17 @@ section [%2d] '%s': not all of %s, %s, and %s are present\n"),
       || has_val_dt[DT_VALTAGIDX (DT_CHECKSUM)])
     {
       if (!has_val_dt[DT_VALTAGIDX (DT_GNU_PRELINKED)])
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': %s tag missing in DSO marked during prelinking\n"),
 	       idx, section_name (ebl, idx), "DT_GNU_PRELINKED");
       if (!has_val_dt[DT_VALTAGIDX (DT_CHECKSUM)])
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': %s tag missing in DSO marked during prelinking\n"),
 	       idx, section_name (ebl, idx), "DT_CHECKSUM");
 
       /* Only DSOs can be marked like this.  */
       if (ehdr->e_type != ET_DYN)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': non-DSO file marked as dependency during prelink\n"),
 	       idx, section_name (ebl, idx));
     }
@@ -1907,19 +1907,19 @@ section [%2d] '%s': non-DSO file marked as dependency during prelink\n"),
       || has_addr_dt[DT_ADDRTAGIDX (DT_GNU_LIBLIST)])
     {
       if (!has_val_dt[DT_VALTAGIDX (DT_GNU_CONFLICTSZ)])
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': %s tag missing in prelinked executable\n"),
 	       idx, section_name (ebl, idx), "DT_GNU_CONFLICTSZ");
       if (!has_val_dt[DT_VALTAGIDX (DT_GNU_LIBLISTSZ)])
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': %s tag missing in prelinked executable\n"),
 	       idx, section_name (ebl, idx), "DT_GNU_LIBLISTSZ");
       if (!has_addr_dt[DT_ADDRTAGIDX (DT_GNU_CONFLICT)])
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': %s tag missing in prelinked executable\n"),
 	       idx, section_name (ebl, idx), "DT_GNU_CONFLICT");
       if (!has_addr_dt[DT_ADDRTAGIDX (DT_GNU_LIBLIST)])
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': %s tag missing in prelinked executable\n"),
 	       idx, section_name (ebl, idx), "DT_GNU_LIBLIST");
     }
@@ -1931,7 +1931,7 @@ check_symtab_shndx (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
 {
   if (ehdr->e_type != ET_REL)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': only relocatable files can have extended section index\n"),
 	     idx, section_name (ebl, idx));
       return;
@@ -1941,19 +1941,19 @@ section [%2d] '%s': only relocatable files can have extended section index\n"),
   GElf_Shdr symshdr_mem;
   GElf_Shdr *symshdr = gelf_getshdr (symscn, &symshdr_mem);
   if (symshdr != NULL && symshdr->sh_type != SHT_SYMTAB)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': extended section index section not for symbol table\n"),
 	   idx, section_name (ebl, idx));
   else if (symshdr == NULL)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': sh_link extended section index [%2d] is invalid\n"),
 	   idx, section_name (ebl, idx), shdr->sh_link);
   Elf_Data *symdata = elf_getdata (symscn, NULL);
   if (symdata == NULL)
-    ERROR (gettext ("cannot get data for symbol section\n"));
+    ERROR (_("cannot get data for symbol section\n"));
 
   if (shdr->sh_entsize != sizeof (Elf32_Word))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': entry size does not match Elf32_Word\n"),
 	   idx, section_name (ebl, idx));
 
@@ -1962,12 +1962,12 @@ section [%2d] '%s': entry size does not match Elf32_Word\n"),
       && symshdr->sh_entsize != 0
       && (shdr->sh_size / shdr->sh_entsize
 	  < symshdr->sh_size / symshdr->sh_entsize))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': extended index table too small for symbol table\n"),
 	   idx, section_name (ebl, idx));
 
   if (shdr->sh_info != 0)
-    ERROR (gettext ("section [%2d] '%s': sh_info not zero\n"),
+    ERROR (_("section [%2d] '%s': sh_info not zero\n"),
 	   idx, section_name (ebl, idx));
 
   for (size_t cnt = idx + 1; cnt < shnum; ++cnt)
@@ -1977,7 +1977,7 @@ section [%2d] '%s': extended index table too small for symbol table\n"),
       if (rshdr != NULL && rshdr->sh_type == SHT_SYMTAB_SHNDX
 	  && rshdr->sh_link == shdr->sh_link)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': extended section index in section [%2zu] '%s' refers to same symbol table\n"),
 		 idx, section_name (ebl, idx),
 		 cnt, section_name (ebl, cnt));
@@ -1988,14 +1988,14 @@ section [%2d] '%s': extended section index in section [%2zu] '%s' refers to same
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL || data->d_buf == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
 
   if (data->d_size < sizeof (Elf32_Word)
       || *((Elf32_Word *) data->d_buf) != 0)
-    ERROR (gettext ("symbol 0 should have zero extended section index\n"));
+    ERROR (_("symbol 0 should have zero extended section index\n"));
 
   for (size_t cnt = 1; cnt < data->d_size / sizeof (Elf32_Word); ++cnt)
     {
@@ -2007,12 +2007,12 @@ section [%2d] '%s': extended section index in section [%2zu] '%s' refers to same
 	  GElf_Sym *sym = gelf_getsym (symdata, cnt, &sym_data);
 	  if (sym == NULL)
 	    {
-	      ERROR (gettext ("cannot get data for symbol %zu\n"), cnt);
+	      ERROR (_("cannot get data for symbol %zu\n"), cnt);
 	      continue;
 	    }
 
 	  if (sym->st_shndx != SHN_XINDEX)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 extended section index is %" PRIu32 " but symbol index is not XINDEX\n"),
 		   (uint32_t) xndx);
 	}
@@ -2029,7 +2029,7 @@ check_sysv_hash (Ebl *ebl, GElf_Shdr *shdr, Elf_Data *data, int idx,
 
   if (shdr->sh_size < (2ULL + nbucket + nchain) * sizeof (Elf32_Word))
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
 	     idx, section_name (ebl, idx), (long int) shdr->sh_size,
 	     (long int) ((2 + nbucket + nchain) * sizeof (Elf32_Word)));
@@ -2043,7 +2043,7 @@ section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
       size_t symsize = symshdr->sh_size / symshdr->sh_entsize;
 
       if (nchain > symshdr->sh_size / symshdr->sh_entsize)
-	ERROR (gettext ("section [%2d] '%s': chain array too large\n"),
+	ERROR (_("section [%2d] '%s': chain array too large\n"),
 	       idx, section_name (ebl, idx));
 
       maxidx = symsize;
@@ -2057,7 +2057,7 @@ section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
       if (buf + cnt >= end)
 	break;
       else if (buf[cnt] >= maxidx)
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash bucket reference %zu out of bounds\n"),
 	     idx, section_name (ebl, idx), cnt - 2);
     }
@@ -2067,7 +2067,7 @@ section [%2d] '%s': hash bucket reference %zu out of bounds\n"),
       if (buf + cnt >= end)
 	break;
       else if (buf[cnt] >= maxidx)
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash chain reference %zu out of bounds\n"),
 	     idx, section_name (ebl, idx), cnt - 2 - nbucket);
     }
@@ -2086,7 +2086,7 @@ check_sysv_hash64 (Ebl *ebl, GElf_Shdr *shdr, Elf_Data *data, int idx,
       || maxwords - 2 < nbucket
       || maxwords - 2 - nbucket < nchain)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
 	     idx, section_name (ebl, idx), (long int) shdr->sh_size,
 	     (long int) ((2 + nbucket + nchain) * sizeof (Elf64_Xword)));
@@ -2100,7 +2100,7 @@ section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
       size_t symsize = symshdr->sh_size / symshdr->sh_entsize;
 
       if (nchain > symshdr->sh_size / symshdr->sh_entsize)
-	ERROR (gettext ("section [%2d] '%s': chain array too large\n"),
+	ERROR (_("section [%2d] '%s': chain array too large\n"),
 	       idx, section_name (ebl, idx));
 
       maxidx = symsize;
@@ -2114,7 +2114,7 @@ section [%2d] '%s': hash table section is too small (is %ld, expected %ld)\n"),
       if (buf + cnt >= end)
 	break;
       else if (buf[cnt] >= maxidx)
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash bucket reference %zu out of bounds\n"),
 	     idx, section_name (ebl, idx), cnt - 2);
     }
@@ -2124,7 +2124,7 @@ section [%2d] '%s': hash bucket reference %zu out of bounds\n"),
       if (buf + cnt >= end)
 	break;
       else if (buf[cnt] >= maxidx)
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash chain reference %" PRIu64 " out of bounds\n"),
 	       idx, section_name (ebl, idx), (uint64_t) cnt - 2 - nbucket);
     }
@@ -2137,7 +2137,7 @@ check_gnu_hash (Ebl *ebl, GElf_Shdr *shdr, Elf_Data *data, int idx,
 {
   if (data->d_size < 4 * sizeof (Elf32_Word))
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': not enough data\n"),
 	     idx, section_name (ebl, idx));
       return;
@@ -2149,7 +2149,7 @@ section [%2d] '%s': not enough data\n"),
 
   if (bitmask_words == 0 || !powerof2 (bitmask_words))
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': bitmask size zero or not power of 2: %u\n"),
 	     idx, section_name (ebl, idx), bitmask_words);
       return;
@@ -2161,11 +2161,11 @@ section [%2d] '%s': bitmask size zero or not power of 2: %u\n"),
   Elf32_Word shift = ((Elf32_Word *) data->d_buf)[3];
 
   /* Is there still room for the sym chain?
-     Use uint64_t calculation to prevent 32bit overlow.  */
+     Use uint64_t calculation to prevent 32bit overflow.  */
   uint64_t used_buf = (4ULL + bitmask_words + nbuckets) * sizeof (Elf32_Word);
   if (used_buf > data->d_size)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash table section is too small (is %ld, expected at least %ld)\n"),
 	     idx, section_name (ebl, idx), (long int) shdr->sh_size,
 	     (long int) used_buf);
@@ -2174,7 +2174,7 @@ section [%2d] '%s': hash table section is too small (is %ld, expected at least %
 
   if (shift > 31)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': 2nd hash function shift too big: %u\n"),
 	     idx, section_name (ebl, idx), shift);
       return;
@@ -2208,7 +2208,7 @@ section [%2d] '%s': 2nd hash function shift too big: %u\n"),
 
       if (symidx < symbias)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': hash chain for bucket %zu lower than symbol index bias\n"),
 		 idx, section_name (ebl, idx), cnt - (4 + bitmask_words));
 	  continue;
@@ -2229,7 +2229,7 @@ section [%2d] '%s': hash chain for bucket %zu lower than symbol index bias\n"),
 	      GElf_Sym *sym = gelf_getsym (symdata, symidx, &sym_mem);
 	      if (sym != NULL && sym->st_shndx == SHN_UNDEF
 		  && GELF_ST_TYPE (sym->st_info) != STT_FUNC)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': symbol %u referenced in chain for bucket %zu is undefined\n"),
 		       idx, section_name (ebl, idx), symidx,
 		       cnt - (4 + bitmask_words));
@@ -2242,7 +2242,7 @@ section [%2d] '%s': symbol %u referenced in chain for bucket %zu is undefined\n"
 		{
 		  Elf32_Word hval = elf_gnu_hash (symname);
 		  if ((hval & ~1u) != (chainhash & ~1u))
-		    ERROR (gettext ("\
+		    ERROR (_("\
 section [%2d] '%s': hash value for symbol %u in chain for bucket %zu wrong\n"),
 			   idx, section_name (ebl, idx), symidx,
 			   cnt - (4 + bitmask_words));
@@ -2251,7 +2251,7 @@ section [%2d] '%s': hash value for symbol %u in chain for bucket %zu wrong\n"),
 		  size_t maskidx = (hval / classbits) & bitmask_idxmask;
 		  if (maskidx >= bitmask_words)
 		    {
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2d] '%s': mask index for symbol %u in chain for bucket %zu wrong\n"),
 			     idx, section_name (ebl, idx), symidx,
 			     cnt - (4 + bitmask_words));
@@ -2281,18 +2281,18 @@ section [%2d] '%s': mask index for symbol %u in chain for bucket %zu wrong\n"),
 	}
 
       if (symidx - symbias >= maxidx)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': hash chain for bucket %zu out of bounds\n"),
 	       idx, section_name (ebl, idx), cnt - (4 + bitmask_words));
       else if (symshdr != NULL && symshdr->sh_entsize != 0
 	       && symidx > symshdr->sh_size / symshdr->sh_entsize)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': symbol reference in chain for bucket %zu out of bounds\n"),
 	       idx, section_name (ebl, idx), cnt - (4 + bitmask_words));
     }
 
   if (memcmp (collected.p32, bitmask.p32, bitmask_words * sizeof (Elf32_Word)))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': bitmask does not match names in the hash table\n"),
 	   idx, section_name (ebl, idx));
 
@@ -2305,7 +2305,7 @@ check_hash (int tag, Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
 {
   if (ehdr->e_type == ET_REL)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': relocatable files cannot have hash tables\n"),
 	     idx, section_name (ebl, idx));
       return;
@@ -2314,7 +2314,7 @@ section [%2d] '%s': relocatable files cannot have hash tables\n"),
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL || data->d_buf == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -2323,11 +2323,11 @@ section [%2d] '%s': relocatable files cannot have hash tables\n"),
   GElf_Shdr *symshdr = gelf_getshdr (elf_getscn (ebl->elf, shdr->sh_link),
 				     &symshdr_mem);
   if (symshdr != NULL && symshdr->sh_type != SHT_DYNSYM)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': hash table not for dynamic symbol table\n"),
 	   idx, section_name (ebl, idx));
   else if (symshdr == NULL)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': invalid sh_link symbol table section index [%2d]\n"),
 	   idx, section_name (ebl, idx), shdr->sh_link);
 
@@ -2337,17 +2337,17 @@ section [%2d] '%s': invalid sh_link symbol table section index [%2d]\n"),
 			   : (size_t) ebl_sysvhash_entrysize (ebl));
 
   if (shdr->sh_entsize != expect_entsize)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': hash table entry size incorrect\n"),
 	   idx, section_name (ebl, idx));
 
   if ((shdr->sh_flags & SHF_ALLOC) == 0)
-    ERROR (gettext ("section [%2d] '%s': not marked to be allocated\n"),
+    ERROR (_("section [%2d] '%s': not marked to be allocated\n"),
 	   idx, section_name (ebl, idx));
 
   if (shdr->sh_size < (tag == SHT_GNU_HASH ? 4 : 2) * (expect_entsize ?: 4))
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': hash table has not even room for initial administrative entries\n"),
 	     idx, section_name (ebl, idx));
       return;
@@ -2396,7 +2396,7 @@ compare_hash_gnu_hash (Ebl *ebl, GElf_Ehdr *ehdr, size_t hash_idx,
   /* The link must point to the same symbol table.  */
   if (hash_shdr->sh_link != gnu_hash_shdr->sh_link)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 sh_link in hash sections [%2zu] '%s' and [%2zu] '%s' not identical\n"),
 	     hash_idx, elf_strptr (ebl->elf, shstrndx, hash_shdr->sh_name),
 	     gnu_hash_idx,
@@ -2420,7 +2420,7 @@ sh_link in hash sections [%2zu] '%s' and [%2zu] '%s' not identical\n"),
 
   if (gnu_hash_data->d_size < 4 * sizeof (Elf32_Word))
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 hash section [%2zu] '%s' does not contain enough data\n"),
 	     gnu_hash_idx, gnu_hash_name);
       return;
@@ -2441,7 +2441,7 @@ hash section [%2zu] '%s' does not contain enough data\n"),
 
   if (gnu_hasharr[2] == 0)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 hash section [%2zu] '%s' has zero bit mask words\n"),
 	     gnu_hash_idx, gnu_hash_name);
       return;
@@ -2452,7 +2452,7 @@ hash section [%2zu] '%s' has zero bit mask words\n"),
   uint32_t max_nsyms = (gnu_hash_data->d_size - used_buf) / sizeof (Elf32_Word);
   if (used_buf > gnu_hash_data->d_size)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 hash section [%2zu] '%s' uses too much data\n"),
 	     gnu_hash_idx, gnu_hash_name);
       return;
@@ -2467,7 +2467,7 @@ hash section [%2zu] '%s' uses too much data\n"),
 	    {
 	      if (symidx >= max_nsyms || symidx + gnu_symbias >= nentries)
 		{
-		  ERROR (gettext ("\
+		  ERROR (_("\
 hash section [%2zu] '%s' invalid symbol index %" PRIu32 " (max_nsyms: %" PRIu32 ", nentries: %" PRIu32 "\n"),
 			 gnu_hash_idx, gnu_hash_name, symidx, max_nsyms, nentries);
 		  return;
@@ -2485,7 +2485,7 @@ hash section [%2zu] '%s' invalid symbol index %" PRIu32 " (max_nsyms: %" PRIu32 
       const Elf32_Word *hasharr = (Elf32_Word *) hash_data->d_buf;
       if (hash_data->d_size < 2 * sizeof (Elf32_Word))
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 hash section [%2zu] '%s' does not contain enough data\n"),
 		 hash_idx, hash_name);
 	  return;
@@ -2496,7 +2496,7 @@ hash section [%2zu] '%s' does not contain enough data\n"),
       uint64_t hash_used = (2ULL + nchain + nbucket) * sizeof (Elf32_Word);
       if (hash_used > hash_data->d_size)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 hash section [%2zu] '%s' uses too much data\n"),
 		 hash_idx, hash_name);
 	  return;
@@ -2520,7 +2520,7 @@ hash section [%2zu] '%s' uses too much data\n"),
       const Elf64_Xword *hasharr = (Elf64_Xword *) hash_data->d_buf;
       if (hash_data->d_size < 2 * sizeof (Elf32_Word))
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 hash section [%2zu] '%s' does not contain enough data\n"),
 		 hash_idx, hash_name);
 	  return;
@@ -2533,7 +2533,7 @@ hash section [%2zu] '%s' does not contain enough data\n"),
 	  || maxwords - 2 < nbucket
 	  || maxwords - 2 - nbucket < nchain)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 hash section [%2zu] '%s' uses too much data\n"),
 		 hash_idx, hash_name);
 	  return;
@@ -2554,7 +2554,7 @@ hash section [%2zu] '%s' uses too much data\n"),
     }
   else
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 hash section [%2zu] '%s' invalid sh_entsize\n"),
 	     hash_idx, hash_name);
       return;
@@ -2564,18 +2564,18 @@ hash section [%2zu] '%s' invalid sh_entsize\n"),
      (unless the symbol is undefined in which case it can be omitted
      in the new table format).  */
   if ((used[0] & 1) != 0)
-    ERROR (gettext ("section [%2zu] '%s': reference to symbol index 0\n"),
+    ERROR (_("section [%2zu] '%s': reference to symbol index 0\n"),
 	   gnu_hash_idx,
 	   elf_strptr (ebl->elf, shstrndx, gnu_hash_shdr->sh_name));
   if ((used[0] & 2) != 0)
-    ERROR (gettext ("section [%2zu] '%s': reference to symbol index 0\n"),
+    ERROR (_("section [%2zu] '%s': reference to symbol index 0\n"),
 	   hash_idx, elf_strptr (ebl->elf, shstrndx, hash_shdr->sh_name));
 
   for (uint32_t cnt = 1; cnt < nentries; ++cnt)
     if (used[cnt] != 0 && used[cnt] != 3)
       {
 	if (used[cnt] == 1)
-	  ERROR (gettext ("\
+	  ERROR (_("\
 symbol %d referenced in new hash table in [%2zu] '%s' but not in old hash table in [%2zu] '%s'\n"),
 		 cnt, gnu_hash_idx,
 		 elf_strptr (ebl->elf, shstrndx, gnu_hash_shdr->sh_name),
@@ -2587,7 +2587,7 @@ symbol %d referenced in new hash table in [%2zu] '%s' but not in old hash table 
 	    GElf_Sym *sym = gelf_getsym (sym_data, cnt, &sym_mem);
 
 	    if (sym != NULL && sym->st_shndx != STN_UNDEF)
-	      ERROR (gettext ("\
+	      ERROR (_("\
 symbol %d referenced in old hash table in [%2zu] '%s' but not in new hash table in [%2zu] '%s'\n"),
 		     cnt, hash_idx,
 		     elf_strptr (ebl->elf, shstrndx, hash_shdr->sh_name),
@@ -2603,7 +2603,7 @@ check_null (Ebl *ebl, GElf_Shdr *shdr, int idx)
 {
 #define TEST(name, extra) \
   if (extra && shdr->sh_##name != 0)					      \
-    ERROR (gettext ("section [%2d] '%s': nonzero sh_%s for NULL section\n"),  \
+    ERROR (_("section [%2d] '%s': nonzero sh_%s for NULL section\n"),  \
 	   idx, section_name (ebl, idx), #name)
 
   TEST (name, 1);
@@ -2623,7 +2623,7 @@ check_group (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
 {
   if (ehdr->e_type != ET_REL)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s': section groups only allowed in relocatable object files\n"),
 	     idx, section_name (ebl, idx));
       return;
@@ -2634,51 +2634,51 @@ section [%2d] '%s': section groups only allowed in relocatable object files\n"),
   GElf_Shdr symshdr_mem;
   GElf_Shdr *symshdr = gelf_getshdr (symscn, &symshdr_mem);
   if (symshdr == NULL)
-    ERROR (gettext ("section [%2d] '%s': cannot get symbol table: %s\n"),
+    ERROR (_("section [%2d] '%s': cannot get symbol table: %s\n"),
 	   idx, section_name (ebl, idx), elf_errmsg (-1));
   else
     {
       if (symshdr->sh_type != SHT_SYMTAB)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': section reference in sh_link is no symbol table\n"),
 	       idx, section_name (ebl, idx));
 
       if (shdr->sh_info >= symshdr->sh_size / gelf_fsize (ebl->elf, ELF_T_SYM,
 							  1, EV_CURRENT))
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': invalid symbol index in sh_info\n"),
 	       idx, section_name (ebl, idx));
 
       if (shdr->sh_flags != 0)
-	ERROR (gettext ("section [%2d] '%s': sh_flags not zero\n"),
+	ERROR (_("section [%2d] '%s': sh_flags not zero\n"),
 	       idx, section_name (ebl, idx));
 
       GElf_Sym sym_data;
       GElf_Sym *sym = gelf_getsym (elf_getdata (symscn, NULL), shdr->sh_info,
 				   &sym_data);
       if (sym == NULL)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': cannot get symbol for signature\n"),
 	       idx, section_name (ebl, idx));
       else if (elf_strptr (ebl->elf, symshdr->sh_link, sym->st_name) == NULL)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': cannot get symbol name for signature\n"),
 	       idx, section_name (ebl, idx));
       else if (strcmp (elf_strptr (ebl->elf, symshdr->sh_link, sym->st_name),
 		       "") == 0)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': signature symbol cannot be empty string\n"),
 	       idx, section_name (ebl, idx));
 
       if (be_strict
 	  && shdr->sh_entsize != elf32_fsize (ELF_T_WORD, 1, EV_CURRENT))
-	ERROR (gettext ("section [%2d] '%s': sh_flags not set correctly\n"),
+	ERROR (_("section [%2d] '%s': sh_flags not set correctly\n"),
 	       idx, section_name (ebl, idx));
     }
 
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL || data->d_buf == NULL)
-    ERROR (gettext ("section [%2d] '%s': cannot get data: %s\n"),
+    ERROR (_("section [%2d] '%s': cannot get data: %s\n"),
 	   idx, section_name (ebl, idx), elf_errmsg (-1));
   else
     {
@@ -2687,13 +2687,13 @@ section [%2d] '%s': signature symbol cannot be empty string\n"),
       Elf32_Word val;
 
       if (data->d_size % elsize != 0)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': section size not multiple of sizeof(Elf32_Word)\n"),
 	       idx, section_name (ebl, idx));
 
       if (data->d_size < elsize)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': section group without flags word\n"),
 	       idx, section_name (ebl, idx));
 	  return;
@@ -2701,11 +2701,11 @@ section [%2d] '%s': section group without flags word\n"),
       else if (be_strict)
 	{
 	  if (data->d_size < 2 * elsize)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': section group without member\n"),
 		   idx, section_name (ebl, idx));
 	  else if (data->d_size < 3 * elsize)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': section group with only one member\n"),
 		   idx, section_name (ebl, idx));
 	}
@@ -2716,7 +2716,7 @@ section [%2d] '%s': section group with only one member\n"),
       memcpy (&val, data->d_buf, elsize);
 #endif
       if ((val & ~GRP_COMDAT) != 0)
-	ERROR (gettext ("section [%2d] '%s': unknown section group flags\n"),
+	ERROR (_("section [%2d] '%s': unknown section group flags\n"),
 	       idx, section_name (ebl, idx));
 
       for (cnt = elsize; cnt + elsize <= data->d_size; cnt += elsize)
@@ -2728,7 +2728,7 @@ section [%2d] '%s': section group with only one member\n"),
 #endif
 
 	  if (val > shnum)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': section index %zu out of range\n"),
 		   idx, section_name (ebl, idx), cnt / elsize);
 	  else
@@ -2737,27 +2737,27 @@ section [%2d] '%s': section index %zu out of range\n"),
 	      GElf_Shdr *refshdr = gelf_getshdr (elf_getscn (ebl->elf, val),
 						 &refshdr_mem);
 	      if (refshdr == NULL)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': cannot get section header for element %zu: %s\n"),
 		       idx, section_name (ebl, idx), cnt / elsize,
 		       elf_errmsg (-1));
 	      else
 		{
 		  if (refshdr->sh_type == SHT_GROUP)
-		    ERROR (gettext ("\
+		    ERROR (_("\
 section [%2d] '%s': section group contains another group [%2d] '%s'\n"),
 			   idx, section_name (ebl, idx),
 			   val, section_name (ebl, val));
 
 		  if ((refshdr->sh_flags & SHF_GROUP) == 0)
-		    ERROR (gettext ("\
+		    ERROR (_("\
 section [%2d] '%s': element %zu references section [%2d] '%s' without SHF_GROUP flag set\n"),
 			   idx, section_name (ebl, idx), cnt / elsize,
 			   val, section_name (ebl, val));
 		}
 
 	      if (val < shnum && ++scnref[val] == 2)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s' is contained in more than one section group\n"),
 		       val, section_name (ebl, val));
 	    }
@@ -2789,7 +2789,10 @@ section_flags_string (GElf_Word flags, char *buf, size_t len)
       NEWFLAG (OS_NONCONFORMING),
       NEWFLAG (GROUP),
       NEWFLAG (TLS),
-      NEWFLAG (COMPRESSED)
+      NEWFLAG (COMPRESSED),
+      NEWFLAG (GNU_RETAIN),
+      NEWFLAG (ORDERED),
+      NEWFLAG (EXCLUDE)
     };
 #undef NEWFLAG
   const size_t nknown_flags = sizeof (known_flags) / sizeof (known_flags[0]);
@@ -2813,8 +2816,12 @@ section_flags_string (GElf_Word flags, char *buf, size_t len)
       }
 
   if (flags != 0 || cp == buf)
-    snprintf (cp, len - 1, "%" PRIx64, (uint64_t) flags);
-
+    {
+      int r = snprintf (cp, len - 1, "%s%" PRIx64,
+			(cp == buf) ? "" : "|", (uint64_t) flags);
+      if (r > 0)
+	cp += r;
+    }
   *cp = '\0';
 
   return buf;
@@ -2933,7 +2940,7 @@ check_versym (Ebl *ebl, int idx)
   Elf_Data *data = elf_getdata (scn, NULL);
   if (data == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -2947,7 +2954,7 @@ check_versym (Ebl *ebl, int idx)
 
   if (symshdr->sh_type != SHT_DYNSYM)
     {
-      ERROR (gettext ("\
+      ERROR (_("\
 section [%2d] '%s' refers in sh_link to section [%2d] '%s' which is no dynamic symbol table\n"),
 	     idx, section_name (ebl, idx),
 	     shdr->sh_link, section_name (ebl, shdr->sh_link));
@@ -2959,7 +2966,7 @@ section [%2d] '%s' refers in sh_link to section [%2d] '%s' which is no dynamic s
   if (shdr->sh_entsize != 0 && symshdr->sh_entsize != 0
       && (shdr->sh_size / shdr->sh_entsize
 	  != symshdr->sh_size / symshdr->sh_entsize))
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s' has different number of entries than symbol table [%2d] '%s'\n"),
 	   idx, section_name (ebl, idx),
 	   shdr->sh_link, section_name (ebl, shdr->sh_link));
@@ -2975,7 +2982,7 @@ section [%2d] '%s' has different number of entries than symbol table [%2d] '%s'\
       GElf_Versym *versym = gelf_getversym (data, cnt, &versym_mem);
       if (versym == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': symbol %d: cannot read version data\n"),
 		 idx, section_name (ebl, idx), cnt);
 	  break;
@@ -2991,7 +2998,7 @@ section [%2d] '%s': symbol %d: cannot read version data\n"),
 	{
 	  /* Global symbol.  Make sure it is not defined as local.  */
 	  if (GELF_ST_BIND (sym->st_info) == STB_LOCAL)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': symbol %d: local symbol with global scope\n"),
 		   idx, section_name (ebl, idx), cnt);
 	}
@@ -2999,7 +3006,7 @@ section [%2d] '%s': symbol %d: local symbol with global scope\n"),
 	{
 	  /* Versioned symbol.  Make sure it is not defined as local.  */
 	  if (!gnuld && GELF_ST_BIND (sym->st_info) == STB_LOCAL)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': symbol %d: local symbol with version\n"),
 		   idx, section_name (ebl, idx), cnt);
 
@@ -3013,12 +3020,12 @@ section [%2d] '%s': symbol %d: local symbol with version\n"),
 	      runp = runp->next;
 
 	  if (runp == NULL)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': symbol %d: invalid version index %d\n"),
 		   idx, section_name (ebl, idx), cnt, (int) *versym);
 	  else if (sym->st_shndx == SHN_UNDEF
 		   && runp->type == ver_def)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': symbol %d: version index %d is for defined version\n"),
 		   idx, section_name (ebl, idx), cnt, (int) *versym);
 	  else if (sym->st_shndx != SHN_UNDEF
@@ -3028,7 +3035,7 @@ section [%2d] '%s': symbol %d: version index %d is for defined version\n"),
 		 this must not happen.  */
 	      if (!has_copy_reloc (ebl, shdr->sh_link, cnt)
 		  && !in_nobits_scn (ebl, sym->st_shndx))
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': symbol %d: version index %d is for requested version\n"),
 		       idx, section_name (ebl, idx), cnt, (int) *versym);
 	    }
@@ -3081,7 +3088,7 @@ static void
 check_verneed (Ebl *ebl, GElf_Shdr *shdr, int idx)
 {
   if (++nverneed == 2)
-    ERROR (gettext ("more than one version reference section present\n"));
+    ERROR (_("more than one version reference section present\n"));
 
   GElf_Shdr strshdr_mem;
   GElf_Shdr *strshdr = gelf_getshdr (elf_getscn (ebl->elf, shdr->sh_link),
@@ -3089,14 +3096,14 @@ check_verneed (Ebl *ebl, GElf_Shdr *shdr, int idx)
   if (strshdr == NULL)
     return;
   if (strshdr->sh_type != SHT_STRTAB)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': sh_link does not link to string table\n"),
 	   idx, section_name (ebl, idx));
 
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -3114,14 +3121,14 @@ section [%2d] '%s': sh_link does not link to string table\n"),
       unsigned int auxoffset = offset + need->vn_aux;
 
       if (need->vn_version != EV_CURRENT)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': entry %d has wrong version %d\n"),
 	       idx, section_name (ebl, idx), cnt, (int) need->vn_version);
 
       if (need->vn_cnt > 0 && need->vn_aux < gelf_fsize (ebl->elf, ELF_T_VNEED,
 							 1, EV_CURRENT))
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has wrong offset of auxiliary data\n"),
 	         idx, section_name (ebl, idx), cnt);
 	  break;
@@ -3131,7 +3138,7 @@ section [%2d] '%s': entry %d has wrong offset of auxiliary data\n"),
 					need->vn_file);
       if (libname == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has invalid file reference\n"),
 		 idx, section_name (ebl, idx), cnt);
 	  goto next_need;
@@ -3139,7 +3146,7 @@ section [%2d] '%s': entry %d has invalid file reference\n"),
 
       /* Check that there is a DT_NEEDED entry for the referenced library.  */
       if (unknown_dependency_p (ebl->elf, libname))
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': entry %d references unknown dependency\n"),
 	       idx, section_name (ebl, idx), cnt);
 
@@ -3151,7 +3158,7 @@ section [%2d] '%s': entry %d references unknown dependency\n"),
 	    break;
 
 	  if ((aux->vna_flags & ~VER_FLG_WEAK) != 0)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': auxiliary entry %d of entry %d has unknown flag\n"),
 		   idx, section_name (ebl, idx), need->vn_cnt - cnt2, cnt);
 
@@ -3159,7 +3166,7 @@ section [%2d] '%s': auxiliary entry %d of entry %d has unknown flag\n"),
 					   aux->vna_name);
 	  if (verstr == NULL)
 	    {
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': auxiliary entry %d of entry %d has invalid name reference\n"),
 		     idx, section_name (ebl, idx), need->vn_cnt - cnt2, cnt);
 	      break;
@@ -3168,7 +3175,7 @@ section [%2d] '%s': auxiliary entry %d of entry %d has invalid name reference\n"
 	    {
 	      GElf_Word hashval = elf_hash (verstr);
 	      if (hashval != aux->vna_hash)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': auxiliary entry %d of entry %d has wrong hash value: %#x, expected %#x\n"),
 		       idx, section_name (ebl, idx), need->vn_cnt - cnt2,
 		       cnt, (int) hashval, (int) aux->vna_hash);
@@ -3177,7 +3184,7 @@ section [%2d] '%s': auxiliary entry %d of entry %d has wrong hash value: %#x, ex
 				     ver_need);
 	      if (unlikely (res !=0))
 		{
-		  ERROR (gettext ("\
+		  ERROR (_("\
 section [%2d] '%s': auxiliary entry %d of entry %d has duplicate version name '%s'\n"),
 			 idx, section_name (ebl, idx), need->vn_cnt - cnt2,
 			 cnt, verstr);
@@ -3188,7 +3195,7 @@ section [%2d] '%s': auxiliary entry %d of entry %d has duplicate version name '%
 	      && aux->vna_next < gelf_fsize (ebl->elf, ELF_T_VNAUX, 1,
 					     EV_CURRENT))
 	    {
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': auxiliary entry %d of entry %d has wrong next field\n"),
 		     idx, section_name (ebl, idx), need->vn_cnt - cnt2, cnt);
 	      break;
@@ -3205,7 +3212,7 @@ section [%2d] '%s': auxiliary entry %d of entry %d has wrong next field\n"),
       if ((need->vn_next != 0 || cnt > 0)
 	  && offset < auxoffset)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has invalid offset to next entry\n"),
 	         idx, section_name (ebl, idx), cnt);
 	  break;
@@ -3213,7 +3220,7 @@ section [%2d] '%s': entry %d has invalid offset to next entry\n"),
 
       if (need->vn_next == 0 && cnt > 0)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has zero offset to next entry, but sh_info says there are more entries\n"),
 	         idx, section_name (ebl, idx), cnt);
 	  break;
@@ -3228,7 +3235,7 @@ static void
 check_verdef (Ebl *ebl, GElf_Shdr *shdr, int idx)
 {
   if (++nverdef == 2)
-    ERROR (gettext ("more than one version definition section present\n"));
+    ERROR (_("more than one version definition section present\n"));
 
   GElf_Shdr strshdr_mem;
   GElf_Shdr *strshdr = gelf_getshdr (elf_getscn (ebl->elf, shdr->sh_link),
@@ -3236,7 +3243,7 @@ check_verdef (Ebl *ebl, GElf_Shdr *shdr, int idx)
   if (strshdr == NULL)
     return;
   if (strshdr->sh_type != SHT_STRTAB)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': sh_link does not link to string table\n"),
 	   idx, section_name (ebl, idx));
 
@@ -3244,7 +3251,7 @@ section [%2d] '%s': sh_link does not link to string table\n"),
   if (data == NULL)
     {
     no_data:
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -3275,29 +3282,29 @@ section [%2d] '%s': sh_link does not link to string table\n"),
       if ((def->vd_flags & VER_FLG_BASE) != 0)
 	{
 	  if (has_base)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': more than one BASE definition\n"),
 		   idx, section_name (ebl, idx));
 	  if (def->vd_ndx != VER_NDX_GLOBAL)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2d] '%s': BASE definition must have index VER_NDX_GLOBAL\n"),
 		   idx, section_name (ebl, idx));
 	  has_base = true;
 	}
       if ((def->vd_flags & ~(VER_FLG_BASE|VER_FLG_WEAK)) != 0)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': entry %d has unknown flag\n"),
 	       idx, section_name (ebl, idx), cnt);
 
       if (def->vd_version != EV_CURRENT)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': entry %d has wrong version %d\n"),
 	       idx, section_name (ebl, idx), cnt, (int) def->vd_version);
 
       if (def->vd_cnt > 0 && def->vd_aux < gelf_fsize (ebl->elf, ELF_T_VDEF,
 						       1, EV_CURRENT))
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has wrong offset of auxiliary data\n"),
 	         idx, section_name (ebl, idx), cnt);
 	  break;
@@ -3312,14 +3319,14 @@ section [%2d] '%s': entry %d has wrong offset of auxiliary data\n"),
       const char *name = elf_strptr (ebl->elf, shdr->sh_link, aux->vda_name);
       if (name == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has invalid name reference\n"),
 		 idx, section_name (ebl, idx), cnt);
 	  goto next_def;
 	}
       GElf_Word hashval = elf_hash (name);
       if (def->vd_hash != hashval)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': entry %d has wrong hash value: %#x, expected %#x\n"),
 	       idx, section_name (ebl, idx), cnt, (int) hashval,
 	       (int) def->vd_hash);
@@ -3327,7 +3334,7 @@ section [%2d] '%s': entry %d has wrong hash value: %#x, expected %#x\n"),
       int res = add_version (NULL, name, def->vd_ndx, ver_def);
       if (unlikely (res !=0))
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has duplicate version name '%s'\n"),
 		 idx, section_name (ebl, idx), cnt, name);
 	}
@@ -3347,7 +3354,7 @@ section [%2d] '%s': entry %d has duplicate version name '%s'\n"),
 	  name = elf_strptr (ebl->elf, shdr->sh_link, aux->vda_name);
 	  if (name == NULL)
 	    {
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': entry %d has invalid name reference in auxiliary data\n"),
 		     idx, section_name (ebl, idx), cnt);
 	      break;
@@ -3364,7 +3371,7 @@ section [%2d] '%s': entry %d has invalid name reference in auxiliary data\n"),
 	      && aux->vda_next < gelf_fsize (ebl->elf, ELF_T_VDAUX, 1,
 					     EV_CURRENT))
 	    {
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': entry %d has wrong next field in auxiliary data\n"),
 		     idx, section_name (ebl, idx), cnt);
 	      break;
@@ -3381,7 +3388,7 @@ section [%2d] '%s': entry %d has wrong next field in auxiliary data\n"),
       if ((def->vd_next != 0 || cnt > 0)
 	  && offset < auxoffset)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has invalid offset to next entry\n"),
 	         idx, section_name (ebl, idx), cnt);
 	  break;
@@ -3389,7 +3396,7 @@ section [%2d] '%s': entry %d has invalid offset to next entry\n"),
 
       if (def->vd_next == 0 && cnt > 0)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': entry %d has zero offset to next entry, but sh_info says there are more entries\n"),
 	         idx, section_name (ebl, idx), cnt);
 	  break;
@@ -3397,7 +3404,7 @@ section [%2d] '%s': entry %d has zero offset to next entry, but sh_info says the
     }
 
   if (!has_base)
-    ERROR (gettext ("section [%2d] '%s': no BASE definition\n"),
+    ERROR (_("section [%2d] '%s': no BASE definition\n"),
 	   idx, section_name (ebl, idx));
 
   /* Check whether the referenced names are available.  */
@@ -3413,7 +3420,7 @@ section [%2d] '%s': entry %d has zero offset to next entry, but sh_info says the
 	}
 
       if (runp == NULL)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': unknown parent version '%s'\n"),
 	       idx, section_name (ebl, idx), namelist->name);
 
@@ -3426,7 +3433,7 @@ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
 {
   if (shdr->sh_size == 0)
     {
-      ERROR (gettext ("section [%2d] '%s': empty object attributes section\n"),
+      ERROR (_("section [%2d] '%s': empty object attributes section\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -3434,7 +3441,7 @@ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
   Elf_Data *data = elf_rawdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL || data->d_size == 0 || data->d_buf == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -3447,7 +3454,7 @@ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
   const unsigned char *p = data->d_buf;
   if (*p++ != 'A')
     {
-      ERROR (gettext ("section [%2d] '%s': unrecognized attribute format\n"),
+      ERROR (_("section [%2d] '%s': unrecognized attribute format\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
@@ -3463,7 +3470,7 @@ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
       memcpy (&len, p, sizeof len);
 
       if (len == 0)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': offset %zu: zero length field in attribute section\n"),
 	       idx, section_name (ebl, idx), pos (p));
 
@@ -3472,7 +3479,7 @@ section [%2d] '%s': offset %zu: zero length field in attribute section\n"),
 
       if (len > left ())
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': offset %zu: invalid length in attribute section\n"),
 		 idx, section_name (ebl, idx), pos (p));
 	  break;
@@ -3484,7 +3491,7 @@ section [%2d] '%s': offset %zu: invalid length in attribute section\n"),
       unsigned const char *q = memchr (name, '\0', len);
       if (q == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 section [%2d] '%s': offset %zu: unterminated vendor name string\n"),
 		 idx, section_name (ebl, idx), pos (p));
 	  break;
@@ -3501,7 +3508,7 @@ section [%2d] '%s': offset %zu: unterminated vendor name string\n"),
 
 	    if (q >= p)
 	      {
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': offset %zu: endless ULEB128 in attribute subsection tag\n"),
 		       idx, section_name (ebl, idx), pos (chunk));
 		break;
@@ -3510,7 +3517,7 @@ section [%2d] '%s': offset %zu: endless ULEB128 in attribute subsection tag\n"),
 	    uint32_t subsection_len;
 	    if (p - q < (ptrdiff_t) sizeof subsection_len)
 	      {
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': offset %zu: truncated attribute section\n"),
 		       idx, section_name (ebl, idx), pos (q));
 		break;
@@ -3519,7 +3526,7 @@ section [%2d] '%s': offset %zu: truncated attribute section\n"),
 	    memcpy (&subsection_len, q, sizeof subsection_len);
 	    if (subsection_len == 0)
 	      {
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': offset %zu: zero length field in attribute subsection\n"),
 		       idx, section_name (ebl, idx), pos (q));
 
@@ -3534,7 +3541,7 @@ section [%2d] '%s': offset %zu: zero length field in attribute subsection\n"),
 	    if (p - chunk < (ptrdiff_t) subsection_len
 	        || subsection_len >= (uint32_t) PTRDIFF_MAX)
 	      {
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2d] '%s': offset %zu: invalid length in attribute subsection\n"),
 		       idx, section_name (ebl, idx), pos (q));
 		break;
@@ -3545,7 +3552,7 @@ section [%2d] '%s': offset %zu: invalid length in attribute subsection\n"),
 	    q = subsection_end;
 
 	    if (subsection_tag != 1) /* Tag_File */
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': offset %zu: attribute subsection has unexpected tag %u\n"),
 		     idx, section_name (ebl, idx), pos (chunk), subsection_tag);
 	    else
@@ -3563,7 +3570,7 @@ section [%2d] '%s': offset %zu: attribute subsection has unexpected tag %u\n"),
 			get_uleb128 (value, r, q);
 			if (r > q)
 			  {
-			    ERROR (gettext ("\
+			    ERROR (_("\
 section [%2d] '%s': offset %zu: endless ULEB128 in attribute tag\n"),
 				   idx, section_name (ebl, idx), pos (chunk));
 			    break;
@@ -3574,7 +3581,7 @@ section [%2d] '%s': offset %zu: endless ULEB128 in attribute tag\n"),
 			r = memchr (r, '\0', q - r);
 			if (r == NULL)
 			  {
-			    ERROR (gettext ("\
+			    ERROR (_("\
 section [%2d] '%s': offset %zu: unterminated string in attribute\n"),
 				   idx, section_name (ebl, idx), pos (chunk));
 			    break;
@@ -3587,11 +3594,11 @@ section [%2d] '%s': offset %zu: unterminated string in attribute\n"),
 		    if (!ebl_check_object_attribute (ebl, (const char *) name,
 						     tag, value,
 						     &tag_name, &value_name))
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2d] '%s': offset %zu: unrecognized attribute tag %u\n"),
 			     idx, section_name (ebl, idx), pos (chunk), tag);
 		    else if ((tag & 1) == 0 && value_name == NULL)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2d] '%s': offset %zu: unrecognized %s attribute value %" PRIu64 "\n"),
 			     idx, section_name (ebl, idx), pos (chunk),
 			     tag_name, value);
@@ -3601,13 +3608,13 @@ section [%2d] '%s': offset %zu: unrecognized %s attribute value %" PRIu64 "\n"),
 	      }
 	  }
       else
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2d] '%s': offset %zu: vendor '%s' unknown\n"),
 	       idx, section_name (ebl, idx), pos (p), name);
     }
 
   if (left () != 0)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': offset %zu: extra bytes after last attribute section\n"),
 	   idx, section_name (ebl, idx), pos (p));
 }
@@ -3674,8 +3681,15 @@ static const struct
    && !memcmp (special_sections[idx].name, string, \
 	       sizeof string - (prefix ? 1 : 0)))
 
+/* Extra section flags that might or might not be added to the section
+   and have to be ignored.  */
+#define EXTRA_SHFLAGS (SHF_LINK_ORDER \
+		       | SHF_GNU_RETAIN \
+		       | SHF_GROUP \
+		       | SHF_COMPRESSED)
 
-/* Indeces of some sections we need later.  */
+
+/* Indices of some sections we need later.  */
 static size_t eh_frame_hdr_scnndx;
 static size_t eh_frame_scnndx;
 static size_t gcc_except_table_scnndx;
@@ -3697,34 +3711,34 @@ check_sections (Ebl *ebl, GElf_Ehdr *ehdr)
   GElf_Shdr shdr_mem;
   GElf_Shdr *shdr = gelf_getshdr (elf_getscn (ebl->elf, 0), &shdr_mem);
   if (shdr == NULL)
-    ERROR (gettext ("cannot get section header of zeroth section\n"));
+    ERROR (_("cannot get section header of zeroth section\n"));
   else
     {
       if (shdr->sh_name != 0)
-	ERROR (gettext ("zeroth section has nonzero name\n"));
+	ERROR (_("zeroth section has nonzero name\n"));
       if (shdr->sh_type != 0)
-	ERROR (gettext ("zeroth section has nonzero type\n"));
+	ERROR (_("zeroth section has nonzero type\n"));
       if (shdr->sh_flags != 0)
-	ERROR (gettext ("zeroth section has nonzero flags\n"));
+	ERROR (_("zeroth section has nonzero flags\n"));
       if (shdr->sh_addr != 0)
-	ERROR (gettext ("zeroth section has nonzero address\n"));
+	ERROR (_("zeroth section has nonzero address\n"));
       if (shdr->sh_offset != 0)
-	ERROR (gettext ("zeroth section has nonzero offset\n"));
+	ERROR (_("zeroth section has nonzero offset\n"));
       if (shdr->sh_addralign != 0)
-	ERROR (gettext ("zeroth section has nonzero align value\n"));
+	ERROR (_("zeroth section has nonzero align value\n"));
       if (shdr->sh_entsize != 0)
-	ERROR (gettext ("zeroth section has nonzero entry size value\n"));
+	ERROR (_("zeroth section has nonzero entry size value\n"));
 
       if (shdr->sh_size != 0 && ehdr->e_shnum != 0)
-	ERROR (gettext ("\
+	ERROR (_("\
 zeroth section has nonzero size value while ELF header has nonzero shnum value\n"));
 
       if (shdr->sh_link != 0 && ehdr->e_shstrndx != SHN_XINDEX)
-	ERROR (gettext ("\
+	ERROR (_("\
 zeroth section has nonzero link value while ELF header does not signal overflow in shstrndx\n"));
 
       if (shdr->sh_info != 0 && ehdr->e_phnum != PN_XNUM)
-	ERROR (gettext ("\
+	ERROR (_("\
 zeroth section has nonzero link value while ELF header does not signal overflow in phnum\n"));
     }
 
@@ -3742,7 +3756,7 @@ zeroth section has nonzero link value while ELF header does not signal overflow 
       shdr = gelf_getshdr (scn, &shdr_mem);
       if (shdr == NULL)
 	{
-	  ERROR (gettext ("\
+	  ERROR (_("\
 cannot get section header for section [%2zu] '%s': %s\n"),
 		 cnt, section_name (ebl, cnt), elf_errmsg (-1));
 	  continue;
@@ -3751,7 +3765,7 @@ cannot get section header for section [%2zu] '%s': %s\n"),
       const char *scnname = elf_strptr (ebl->elf, shstrndx, shdr->sh_name);
 
       if (scnname == NULL)
-	ERROR (gettext ("section [%2zu]: invalid name\n"), cnt);
+	ERROR (_("section [%2zu]: invalid name\n"), cnt);
       else
 	{
 	  /* Check whether it is one of the special sections defined in
@@ -3778,7 +3792,7 @@ cannot get section header for section [%2zu] '%s': %s\n"),
 			|| IS_KNOWN_SPECIAL (s, ".debug_str", false)
 			|| IS_KNOWN_SPECIAL (s, ".debug", true)
 			|| IS_KNOWN_SPECIAL (s, ".shstrtab", false)))
-		  ERROR (gettext ("\
+		  ERROR (_("\
 section [%2d] '%s' has wrong type: expected %s, is %s\n"),
 			 (int) cnt, scnname,
 			 ebl_section_type_name (ebl, special_sections[s].type,
@@ -3789,20 +3803,19 @@ section [%2d] '%s' has wrong type: expected %s, is %s\n"),
 		if (special_sections[s].attrflag == exact
 		    || special_sections[s].attrflag == exact_or_gnuld)
 		  {
-		    /* Except for the link order, group bit and
+		    /* Except for the link order, retain, group bit and
 		       compression flag all the other bits should
 		       match exactly.  */
-		    if ((shdr->sh_flags
-			 & ~(SHF_LINK_ORDER | SHF_GROUP | SHF_COMPRESSED))
+		    if ((shdr->sh_flags & ~EXTRA_SHFLAGS)
 			!= special_sections[s].attr
 			&& (special_sections[s].attrflag == exact || !gnuld))
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' has wrong flags: expected %s, is %s\n"),
 			     cnt, scnname,
 			     section_flags_string (special_sections[s].attr,
 						   stbuf1, sizeof (stbuf1)),
 			     section_flags_string (shdr->sh_flags
-						   & ~SHF_LINK_ORDER,
+						   & ~EXTRA_SHFLAGS,
 						   stbuf2, sizeof (stbuf2)));
 		  }
 		else if (special_sections[s].attrflag == atleast)
@@ -3810,11 +3823,11 @@ section [%2zu] '%s' has wrong flags: expected %s, is %s\n"),
 		    if ((shdr->sh_flags & special_sections[s].attr)
 			!= special_sections[s].attr
 			|| ((shdr->sh_flags
-			     & ~(SHF_LINK_ORDER | SHF_GROUP | SHF_COMPRESSED
+			     & ~(EXTRA_SHFLAGS
 				 | special_sections[s].attr
 				 | special_sections[s].attr2))
 			    != 0))
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' has wrong flags: expected %s and possibly %s, is %s\n"),
 			     cnt, scnname,
 			     section_flags_string (special_sections[s].attr,
@@ -3822,8 +3835,7 @@ section [%2zu] '%s' has wrong flags: expected %s and possibly %s, is %s\n"),
 			     section_flags_string (special_sections[s].attr2,
 						   stbuf2, sizeof (stbuf2)),
 			     section_flags_string (shdr->sh_flags
-						   & ~(SHF_LINK_ORDER
-						       | SHF_GROUP),
+						   & ~EXTRA_SHFLAGS,
 						   stbuf3, sizeof (stbuf3)));
 		  }
 
@@ -3832,18 +3844,18 @@ section [%2zu] '%s' has wrong flags: expected %s and possibly %s, is %s\n"),
 		    dot_interp_section = true;
 
 		    if (ehdr->e_type == ET_REL)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' present in object file\n"),
 			     cnt, scnname);
 
 		    if ((shdr->sh_flags & SHF_ALLOC) != 0
 			&& !has_loadable_segment)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' has SHF_ALLOC flag set but there is no loadable segment\n"),
 			     cnt, scnname);
 		    else if ((shdr->sh_flags & SHF_ALLOC) == 0
 			     && has_loadable_segment)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' has SHF_ALLOC flag not set but there are loadable segments\n"),
 			     cnt, scnname);
 		  }
@@ -3851,7 +3863,7 @@ section [%2zu] '%s' has SHF_ALLOC flag not set but there are loadable segments\n
 		  {
 		    if (strcmp (scnname, ".symtab_shndx") == 0
 			&& ehdr->e_type != ET_REL)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' is extension section index table in non-object file\n"),
 			     cnt, scnname);
 
@@ -3870,12 +3882,12 @@ section [%2zu] '%s' is extension section index table in non-object file\n"),
 		    // XXX TODO
 		    if ((shdr->sh_flags & SHF_ALLOC) != 0
 			&& !has_loadable_segment)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' has SHF_ALLOC flag set but there is no loadable segment\n"),
 			     cnt, scnname);
 		    else if ((shdr->sh_flags & SHF_ALLOC) == 0
 			     && has_loadable_segment)
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' has SHF_ALLOC flag not set but there are loadable segments\n"),
 			     cnt, scnname);
 #endif
@@ -3894,12 +3906,12 @@ section [%2zu] '%s' has SHF_ALLOC flag not set but there are loadable segments\n
 	}
 
       if (shdr->sh_entsize != 0 && shdr->sh_size % shdr->sh_entsize)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2zu] '%s': size not multiple of entry size\n"),
 	       cnt, section_name (ebl, cnt));
 
       if (elf_strptr (ebl->elf, shstrndx, shdr->sh_name) == NULL)
-	ERROR (gettext ("cannot get section header\n"));
+	ERROR (_("cannot get section header\n"));
 
       if (shdr->sh_type >= SHT_NUM
 	  && shdr->sh_type != SHT_GNU_ATTRIBUTES
@@ -3909,14 +3921,14 @@ section [%2zu] '%s': size not multiple of entry size\n"),
 	  && shdr->sh_type != SHT_GNU_verneed
 	  && shdr->sh_type != SHT_GNU_versym
 	  && ebl_section_type_name (ebl, shdr->sh_type, NULL, 0) == NULL)
-	ERROR (gettext ("section [%2zu] '%s' has unsupported type %d\n"),
+	ERROR (_("section [%2zu] '%s' has unsupported type %d\n"),
 	       cnt, section_name (ebl, cnt),
 	       (int) shdr->sh_type);
 
 #define ALL_SH_FLAGS (SHF_WRITE | SHF_ALLOC | SHF_EXECINSTR | SHF_MERGE \
 		      | SHF_STRINGS | SHF_INFO_LINK | SHF_LINK_ORDER \
 		      | SHF_OS_NONCONFORMING | SHF_GROUP | SHF_TLS \
-		      | SHF_COMPRESSED)
+		      | SHF_COMPRESSED | SHF_GNU_RETAIN)
       if (shdr->sh_flags & ~(GElf_Xword) ALL_SH_FLAGS)
 	{
 	  GElf_Xword sh_flags = shdr->sh_flags & ~(GElf_Xword) ALL_SH_FLAGS;
@@ -3929,14 +3941,17 @@ section [%2zu] '%s': size not multiple of entry size\n"),
 		sh_flags &= ~(GElf_Xword) SHF_EXCLUDE;
 	      if (!ebl_machine_section_flag_check (ebl,
 						   sh_flags & SHF_MASKPROC))
-		ERROR (gettext ("section [%2zu] '%s'"
+		ERROR (_("section [%2zu] '%s'"
 				" contains invalid processor-specific flag(s)"
 				" %#" PRIx64 "\n"),
 		       cnt, section_name (ebl, cnt), sh_flags & SHF_MASKPROC);
 	      sh_flags &= ~(GElf_Xword) SHF_MASKPROC;
 	    }
+	  if (sh_flags & SHF_MASKOS)
+	    if (gnuld)
+	      sh_flags &= ~(GElf_Xword) SHF_GNU_RETAIN;
 	  if (sh_flags != 0)
-	    ERROR (gettext ("section [%2zu] '%s' contains unknown flag(s)"
+	    ERROR (_("section [%2zu] '%s' contains unknown flag(s)"
 			    " %#" PRIx64 "\n"),
 		   cnt, section_name (ebl, cnt), sh_flags);
 	}
@@ -3944,7 +3959,7 @@ section [%2zu] '%s': size not multiple of entry size\n"),
 	{
 	  // XXX Correct?
 	  if (shdr->sh_addr != 0 && !gnuld)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2zu] '%s': thread-local data sections address not zero\n"),
 		   cnt, section_name (ebl, cnt));
 
@@ -3954,41 +3969,41 @@ section [%2zu] '%s': thread-local data sections address not zero\n"),
       if (shdr->sh_flags & SHF_COMPRESSED)
 	{
 	  if (shdr->sh_flags & SHF_ALLOC)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2zu] '%s': allocated section cannot be compressed\n"),
 		   cnt, section_name (ebl, cnt));
 
 	  if (shdr->sh_type == SHT_NOBITS)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2zu] '%s': nobits section cannot be compressed\n"),
 		   cnt, section_name (ebl, cnt));
 
 	  GElf_Chdr chdr;
 	  if (gelf_getchdr (scn, &chdr) == NULL)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2zu] '%s': compressed section with no compression header: %s\n"),
 		   cnt, section_name (ebl, cnt), elf_errmsg (-1));
 	}
 
       if (shdr->sh_link >= shnum)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2zu] '%s': invalid section reference in link value\n"),
 	       cnt, section_name (ebl, cnt));
 
       if (SH_INFO_LINK_P (shdr) && shdr->sh_info >= shnum)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2zu] '%s': invalid section reference in info value\n"),
 	       cnt, section_name (ebl, cnt));
 
       if ((shdr->sh_flags & SHF_MERGE) == 0
 	  && (shdr->sh_flags & SHF_STRINGS) != 0
 	  && be_strict)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2zu] '%s': strings flag set without merge flag\n"),
 	       cnt, section_name (ebl, cnt));
 
       if ((shdr->sh_flags & SHF_MERGE) != 0 && shdr->sh_entsize == 0)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2zu] '%s': merge flag set but entry size is zero\n"),
 	       cnt, section_name (ebl, cnt));
 
@@ -4007,7 +4022,7 @@ section [%2zu] '%s': merge flag set but entry size is zero\n"),
 		break;
 	      FALLTHROUGH;
 	    default:
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2zu] '%s' has unexpected type %d for an executable section\n"),
 		     cnt, section_name (ebl, cnt), shdr->sh_type);
 	      break;
@@ -4016,14 +4031,14 @@ section [%2zu] '%s' has unexpected type %d for an executable section\n"),
 	  if (shdr->sh_flags & SHF_WRITE)
 	    {
 	      if (is_debuginfo && shdr->sh_type != SHT_NOBITS)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2zu] '%s' must be of type NOBITS in debuginfo files\n"),
 		       cnt, section_name (ebl, cnt));
 
 	      if (!is_debuginfo
 		  && !ebl_check_special_section (ebl, cnt, shdr,
 						 section_name (ebl, cnt)))
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2zu] '%s' is both executable and writable\n"),
 		       cnt, section_name (ebl, cnt));
 	    }
@@ -4054,7 +4069,7 @@ section [%2zu] '%s' is both executable and writable\n"),
 		/* Found the segment.  */
 		if (phdr->p_offset + phdr->p_memsz
 		    < shdr->sh_offset + shdr->sh_size)
-		  ERROR (gettext ("\
+		  ERROR (_("\
 section [%2zu] '%s' not fully contained in segment of program header entry %d\n"),
 			 cnt, section_name (ebl, cnt), pcnt);
 
@@ -4064,7 +4079,7 @@ section [%2zu] '%s' not fully contained in segment of program header entry %d\n"
 			&& !is_debuginfo)
 		      {
 			if (!gnuld)
-			  ERROR (gettext ("\
+			  ERROR (_("\
 section [%2zu] '%s' has type NOBITS but is read from the file in segment of program header entry %d\n"),
 				 cnt, section_name (ebl, cnt), pcnt);
 			else
@@ -4090,7 +4105,7 @@ section [%2zu] '%s' has type NOBITS but is read from the file in segment of prog
 			      bad = ((char *) databits->d_buf)[idx] != 0;
 
 			    if (bad)
-			      ERROR (gettext ("\
+			      ERROR (_("\
 section [%2zu] '%s' has type NOBITS but is read from the file in segment of program header entry %d and file contents is non-zero\n"),
 				     cnt, section_name (ebl, cnt), pcnt);
 			  }
@@ -4101,7 +4116,7 @@ section [%2zu] '%s' has type NOBITS but is read from the file in segment of prog
 		    const GElf_Off end = phdr->p_offset + phdr->p_filesz;
 		    if (shdr->sh_offset > end ||
 			(shdr->sh_offset == end && shdr->sh_size != 0))
-		      ERROR (gettext ("\
+		      ERROR (_("\
 section [%2zu] '%s' has not type NOBITS but is not read from the file in segment of program header entry %d\n"),
 			 cnt, section_name (ebl, cnt), pcnt);
 		  }
@@ -4112,7 +4127,7 @@ section [%2zu] '%s' has not type NOBITS but is not read from the file in segment
 		      {
 			segment_flags[pcnt] |= PF_X;
 			if ((phdr->p_flags & PF_X) == 0)
-			  ERROR (gettext ("\
+			  ERROR (_("\
 section [%2zu] '%s' is executable in nonexecutable segment %d\n"),
 				 cnt, section_name (ebl, cnt), pcnt);
 		      }
@@ -4122,7 +4137,7 @@ section [%2zu] '%s' is executable in nonexecutable segment %d\n"),
 			segment_flags[pcnt] |= PF_W;
 			if (0	/* XXX vdso images have this */
 			    && (phdr->p_flags & PF_W) == 0)
-			  ERROR (gettext ("\
+			  ERROR (_("\
 section [%2zu] '%s' is writable in unwritable segment %d\n"),
 				 cnt, section_name (ebl, cnt), pcnt);
 		      }
@@ -4132,13 +4147,13 @@ section [%2zu] '%s' is writable in unwritable segment %d\n"),
 	      }
 
 	  if (pcnt == phnum)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2zu] '%s': alloc flag set but section not in any loaded segment\n"),
 		   cnt, section_name (ebl, cnt));
 	}
 
       if (cnt == shstrndx && shdr->sh_type != SHT_STRTAB)
-	ERROR (gettext ("\
+	ERROR (_("\
 section [%2zu] '%s': ELF header says this is the section header string table but type is not SHT_TYPE\n"),
 	       cnt, section_name (ebl, cnt));
 
@@ -4146,7 +4161,7 @@ section [%2zu] '%s': ELF header says this is the section header string table but
 	{
 	case SHT_DYNSYM:
 	  if (ehdr->e_type == ET_REL)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 section [%2zu] '%s': relocatable files cannot have dynamic symbol tables\n"),
 		   cnt, section_name (ebl, cnt));
 	  FALLTHROUGH;
@@ -4197,7 +4212,7 @@ section [%2zu] '%s': relocatable files cannot have dynamic symbol tables\n"),
 	     that the verneed and verdef sections have already been read.
 	     Just remember the section index.  */
 	  if (versym_scnndx != 0)
-	    ERROR (gettext ("more than one version symbol table present\n"));
+	    ERROR (_("more than one version symbol table present\n"));
 	  versym_scnndx = cnt;
 	  break;
 
@@ -4220,7 +4235,7 @@ section [%2zu] '%s': relocatable files cannot have dynamic symbol tables\n"),
     }
 
   if (has_interp_segment && !dot_interp_section)
-    ERROR (gettext ("INTERP program header entry but no .interp section\n"));
+    ERROR (_("INTERP program header entry but no .interp section\n"));
 
   if (!is_debuginfo)
     for (unsigned int pcnt = 0; pcnt < phnum; ++pcnt)
@@ -4231,13 +4246,13 @@ section [%2zu] '%s': relocatable files cannot have dynamic symbol tables\n"),
 	  {
 	    if ((phdr->p_flags & PF_X) != 0
 		&& (segment_flags[pcnt] & PF_X) == 0)
-	      ERROR (gettext ("\
+	      ERROR (_("\
 loadable segment [%u] is executable but contains no executable sections\n"),
 		     pcnt);
 
 	    if ((phdr->p_flags & PF_W) != 0
 		&& (segment_flags[pcnt] & PF_W) == 0)
-	      ERROR (gettext ("\
+	      ERROR (_("\
 loadable segment [%u] is writable but contains no writable sections\n"),
 		     pcnt);
 	  }
@@ -4248,7 +4263,7 @@ loadable segment [%u] is writable but contains no writable sections\n"),
   if (version_namelist != NULL)
     {
       if (versym_scnndx == 0)
-    ERROR (gettext ("\
+    ERROR (_("\
 no .gnu.versym section present but .gnu.versym_d or .gnu.versym_r section exist\n"));
       else
 	check_versym (ebl, versym_scnndx);
@@ -4261,7 +4276,7 @@ no .gnu.versym section present but .gnu.versym_d or .gnu.versym_r section exist\
 	    {
 	      if (version_namelist->ndx == runp->ndx)
 		{
-		  ERROR (gettext ("duplicate version index %d\n"),
+		  ERROR (_("duplicate version index %d\n"),
 			 (int) version_namelist->ndx);
 		  break;
 		}
@@ -4275,7 +4290,7 @@ no .gnu.versym section present but .gnu.versym_d or .gnu.versym_r section exist\
       while (version_namelist != NULL);
     }
   else if (versym_scnndx != 0)
-    ERROR (gettext ("\
+    ERROR (_("\
 .gnu.versym section present without .gnu.versym_d or .gnu.versym_r\n"));
 
   if (hash_idx != 0 && gnu_hash_idx != 0)
@@ -4324,11 +4339,11 @@ check_note_data (Ebl *ebl, const GElf_Ehdr *ehdr,
 
 	  default:
 	    if (shndx == 0)
-	      ERROR (gettext ("\
+	      ERROR (_("\
 phdr[%d]: unknown core file note type %" PRIu32 " at offset %" PRIu64 "\n"),
 		     phndx, (uint32_t) nhdr.n_type, start + offset);
 	    else
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': unknown core file note type %" PRIu32
 			      " at offset %zu\n"),
 		     shndx, section_name (ebl, shndx),
@@ -4377,12 +4392,12 @@ section [%2d] '%s': unknown core file note type %" PRIu32
 	    {
 	    unknown_note:
 	    if (shndx == 0)
-	      ERROR (gettext ("\
+	      ERROR (_("\
 phdr[%d]: unknown object file note type %" PRIu32 " with owner name '%s' at offset %zu\n"),
 		     phndx, (uint32_t) nhdr.n_type,
 		     (char *) data->d_buf + name_offset, offset);
 	    else
-	      ERROR (gettext ("\
+	      ERROR (_("\
 section [%2d] '%s': unknown object file note type %" PRIu32
 			      " with owner name '%s' at offset %zu\n"),
 		     shndx, section_name (ebl, shndx),
@@ -4401,7 +4416,7 @@ check_note (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Phdr *phdr, int cnt)
 {
   if (ehdr->e_type != ET_CORE && ehdr->e_type != ET_REL
       && ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN)
-    ERROR (gettext ("\
+    ERROR (_("\
 phdr[%d]: no note entries defined for the type of file\n"),
 	   cnt);
 
@@ -4421,10 +4436,10 @@ phdr[%d]: no note entries defined for the type of file\n"),
     notes_size = check_note_data (ebl, ehdr, data, 0, cnt, phdr->p_offset);
 
   if (notes_size == 0)
-    ERROR (gettext ("phdr[%d]: cannot get content of note section: %s\n"),
+    ERROR (_("phdr[%d]: cannot get content of note section: %s\n"),
 	   cnt, elf_errmsg (-1));
   else if (notes_size != phdr->p_filesz)
-    ERROR (gettext ("phdr[%d]: extra %" PRIu64 " bytes after last note\n"),
+    ERROR (_("phdr[%d]: extra %" PRIu64 " bytes after last note\n"),
 	   cnt, phdr->p_filesz - notes_size);
 }
 
@@ -4438,24 +4453,24 @@ check_note_section (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
   Elf_Data *data = elf_getdata (elf_getscn (ebl->elf, idx), NULL);
   if (data == NULL || data->d_buf == NULL)
     {
-      ERROR (gettext ("section [%2d] '%s': cannot get section data\n"),
+      ERROR (_("section [%2d] '%s': cannot get section data\n"),
 	     idx, section_name (ebl, idx));
       return;
     }
 
   if (ehdr->e_type != ET_CORE && ehdr->e_type != ET_REL
       && ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN)
-    ERROR (gettext ("\
+    ERROR (_("\
 section [%2d] '%s': no note entries defined for the type of file\n"),
 	     idx, section_name (ebl, idx));
 
   GElf_Off notes_size = check_note_data (ebl, ehdr, data, idx, 0, 0);
 
   if (notes_size == 0)
-    ERROR (gettext ("section [%2d] '%s': cannot get content of note section\n"),
+    ERROR (_("section [%2d] '%s': cannot get content of note section\n"),
 	   idx, section_name (ebl, idx));
   else if (notes_size != shdr->sh_size)
-    ERROR (gettext ("section [%2d] '%s': extra %" PRIu64
+    ERROR (_("section [%2d] '%s': extra %" PRIu64
 		    " bytes after last note\n"),
 	   idx, section_name (ebl, idx), shdr->sh_size - notes_size);
 }
@@ -4473,7 +4488,7 @@ check_program_header (Ebl *ebl, GElf_Ehdr *ehdr)
 
   if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN
       && ehdr->e_type != ET_CORE)
-    ERROR (gettext ("\
+    ERROR (_("\
 only executables, shared objects, and core files can have program headers\n"));
 
   int num_pt_interp = 0;
@@ -4488,7 +4503,7 @@ only executables, shared objects, and core files can have program headers\n"));
       phdr = gelf_getphdr (ebl->elf, cnt, &phdr_mem);
       if (phdr == NULL)
 	{
-	  ERROR (gettext ("cannot get program header entry %d: %s\n"),
+	  ERROR (_("cannot get program header entry %d: %s\n"),
 		 cnt, elf_errmsg (-1));
 	  continue;
 	}
@@ -4498,7 +4513,7 @@ only executables, shared objects, and core files can have program headers\n"));
 	  && phdr->p_type != PT_GNU_PROPERTY
 	  /* Check for a known machine-specific type.  */
 	  && ebl_segment_type_name (ebl, phdr->p_type, NULL, 0) == NULL)
-	ERROR (gettext ("\
+	ERROR (_("\
 program header entry %d: unknown program header entry type %#" PRIx64 "\n"),
 	       cnt, (uint64_t) phdr->p_type);
 
@@ -4509,7 +4524,7 @@ program header entry %d: unknown program header entry type %#" PRIx64 "\n"),
 	  if (++num_pt_interp != 1)
 	    {
 	      if (num_pt_interp == 2)
-		ERROR (gettext ("\
+		ERROR (_("\
 more than one INTERP entry in program header\n"));
 	    }
 	  has_interp_segment = true;
@@ -4517,14 +4532,14 @@ more than one INTERP entry in program header\n"));
       else if (phdr->p_type == PT_TLS)
 	{
 	  if (++num_pt_tls == 2)
-	    ERROR (gettext ("more than one TLS entry in program header\n"));
+	    ERROR (_("more than one TLS entry in program header\n"));
 	}
       else if (phdr->p_type == PT_NOTE)
 	check_note (ebl, ehdr, phdr, cnt);
       else if (phdr->p_type == PT_DYNAMIC)
 	{
 	  if (ehdr->e_type == ET_EXEC && ! has_interp_segment)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 static executable cannot have dynamic sections\n"));
 	  else
 	    {
@@ -4538,10 +4553,10 @@ static executable cannot have dynamic sections\n"));
 		  if (shdr != NULL && shdr->sh_type == SHT_DYNAMIC)
 		    {
 		      if (phdr->p_offset != shdr->sh_offset)
-			ERROR (gettext ("\
+			ERROR (_("\
 dynamic section reference in program header has wrong offset\n"));
 		      if (phdr->p_memsz != shdr->sh_size)
-			ERROR (gettext ("\
+			ERROR (_("\
 dynamic section size mismatch in program and section header\n"));
 		      break;
 		    }
@@ -4551,7 +4566,7 @@ dynamic section size mismatch in program and section header\n"));
       else if (phdr->p_type == PT_GNU_RELRO)
 	{
 	  if (++num_pt_relro == 2)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 more than one GNU_RELRO entry in program header\n"));
 	  else
 	    {
@@ -4572,7 +4587,7 @@ more than one GNU_RELRO entry in program header\n"));
 			  <= phdr2->p_vaddr + phdr2->p_memsz))
 		    {
 		      if ((phdr2->p_flags & PF_W) == 0)
-			ERROR (gettext ("\
+			ERROR (_("\
 loadable segment GNU_RELRO applies to is not writable\n"));
 		      /* Unless fully covered, relro flags could be a
 			 subset of the phdrs2 flags.  For example the load
@@ -4583,14 +4598,14 @@ loadable segment GNU_RELRO applies to is not writable\n"));
 			{
 			  if ((phdr2->p_flags & ~PF_W)
 			      != (phdr->p_flags & ~PF_W))
-			    ERROR (gettext ("\
+			    ERROR (_("\
 loadable segment [%u] flags do not match GNU_RELRO [%u] flags\n"),
 				   cnt, inner);
 			}
 		      else
 			{
 			  if ((phdr->p_flags & ~phdr2->p_flags) != 0)
-			    ERROR (gettext ("\
+			    ERROR (_("\
 GNU_RELRO [%u] flags are not a subset of the loadable segment [%u] flags\n"),
 				   inner, cnt);
 			}
@@ -4599,7 +4614,7 @@ GNU_RELRO [%u] flags are not a subset of the loadable segment [%u] flags\n"),
 		}
 
 	      if (inner >= phnum)
-		ERROR (gettext ("\
+		ERROR (_("\
 %s segment not contained in a loaded segment\n"), "GNU_RELRO");
 	    }
 	}
@@ -4622,13 +4637,13 @@ GNU_RELRO [%u] flags are not a subset of the loadable segment [%u] flags\n"),
 	    }
 
 	  if (inner >= phnum)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 %s segment not contained in a loaded segment\n"), "PHDR");
 
 	  /* Check that offset in segment corresponds to offset in ELF
 	     header.  */
 	  if (phdr->p_offset != ehdr->e_phoff)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 program header offset in ELF header and PHDR entry do not match"));
 	}
       else if (phdr->p_type == PT_GNU_EH_FRAME)
@@ -4655,10 +4670,10 @@ program header offset in ELF header and PHDR entry do not match"));
 		  if (! is_debuginfo)
 		    {
 		      if (phdr->p_offset != shdr->sh_offset)
-			ERROR (gettext ("\
+			ERROR (_("\
 call frame search table reference in program header has wrong offset\n"));
 		      if (phdr->p_memsz != shdr->sh_size)
-			ERROR (gettext ("\
+			ERROR (_("\
 call frame search table size mismatch in program and section header\n"));
 		    }
 		  break;
@@ -4671,7 +4686,7 @@ call frame search table size mismatch in program and section header\n"));
 		 complain.  But if there is one there should be an
 		 entry for .eh_frame_hdr.  */
 	      if (any)
-		ERROR (gettext ("\
+		ERROR (_("\
 PT_GNU_EH_FRAME present but no .eh_frame_hdr section\n"));
 	    }
 	  else
@@ -4679,25 +4694,25 @@ PT_GNU_EH_FRAME present but no .eh_frame_hdr section\n"));
 	      /* The section must be allocated and not be writable and
 		 executable.  */
 	      if ((phdr->p_flags & PF_R) == 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 call frame search table must be allocated\n"));
 	      else if (shdr != NULL && (shdr->sh_flags & SHF_ALLOC) == 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2zu] '%s' must be allocated\n"), elf_ndxscn (scn), ".eh_frame_hdr");
 
 	      if ((phdr->p_flags & PF_W) != 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 call frame search table must not be writable\n"));
 	      else if (shdr != NULL && (shdr->sh_flags & SHF_WRITE) != 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2zu] '%s' must not be writable\n"),
 		       elf_ndxscn (scn), ".eh_frame_hdr");
 
 	      if ((phdr->p_flags & PF_X) != 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 call frame search table must not be executable\n"));
 	      else if (shdr != NULL && (shdr->sh_flags & SHF_EXECINSTR) != 0)
-		ERROR (gettext ("\
+		ERROR (_("\
 section [%2zu] '%s' must not be executable\n"),
 		       elf_ndxscn (scn), ".eh_frame_hdr");
 	    }
@@ -4708,17 +4723,17 @@ section [%2zu] '%s' must not be executable\n"),
 
       if (phdr->p_filesz > phdr->p_memsz
 	  && (phdr->p_memsz != 0 || phdr->p_type != PT_NOTE))
-	ERROR (gettext ("\
+	ERROR (_("\
 program header entry %d: file size greater than memory size\n"),
 	       cnt);
 
       if (phdr->p_align > 1)
 	{
 	  if (!powerof2 (phdr->p_align))
-	    ERROR (gettext ("\
+	    ERROR (_("\
 program header entry %d: alignment not a power of 2\n"), cnt);
 	  else if ((phdr->p_vaddr - phdr->p_offset) % phdr->p_align != 0)
-	    ERROR (gettext ("\
+	    ERROR (_("\
 program header entry %d: file offset and virtual address not module of alignment\n"), cnt);
 	}
     }
@@ -4731,7 +4746,7 @@ check_exception_data (Ebl *ebl __attribute__ ((unused)),
 {
   if ((ehdr->e_type == ET_EXEC || ehdr->e_type == ET_DYN)
       && pt_gnu_eh_frame_pndx == 0 && eh_frame_hdr_scnndx != 0)
-    ERROR (gettext ("executable/DSO with .eh_frame_hdr section does not have "
+    ERROR (_("executable/DSO with .eh_frame_hdr section does not have "
 		    "a PT_GNU_EH_FRAME program header entry"));
 }
 
@@ -4765,7 +4780,7 @@ process_elf_file (Elf *elf, const char *prefix, const char *suffix,
 
   if (ehdr == NULL)
     {
-      ERROR (gettext ("cannot read ELF header: %s\n"), elf_errmsg (-1));
+      ERROR (_("cannot read ELF header: %s\n"), elf_errmsg (-1));
       return;
     }
 
@@ -4777,7 +4792,7 @@ process_elf_file (Elf *elf, const char *prefix, const char *suffix,
      memory situation.  */
   if (ebl == NULL)
     {
-      ERROR (gettext ("cannot create backend for ELF file\n"));
+      ERROR (_("cannot create backend for ELF file\n"));
       return;
     }
 
@@ -4798,7 +4813,7 @@ process_elf_file (Elf *elf, const char *prefix, const char *suffix,
 
   /* Report if no relocation section needed the text relocation flag.  */
   if (textrel && !needed_textrel)
-    ERROR (gettext ("text relocation flag set but not needed\n"));
+    ERROR (_("text relocation flag set but not needed\n"));
 
   /* Free the resources.  */
   ebl_closebackend (ebl);
