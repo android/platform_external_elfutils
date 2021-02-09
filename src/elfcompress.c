@@ -345,7 +345,7 @@ process_file (const char *fname)
       return cleanup (-1);
     }
 
-  /* We dont' handle ar files (or anything else), we probably should.  */
+  /* We don't handle ar files (or anything else), we probably should.  */
   Elf_Kind kind = elf_kind (elf);
   if (kind != ELF_K_ELF)
     {

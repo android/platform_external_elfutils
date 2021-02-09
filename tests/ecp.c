@@ -43,7 +43,7 @@ main (int argc, char *argv[])
     error (EXIT_FAILURE, 0, "problems opening '%s' as ELF file: %s",
 	   argv[1], elf_errmsg (-1));
 
-  int outfd = creat (argv[2], 0666);
+  int outfd = creat (argv[2], DEFFILEMODE);
   if (outfd == -1)
     error (EXIT_FAILURE, errno, "cannot open output file '%s'", argv[2]);
 

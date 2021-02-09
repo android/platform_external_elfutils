@@ -243,7 +243,7 @@ extern Dwarf *dwarf_begin_elf (Elf *elf, Dwarf_Cmd cmd, Elf_Scn *scngrp);
 /* Retrieve ELF descriptor used for DWARF access.  */
 extern Elf *dwarf_getelf (Dwarf *dwarf);
 
-/* Retieve DWARF descriptor used for a Dwarf_Die or Dwarf_Attribute.
+/* Retrieve DWARF descriptor used for a Dwarf_Die or Dwarf_Attribute.
    A Dwarf_Die or a Dwarf_Attribute is associated with a particular
    Dwarf_CU handle.  This function returns the DWARF descriptor for
    that Dwarf_CU.  */
@@ -429,7 +429,7 @@ extern int dwarf_siblingof (Dwarf_Die *die, Dwarf_Die *result)
    given DIE) that isn't a type alias or qualifier type.  Returns 1
    when RESULT contains a type alias or qualifier Dwarf_Die that
    couldn't be peeled further (it doesn't have a DW_TAG_type
-   attribute).  Returns -1 when an error occured.
+   attribute).  Returns -1 when an error occurred.
 
    The current DWARF specification defines one type alias tag
    (DW_TAG_typedef) and seven modifier/qualifier type tags
@@ -696,13 +696,13 @@ extern int dwarf_linediscriminator (Dwarf_Line *line, unsigned int *discp)
 
 
 /* Find line information for address.  The returned string is NULL when
-   an error occured, or the file path.  The file path is either absolute
+   an error occurred, or the file path.  The file path is either absolute
    or relative to the compilation directory.  See dwarf_decl_file.  */
 extern const char *dwarf_linesrc (Dwarf_Line *line,
 				  Dwarf_Word *mtime, Dwarf_Word *length);
 
 /* Return file information.  The returned string is NULL when
-   an error occured, or the file path.  The file path is either absolute
+   an error occurred, or the file path.  The file path is either absolute
    or relative to the compilation directory.  See dwarf_decl_file.  */
 extern const char *dwarf_filesrc (Dwarf_Files *file, size_t idx,
 				  Dwarf_Word *mtime, Dwarf_Word *length);
@@ -900,7 +900,7 @@ extern ptrdiff_t dwarf_getfuncs (Dwarf_Die *cudie,
    directory can be retrieved through:
    dwarf_formstring (dwarf_attr (dwarf_diecu (decl, &cudie, NULL, NULL),
                                  DW_AT_comp_dir, &attr));
-   Returns NULL if no decl_file could be found or an error occured.  */
+   Returns NULL if no decl_file could be found or an error occurred.  */
 extern const char *dwarf_decl_file (Dwarf_Die *decl);
 
 /* Get line number of beginning of given declaration.  */

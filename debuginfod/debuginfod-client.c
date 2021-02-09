@@ -56,6 +56,7 @@ int debuginfod_find_source (debuginfod_client *c, const unsigned char *b,
                             int s, const char *f, char **p)  { return -ENOSYS; }
 void debuginfod_set_progressfn(debuginfod_client *c,
 			       debuginfod_progressfn_t fn) { }
+void debuginfod_set_verbose_fd(debuginfod_client *c, int fd) { }
 void debuginfod_set_user_data (debuginfod_client *c, void *d) { }
 void* debuginfod_get_user_data (debuginfod_client *c) { return NULL; }
 const char* debuginfod_get_url (debuginfod_client *c) { return NULL; }
@@ -115,6 +116,9 @@ struct debuginfod_client
      debuginfod_end needs to terminate. */
   int default_progressfn_printed_p;
 
+  /* File descriptor to output any verbose messages if > 0.  */
+  int verbose_fd;
+
   /* Can contain all other context, like cache_path, server_urls,
      timeout or other info gotten from environment variables, the
      handle data, etc. So those don't have to be reparsed and
@@ -157,6 +161,9 @@ struct handle_data
 
   /* URL queried by this handle.  */
   char url[PATH_MAX];
+
+  /* error buffer for this handle.  */
+  char errbuf[CURL_ERROR_SIZE];
 
   /* This handle.  */
   CURL *handle;
@@ -212,13 +219,13 @@ debuginfod_init_cache (char *cache_path, char *interval_path, char *maxage_path)
     return 0;
 
   /* Create the cache and config files as necessary.  */
-  if (stat(cache_path, &st) != 0 && mkdir(cache_path, 0777) < 0)
+  if (stat(cache_path, &st) != 0 && mkdir(cache_path, ACCESSPERMS) < 0)
     return -errno;
 
   int fd = -1;
 
   /* init cleaning interval config file.  */
-  fd = open(interval_path, O_CREAT | O_RDWR, 0666);
+  fd = open(interval_path, O_CREAT | O_RDWR, DEFFILEMODE);
   if (fd < 0)
     return -errno;
 
@@ -227,7 +234,7 @@ debuginfod_init_cache (char *cache_path, char *interval_path, char *maxage_path)
 
   /* init max age config file.  */
   if (stat(maxage_path, &st) != 0
-      && (fd = open(maxage_path, O_CREAT | O_RDWR, 0666)) < 0)
+      && (fd = open(maxage_path, O_CREAT | O_RDWR, DEFFILEMODE)) < 0)
     return -errno;
 
   if (dprintf(fd, "%ld", cache_default_max_unused_age_s) < 0)
@@ -498,7 +505,33 @@ debuginfod_query_server (debuginfod_client *c,
   char *target_cache_tmppath = NULL;
   char suffix[PATH_MAX + 1]; /* +1 for zero terminator.  */
   char build_id_bytes[MAX_BUILD_ID_BYTES * 2 + 1];
+  int vfd = c->verbose_fd;
   int rc;
+
+  if (vfd >= 0)
+    {
+      dprintf (vfd, "debuginfod_find_%s ", type);
+      if (build_id_len == 0) /* expect clean hexadecimal */
+	dprintf (vfd, "%s", (const char *) build_id);
+      else
+	for (int i = 0; i < build_id_len; i++)
+	  dprintf (vfd, "%02x", build_id[i]);
+      if (filename != NULL)
+	dprintf (vfd, " %s\n", filename);
+      dprintf (vfd, "\n");
+    }
+
+  /* Is there any server we can query?  If not, don't do any work,
+     just return with ENOSYS.  Don't even access the cache.  */
+  urls_envvar = getenv(server_urls_envvar);
+  if (vfd >= 0)
+    dprintf (vfd, "server urls \"%s\"\n",
+	     urls_envvar != NULL ? urls_envvar : "");
+  if (urls_envvar == NULL || urls_envvar[0] == '\0')
+    {
+      rc = -ENOSYS;
+      goto out;
+    }
 
   /* Clear the obsolete URL from a previous _find operation. */
   free (c->url);
@@ -506,20 +539,17 @@ debuginfod_query_server (debuginfod_client *c,
 
   add_default_headers(c);
 
-  /* Is there any server we can query?  If not, don't do any work,
-     just return with ENOSYS.  Don't even access the cache.  */
-  urls_envvar = getenv(server_urls_envvar);
-  if (urls_envvar == NULL || urls_envvar[0] == '\0')
-    {
-      rc = -ENOSYS;
-      goto out;
-    }
-
   /* Copy lowercase hex representation of build_id into buf.  */
+  if (vfd >= 0)
+    dprintf (vfd, "checking build-id\n");
   if ((build_id_len >= MAX_BUILD_ID_BYTES) ||
       (build_id_len == 0 &&
        strlen ((const char *) build_id) > MAX_BUILD_ID_BYTES*2))
-    return -EINVAL;
+    {
+      rc = -EINVAL;
+      goto out;
+    }
+
   if (build_id_len == 0) /* expect clean hexadecimal */
     strcpy (build_id_bytes, (const char *) build_id);
   else
@@ -528,8 +558,13 @@ debuginfod_query_server (debuginfod_client *c,
 
   if (filename != NULL)
     {
+      if (vfd >= 0)
+	dprintf (vfd, "checking filename\n");
       if (filename[0] != '/') // must start with /
-        return -EINVAL;
+	{
+	  rc = -EINVAL;
+	  goto out;
+	}
 
       /* copy the filename to suffix, s,/,#,g */
       unsigned q = 0;
@@ -558,6 +593,9 @@ debuginfod_query_server (debuginfod_client *c,
     }
   else
     suffix[0] = '\0';
+
+  if (suffix[0] != '\0' && vfd >= 0)
+    dprintf (vfd, "suffix %s\n", suffix);
 
   /* set paths needed to perform the query
 
@@ -630,6 +668,10 @@ debuginfod_query_server (debuginfod_client *c,
   /* XXX combine these */
   xalloc_str (interval_path, "%s/%s", cache_path, cache_clean_interval_filename);
   xalloc_str (maxage_path, "%s/%s", cache_path, cache_max_unused_age_filename);
+
+  if (vfd >= 0)
+    dprintf (vfd, "checking cache dir %s\n", cache_path);
+
   rc = debuginfod_init_cache(cache_path, interval_path, maxage_path);
   if (rc != 0)
     goto out;
@@ -652,6 +694,9 @@ debuginfod_query_server (debuginfod_client *c,
   const char* timeout_envvar = getenv(server_timeout_envvar);
   if (timeout_envvar != NULL)
     timeout = atoi (timeout_envvar);
+
+  if (vfd >= 0)
+    dprintf (vfd, "using timeout %ld\n", timeout);
 
   /* make a copy of the envvar so it can be safely modified.  */
   server_urls = strdup(urls_envvar);
@@ -706,11 +751,12 @@ debuginfod_query_server (debuginfod_client *c,
 
   /* thereafter, goto out1 on error.  */
 
-  /* Initalize handle_data with default values. */
+  /* Initialize handle_data with default values. */
   for (int i = 0; i < num_urls; i++)
     {
       data[i].handle = NULL;
       data[i].fd = -1;
+      data[i].errbuf[0] = '\0';
     }
 
   char *strtok_saveptr;
@@ -719,6 +765,9 @@ debuginfod_query_server (debuginfod_client *c,
   /* Initialize each handle.  */
   for (int i = 0; i < num_urls && server_url != NULL; i++)
     {
+      if (vfd >= 0)
+	dprintf (vfd, "init server %d %s\n", i, server_url);
+
       data[i].fd = fd;
       data[i].target_handle = &target_handle;
       data[i].handle = curl_easy_init();
@@ -745,7 +794,12 @@ debuginfod_query_server (debuginfod_client *c,
         snprintf(data[i].url, PATH_MAX, "%s%s/%s/%s", server_url,
                  slashbuildid, build_id_bytes, type);
 
+      if (vfd >= 0)
+	dprintf (vfd, "url %d %s\n", i, data[i].url);
+
       curl_easy_setopt(data[i].handle, CURLOPT_URL, data[i].url);
+      if (vfd >= 0)
+	curl_easy_setopt(data[i].handle, CURLOPT_ERRORBUFFER, data[i].errbuf);
       curl_easy_setopt(data[i].handle,
                        CURLOPT_WRITEFUNCTION,
                        debuginfod_write_callback);
@@ -778,8 +832,12 @@ debuginfod_query_server (debuginfod_client *c,
     }
 
   /* Query servers in parallel.  */
+  if (vfd >= 0)
+    dprintf (vfd, "query %d urls in parallel\n", num_urls);
   int still_running;
   long loops = 0;
+  int committed_to = -1;
+  bool verbose_reported = false;
   do
     {
       /* Wait 1 second, the minimum DEBUGINFOD_TIMEOUT.  */
@@ -787,9 +845,23 @@ debuginfod_query_server (debuginfod_client *c,
 
       /* If the target file has been found, abort the other queries.  */
       if (target_handle != NULL)
-        for (int i = 0; i < num_urls; i++)
-          if (data[i].handle != target_handle)
-            curl_multi_remove_handle(curlm, data[i].handle);
+	{
+	  for (int i = 0; i < num_urls; i++)
+	    if (data[i].handle != target_handle)
+	      curl_multi_remove_handle(curlm, data[i].handle);
+	    else
+	      committed_to = i;
+	}
+
+      if (vfd >= 0 && !verbose_reported && committed_to >= 0)
+	{
+	  bool pnl = (c->default_progressfn_printed_p && vfd == STDERR_FILENO);
+	  dprintf (vfd, "%scommitted to url %d\n", pnl ? "\n" : "",
+		   committed_to);
+	  if (pnl)
+	    c->default_progressfn_printed_p = 0;
+	  verbose_reported = true;
+	}
 
       CURLMcode curlm_res = curl_multi_perform(curlm, &still_running);
       if (curlm_res != CURLM_OK)
@@ -863,9 +935,26 @@ debuginfod_query_server (debuginfod_client *c,
       msg = curl_multi_info_read(curlm, &num_msg);
       if (msg != NULL && msg->msg == CURLMSG_DONE)
         {
+	  if (vfd >= 0)
+	    {
+	      bool pnl = (c->default_progressfn_printed_p
+			  && vfd == STDERR_FILENO);
+	      dprintf (vfd, "%sserver response %s\n", pnl ? "\n" : "",
+		       curl_easy_strerror (msg->data.result));
+	      if (pnl)
+		c->default_progressfn_printed_p = 0;
+	      for (int i = 0; i < num_urls; i++)
+		if (msg->easy_handle == data[i].handle)
+		  {
+		    if (strlen (data[i].errbuf) > 0)
+		      dprintf (vfd, "url %d %s\n", i, data[i].errbuf);
+		    break;
+		  }
+	    }
+
           if (msg->data.result != CURLE_OK)
             {
-              /* Unsucessful query, determine error code.  */
+              /* Unsuccessful query, determine error code.  */
               switch (msg->data.result)
                 {
                 case CURLE_COULDNT_RESOLVE_HOST: rc = -EHOSTUNREACH; break; // no NXDOMAIN
@@ -946,6 +1035,14 @@ debuginfod_query_server (debuginfod_client *c,
   if (verified_handle == NULL)
     goto out1;
 
+  if (vfd >= 0)
+    {
+      bool pnl = c->default_progressfn_printed_p && vfd == STDERR_FILENO;
+      dprintf (vfd, "%sgot file from server\n", pnl ? "\n" : "");
+      if (pnl)
+	c->default_progressfn_printed_p = 0;
+    }
+
   /* we've got one!!!! */
   time_t mtime;
   CURLcode curl_res = curl_easy_getinfo(verified_handle, CURLINFO_FILETIME, (void*) &mtime);
@@ -1005,6 +1102,14 @@ debuginfod_query_server (debuginfod_client *c,
   if (c->default_progressfn_printed_p)
     dprintf(STDERR_FILENO, "\n");
 
+  if (vfd >= 0)
+    {
+      if (rc < 0)
+	dprintf (vfd, "not found %s (err=%d)\n", strerror (-rc), rc);
+      else
+	dprintf (vfd, "found %s (fd=%d)\n", target_cache_path, rc);
+    }
+
   free (cache_path);
   free (maxage_path);
   free (interval_path);
@@ -1027,6 +1132,10 @@ debuginfod_begin (void)
     {
       if (getenv(DEBUGINFOD_PROGRESS_ENV_VAR))
 	client->progressfn = default_progressfn;
+      if (getenv(DEBUGINFOD_VERBOSE_ENV_VAR))
+	client->verbose_fd = STDERR_FILENO;
+      else
+	client->verbose_fd = -1;
     }
   return client;
 }
@@ -1123,6 +1232,12 @@ debuginfod_set_progressfn(debuginfod_client *client,
 			  debuginfod_progressfn_t fn)
 {
   client->progressfn = fn;
+}
+
+void
+debuginfod_set_verbose_fd(debuginfod_client *client, int fd)
+{
+  client->verbose_fd = fd;
 }
 
 

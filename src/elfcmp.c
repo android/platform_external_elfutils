@@ -138,7 +138,7 @@ main (int argc, char *argv[])
   /* We expect exactly two non-option parameters.  */
   if (unlikely (remaining + 2 != argc))
     {
-      fputs (gettext ("Invalid number of parameters.\n"), stderr);
+      fputs (_("Invalid number of parameters.\n"), stderr);
       argp_help (&argp, stderr, ARGP_HELP_SEE, program_invocation_short_name);
       exit (1);
     }
@@ -169,12 +169,12 @@ main (int argc, char *argv[])
   GElf_Ehdr ehdr1_mem;
   GElf_Ehdr *ehdr1 = gelf_getehdr (elf1, &ehdr1_mem);
   if (ehdr1 == NULL)
-    error (2, 0, gettext ("cannot get ELF header of '%s': %s"),
+    error (2, 0, _("cannot get ELF header of '%s': %s"),
 	   fname1, elf_errmsg (-1));
   GElf_Ehdr ehdr2_mem;
   GElf_Ehdr *ehdr2 = gelf_getehdr (elf2, &ehdr2_mem);
   if (ehdr2 == NULL)
-    error (2, 0, gettext ("cannot get ELF header of '%s': %s"),
+    error (2, 0, _("cannot get ELF header of '%s': %s"),
 	   fname2, elf_errmsg (-1));
 
 #define DIFFERENCE							      \
@@ -200,37 +200,37 @@ main (int argc, char *argv[])
 		|| ehdr1->e_shentsize != ehdr2->e_shentsize))
     {
       if (! quiet)
-	error (0, 0, gettext ("%s %s diff: ELF header"), fname1, fname2);
+	error (0, 0, _("%s %s diff: ELF header"), fname1, fname2);
       DIFFERENCE;
     }
 
   size_t shnum1;
   size_t shnum2;
   if (unlikely (elf_getshdrnum (elf1, &shnum1) != 0))
-    error (2, 0, gettext ("cannot get section count of '%s': %s"),
+    error (2, 0, _("cannot get section count of '%s': %s"),
 	   fname1, elf_errmsg (-1));
   if (unlikely (elf_getshdrnum (elf2, &shnum2) != 0))
-    error (2, 0, gettext ("cannot get section count of '%s': %s"),
+    error (2, 0, _("cannot get section count of '%s': %s"),
 	   fname2, elf_errmsg (-1));
   if (unlikely (shnum1 != shnum2))
     {
       if (! quiet)
-	error (0, 0, gettext ("%s %s diff: section count"), fname1, fname2);
+	error (0, 0, _("%s %s diff: section count"), fname1, fname2);
       DIFFERENCE;
     }
 
   size_t phnum1;
   size_t phnum2;
   if (unlikely (elf_getphdrnum (elf1, &phnum1) != 0))
-    error (2, 0, gettext ("cannot get program header count of '%s': %s"),
+    error (2, 0, _("cannot get program header count of '%s': %s"),
 	   fname1, elf_errmsg (-1));
   if (unlikely (elf_getphdrnum (elf2, &phnum2) != 0))
-    error (2, 0, gettext ("cannot get program header count of '%s': %s"),
+    error (2, 0, _("cannot get program header count of '%s': %s"),
 	   fname2, elf_errmsg (-1));
   if (unlikely (phnum1 != phnum2))
     {
       if (! quiet)
-	error (0, 0, gettext ("%s %s diff: program header count"),
+	error (0, 0, _("%s %s diff: program header count"),
 	       fname1, fname2);
       DIFFERENCE;
     }
@@ -238,15 +238,15 @@ main (int argc, char *argv[])
   size_t shstrndx1;
   size_t shstrndx2;
   if (elf_getshdrstrndx (elf1, &shstrndx1) != 0)
-    error (2, 0, gettext ("cannot get hdrstrndx of '%s': %s"),
+    error (2, 0, _("cannot get hdrstrndx of '%s': %s"),
 	   fname1, elf_errmsg (-1));
   if (elf_getshdrstrndx (elf2, &shstrndx2) != 0)
-    error (2, 0, gettext ("cannot get hdrstrndx of '%s': %s"),
+    error (2, 0, _("cannot get hdrstrndx of '%s': %s"),
 	   fname2, elf_errmsg (-1));
   if (shstrndx1 != shstrndx2)
     {
       if (! quiet)
-	error (0, 0, gettext ("%s %s diff: shdr string index"),
+	error (0, 0, _("%s %s diff: shdr string index"),
 	       fname1, fname2);
       DIFFERENCE;
     }
@@ -304,7 +304,7 @@ main (int argc, char *argv[])
       if (unlikely (sname1 == NULL || sname2 == NULL
 		    || strcmp (sname1, sname2) != 0))
 	{
-	  error (0, 0, gettext ("%s %s differ: section [%zu], [%zu] name"),
+	  error (0, 0, _("%s %s differ: section [%zu], [%zu] name"),
 		 fname1, fname2, elf_ndxscn (scn1), elf_ndxscn (scn2));
 	  DIFFERENCE;
 	}
@@ -327,7 +327,7 @@ main (int argc, char *argv[])
 	  || shdr1->sh_addralign != shdr2->sh_addralign
 	  || shdr1->sh_entsize != shdr2->sh_entsize)
 	{
-	  error (0, 0, gettext ("%s %s differ: section [%zu] '%s' header"),
+	  error (0, 0, _("%s %s differ: section [%zu] '%s' header"),
 		 fname1, fname2, elf_ndxscn (scn1), sname1);
 	  DIFFERENCE;
 	}
@@ -335,13 +335,13 @@ main (int argc, char *argv[])
       Elf_Data *data1 = elf_getdata (scn1, NULL);
       if (data1 == NULL)
 	error (2, 0,
-	       gettext ("cannot get content of section %zu in '%s': %s"),
+	       _("cannot get content of section %zu in '%s': %s"),
 	       elf_ndxscn (scn1), fname1, elf_errmsg (-1));
 
       Elf_Data *data2 = elf_getdata (scn2, NULL);
       if (data2 == NULL)
 	error (2, 0,
-	       gettext ("cannot get content of section %zu in '%s': %s"),
+	       _("cannot get content of section %zu in '%s': %s"),
 	       elf_ndxscn (scn2), fname2, elf_errmsg (-1));
 
       switch (shdr1->sh_type)
@@ -350,7 +350,7 @@ main (int argc, char *argv[])
 	case SHT_SYMTAB:
 	  if (shdr1->sh_entsize == 0)
 	    error (2, 0,
-		   gettext ("symbol table [%zu] in '%s' has zero sh_entsize"),
+		   _("symbol table [%zu] in '%s' has zero sh_entsize"),
 		   elf_ndxscn (scn1), fname1);
 
 	  /* Iterate over the symbol table.  We ignore the st_size
@@ -362,13 +362,13 @@ main (int argc, char *argv[])
 	      GElf_Sym *sym1 = gelf_getsym (data1, ndx, &sym1_mem);
 	      if (sym1 == NULL)
 		error (2, 0,
-		       gettext ("cannot get symbol in '%s': %s"),
+		       _("cannot get symbol in '%s': %s"),
 		       fname1, elf_errmsg (-1));
 	      GElf_Sym sym2_mem;
 	      GElf_Sym *sym2 = gelf_getsym (data2, ndx, &sym2_mem);
 	      if (sym2 == NULL)
 		error (2, 0,
-		       gettext ("cannot get symbol in '%s': %s"),
+		       _("cannot get symbol in '%s': %s"),
 		       fname2, elf_errmsg (-1));
 
 	      const char *name1 = elf_strptr (elf1, shdr1->sh_link,
@@ -390,10 +390,10 @@ main (int argc, char *argv[])
 		    {
 		      if (elf_ndxscn (scn1) == elf_ndxscn (scn2))
 			error (0, 0,
-			       gettext ("%s %s differ: symbol table [%zu]"),
+			       _("%s %s differ: symbol table [%zu]"),
 			       fname1, fname2, elf_ndxscn (scn1));
 		      else
-			error (0, 0, gettext ("\
+			error (0, 0, _("\
 %s %s differ: symbol table [%zu,%zu]"),
 			       fname1, fname2, elf_ndxscn (scn1),
 			       elf_ndxscn (scn2));
@@ -440,7 +440,7 @@ main (int argc, char *argv[])
 		if (off2 >= data2->d_size)
 		  {
 		    if (! quiet)
-		      error (0, 0, gettext ("\
+		      error (0, 0, _("\
 %s %s differ: section [%zu] '%s' number of notes"),
 			     fname1, fname2, elf_ndxscn (scn1), sname1);
 		    DIFFERENCE;
@@ -448,7 +448,7 @@ main (int argc, char *argv[])
 		off2 = gelf_getnote (data2, off2, &note2,
 				     &name_offset, &desc_offset);
 		if (off2 == 0)
-		  error (2, 0, gettext ("\
+		  error (2, 0, _("\
 cannot read note section [%zu] '%s' in '%s': %s"),
 			 elf_ndxscn (scn2), sname2, fname2, elf_errmsg (-1));
 		const char *name2 = (note2.n_namesz == 0
@@ -459,7 +459,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 		    || memcmp (name1, name2, note1.n_namesz))
 		  {
 		    if (! quiet)
-		      error (0, 0, gettext ("\
+		      error (0, 0, _("\
 %s %s differ: section [%zu] '%s' note name"),
 			     fname1, fname2, elf_ndxscn (scn1), sname1);
 		    DIFFERENCE;
@@ -467,7 +467,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 		if (note1.n_type != note2.n_type)
 		  {
 		    if (! quiet)
-		      error (0, 0, gettext ("\
+		      error (0, 0, _("\
 %s %s differ: section [%zu] '%s' note '%s' type"),
 			     fname1, fname2, elf_ndxscn (scn1), sname1, name1);
 		    DIFFERENCE;
@@ -482,7 +482,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 			if (note1.n_descsz != note2.n_descsz)
 			  {
 			    if (! quiet)
-			      error (0, 0, gettext ("\
+			      error (0, 0, _("\
 %s %s differ: build ID length"),
 				     fname1, fname2);
 			    DIFFERENCE;
@@ -490,7 +490,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 			else if (! ignore_build_id)
 			  {
 			    if (! quiet)
-			      error (0, 0, gettext ("\
+			      error (0, 0, _("\
 %s %s differ: build ID content"),
 				     fname1, fname2);
 			    DIFFERENCE;
@@ -499,7 +499,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 		    else
 		      {
 			if (! quiet)
-			  error (0, 0, gettext ("\
+			  error (0, 0, _("\
 %s %s differ: section [%zu] '%s' note '%s' content"),
 				 fname1, fname2, elf_ndxscn (scn1), sname1,
 				 name1);
@@ -510,7 +510,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 	    if (off2 < data2->d_size)
 	      {
 		if (! quiet)
-		  error (0, 0, gettext ("\
+		  error (0, 0, _("\
 %s %s differ: section [%zu] '%s' number of notes"),
 			 fname1, fname2, elf_ndxscn (scn1), sname1);
 		DIFFERENCE;
@@ -540,11 +540,11 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 	      if (! quiet)
 		{
 		  if (elf_ndxscn (scn1) == elf_ndxscn (scn2))
-		    error (0, 0, gettext ("\
+		    error (0, 0, _("\
 %s %s differ: section [%zu] '%s' content"),
 			   fname1, fname2, elf_ndxscn (scn1), sname1);
 		  else
-		    error (0, 0, gettext ("\
+		    error (0, 0, _("\
 %s %s differ: section [%zu,%zu] '%s' content"),
 			   fname1, fname2, elf_ndxscn (scn1),
 			   elf_ndxscn (scn2), sname1);
@@ -559,7 +559,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
     {
       if (! quiet)
 	error (0, 0,
-	       gettext ("%s %s differ: unequal amount of important sections"),
+	       _("%s %s differ: unequal amount of important sections"),
 	       fname1, fname2);
       DIFFERENCE;
     }
@@ -592,12 +592,12 @@ cannot read note section [%zu] '%s' in '%s': %s"),
     {
       raw1 = elf_rawfile (elf1, &size1);
       if (raw1 == NULL )
-	error (2, 0, gettext ("cannot load data of '%s': %s"),
+	error (2, 0, _("cannot load data of '%s': %s"),
 	       fname1, elf_errmsg (-1));
 
       raw2 = elf_rawfile (elf2, &size2);
       if (raw2 == NULL )
-	error (2, 0, gettext ("cannot load data of '%s': %s"),
+	error (2, 0, _("cannot load data of '%s': %s"),
 	       fname2, elf_errmsg (-1));
 
       for (size_t cnt = 0; cnt < nregions; ++cnt)
@@ -616,19 +616,19 @@ cannot read note section [%zu] '%s' in '%s': %s"),
       GElf_Phdr *phdr1 = gelf_getphdr (elf1, ndx, &phdr1_mem);
       if (phdr1 == NULL)
 	error (2, 0,
-	       gettext ("cannot get program header entry %d of '%s': %s"),
+	       _("cannot get program header entry %d of '%s': %s"),
 	       ndx, fname1, elf_errmsg (-1));
       GElf_Phdr phdr2_mem;
       GElf_Phdr *phdr2 = gelf_getphdr (elf2, ndx, &phdr2_mem);
       if (phdr2 == NULL)
 	error (2, 0,
-	       gettext ("cannot get program header entry %d of '%s': %s"),
+	       _("cannot get program header entry %d of '%s': %s"),
 	       ndx, fname2, elf_errmsg (-1));
 
       if (unlikely (memcmp (phdr1, phdr2, sizeof (GElf_Phdr)) != 0))
 	{
 	  if (! quiet)
-	    error (0, 0, gettext ("%s %s differ: program header %d"),
+	    error (0, 0, _("%s %s differ: program header %d"),
 		   fname1, fname2, ndx);
 	  DIFFERENCE;
 	}
@@ -652,7 +652,7 @@ cannot read note section [%zu] '%s' in '%s': %s"),
 		    {
 		    gapmismatch:
 		      if (!quiet)
-			error (0, 0, gettext ("%s %s differ: gap"),
+			error (0, 0, _("%s %s differ: gap"),
 			       fname1, fname2);
 		      DIFFERENCE;
 		      break;
@@ -703,7 +703,7 @@ parse_opt (int key, char *arg,
       else
 	{
 	  fprintf (stderr,
-		   gettext ("Invalid value '%s' for --gaps parameter."),
+		   _("Invalid value '%s' for --gaps parameter."),
 		   arg);
 	  argp_help (&argp, stderr, ARGP_HELP_SEE,
 		     program_invocation_short_name);
@@ -731,16 +731,16 @@ open_file (const char *fname, int *fdp, Ebl **eblp)
 {
   int fd = open (fname, O_RDONLY);
   if (unlikely (fd == -1))
-    error (2, errno, gettext ("cannot open '%s'"), fname);
+    error (2, errno, _("cannot open '%s'"), fname);
   Elf *elf = elf_begin (fd, ELF_C_READ_MMAP, NULL);
   if (elf == NULL)
     error (2, 0,
-	   gettext ("cannot create ELF descriptor for '%s': %s"),
+	   _("cannot create ELF descriptor for '%s': %s"),
 	   fname, elf_errmsg (-1));
   Ebl *ebl = ebl_openbackend (elf);
   if (ebl == NULL)
     error (2, 0,
-	   gettext ("cannot create EBL descriptor for '%s'"), fname);
+	   _("cannot create EBL descriptor for '%s'"), fname);
 
   *fdp = fd;
   *eblp = ebl;
@@ -758,7 +758,7 @@ search_for_copy_reloc (Ebl *ebl, size_t scnndx, int symndx)
       GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
       if (shdr == NULL)
 	error (2, 0,
-	       gettext ("cannot get section header of section %zu: %s"),
+	       _("cannot get section header of section %zu: %s"),
 	       elf_ndxscn (scn), elf_errmsg (-1));
 
       if ((shdr->sh_type != SHT_REL && shdr->sh_type != SHT_RELA)
@@ -768,7 +768,7 @@ search_for_copy_reloc (Ebl *ebl, size_t scnndx, int symndx)
       Elf_Data *data = elf_getdata (scn, NULL);
       if (data == NULL)
 	error (2, 0,
-	       gettext ("cannot get content of section %zu: %s"),
+	       _("cannot get content of section %zu: %s"),
 	       elf_ndxscn (scn), elf_errmsg (-1));
 
       if (shdr->sh_type == SHT_REL && shdr->sh_entsize != 0)
@@ -778,7 +778,7 @@ search_for_copy_reloc (Ebl *ebl, size_t scnndx, int symndx)
 	    GElf_Rel rel_mem;
 	    GElf_Rel *rel = gelf_getrel (data, ndx, &rel_mem);
 	    if (rel == NULL)
-	      error (2, 0, gettext ("cannot get relocation: %s"),
+	      error (2, 0, _("cannot get relocation: %s"),
 		     elf_errmsg (-1));
 
 	    if ((int) GELF_R_SYM (rel->r_info) == symndx
@@ -792,7 +792,7 @@ search_for_copy_reloc (Ebl *ebl, size_t scnndx, int symndx)
 	    GElf_Rela rela_mem;
 	    GElf_Rela *rela = gelf_getrela (data, ndx, &rela_mem);
 	    if (rela == NULL)
-	      error (2, 0, gettext ("cannot get relocation: %s"),
+	      error (2, 0, _("cannot get relocation: %s"),
 		     elf_errmsg (-1));
 
 	    if ((int) GELF_R_SYM (rela->r_info) == symndx
