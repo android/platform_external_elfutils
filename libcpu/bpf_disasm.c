@@ -74,7 +74,7 @@ static void
 bswap_bpf_insn (struct bpf_insn *p)
 {
   /* Note that the dst_reg and src_reg fields are 4-bit bitfields.
-     That means these two nibbles are (typically) layed out in the
+     That means these two nibbles are (typically) laid out in the
      opposite order between big- and little-endian hosts.  This is
      not required by any standard, but does happen to be true for
      at least ppc, s390, arm and mips as big-endian hosts.  */

@@ -71,7 +71,7 @@
 
 /* A special gettext function we use if the strings are too short.  */
 #define sgettext(Str) \
-  ({ const char *__res = strrchr (gettext (Str), '|');			      \
+  ({ const char *__res = strrchr (_(Str), '|');			      \
      __res ? __res + 1 : Str; })
 
 #define gettext_noop(Str) Str
@@ -83,6 +83,18 @@
        __res = expression; \
      while (__res == -1 && errno == EINTR); \
      __res; })
+#endif
+
+#ifndef ACCESSPERMS
+#define ACCESSPERMS (S_IRWXU|S_IRWXG|S_IRWXO) /* 0777 */
+#endif
+
+#ifndef ALLPERMS
+#define ALLPERMS (S_ISUID|S_ISGID|S_ISVTX|S_IRWXU|S_IRWXG|S_IRWXO) /* 07777 */
+#endif
+
+#ifndef DEFFILEMODE
+#define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)/* 0666 */
 #endif
 
 static inline ssize_t __attribute__ ((unused))
