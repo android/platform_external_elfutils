@@ -95,7 +95,7 @@ Failed to get base address for the archive element: %s\n",
 	    }
 
 	  /* Open the output file.  */
-	  outfd = open (argv[3], O_CREAT | O_TRUNC | O_RDWR, 0666);
+	  outfd = open (argv[3], O_CREAT | O_TRUNC | O_RDWR, DEFFILEMODE);
 	  if (outfd == -1)
 	    {
 	      printf ("cannot open output file: %m");

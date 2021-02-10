@@ -551,8 +551,8 @@ argcomp:	  kBITFIELD
 static void
 yyerror (const char *s)
 {
-  error (0, 0, gettext ("while reading i386 CPU description: %s at line %d"),
-         gettext (s), i386_lineno);
+  error (0, 0, _("while reading i386 CPU description: %s at line %d"),
+         _(s), i386_lineno);
 }
 
 

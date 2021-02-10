@@ -100,7 +100,7 @@ ebl_dynamic_tag_name (Ebl *ebl, int64_t tag, char *buf, size_t len)
 	res = "FILTER";
       else
 	{
-	  snprintf (buf, len, gettext ("<unknown>: %#" PRIx64), tag);
+	  snprintf (buf, len, _("<unknown>: %#" PRIx64), tag);
 
 	  res = buf;
 

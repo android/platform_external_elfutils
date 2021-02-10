@@ -262,7 +262,7 @@ DWARF section [30] '.debug_line' at offset 0x15f6:
 
 EOF
 
-# A .debug_line table with mininum instruction length > 1.
+# A .debug_line table with minimum instruction length > 1.
 #
 # = hello.c
 # #include <stdio.h>

@@ -1,3 +1,26 @@
+2020-12-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* libasmP.h (_): Remove.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* asm_begin.c (prepare_binary_output): Fix spelling typo in comment.
+	* asm_end.c (binary_end): Likewise.
+
+2020-12-11  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (GCC_INCLUDE): Remove.
+
+2020-12-09  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (noinst_PROGRAMS): Rename to noinst_DATA.
+	(libasm_so_SOURCES): Remove.
+	(CLEANFILES): Add libasm.so.
+
+2020-11-30  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (libasm.so$(EXEEXT)): Drop $(EXEEXT) suffix.
+
 2020-10-29  Mark Wielaard  <mark@klomp.org>
 
 	* asm_align.c (__libasm_ensure_section_space): Use calloc, not
