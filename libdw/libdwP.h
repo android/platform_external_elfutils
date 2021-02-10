@@ -38,10 +38,6 @@
 #include "atomics.h"
 
 
-/* gettext helper macros.  */
-#define _(Str) dgettext ("elfutils", Str)
-
-
 /* Known location expressions already decoded.  */
 struct loc_s
 {
@@ -68,7 +64,7 @@ struct files_lines_s
   Dwarf_Lines *lines;
 };
 
-/* Valid indeces for the section data.  */
+/* Valid indices for the section data.  */
 enum
   {
     IDX_debug_info = 0,
@@ -438,7 +434,7 @@ __libdw_first_die_from_cu_start (Dwarf_Off cu_start,
         Both signature and type offset are optional.
 
         Note same 4/8 offset size trick as above.
-        We explicitly ignore unknow unit types (see asserts above).  */
+        We explicitly ignore unknown unit types (see asserts above).  */
       off += 3 * offset_size - 4 + 4;
       if (unit_type == DW_UT_skeleton || unit_type == DW_UT_split_compile
 	  || unit_type == DW_UT_type || unit_type == DW_UT_split_type)

@@ -1,3 +1,27 @@
+2021-02-05  Mark Wielaard  <mark@klomp.org>
+
+	* elfutils.spec.in: Update for 0.183.
+
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: New file.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* 10-default-yama-scope.conf: Fix spelling typo in comment.
+	* upload-release.sh: Likewise.
+	* elfutils.spec.in: Fix spelling typos in %changelog.
+
+2020-11-04  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* profile.sh.in, profile.csh.in: Do not define $DEBUGINFOD_URLS unless
+	configured using --enable-debuginfod-urls.
+
+2020-11-02  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (pkgconfig_DATA, install-data-local, uninstall-local):
+	Conditionalize on LIBDEBUGINFOD instead of DEBUGINFOD.
+
 2020-10-31  Dmitry V. Levin  <ldv@altlinux.org>
 
 	* Makefile.am (install-data-local, uninstall-local): Conditionalize

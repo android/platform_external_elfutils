@@ -117,7 +117,7 @@ dwelf_elf_e_machine_string (int machine)
     case EM_PCP:
       return "Siemens PCP";
     case EM_NCPU:
-      return "Sony nCPU embeded RISC";
+      return "Sony nCPU embedded RISC";
     case EM_NDR1:
       return "Denso NDR1 microprocessor";
     case EM_STARCORE:
@@ -289,11 +289,11 @@ dwelf_elf_e_machine_string (int machine)
     case EM_STXP7X:
       return "STMicroelectronics STxP7x";
     case EM_NDS32:
-      return "Andes Technology compact code size embeded RISC";
+      return "Andes Technology compact code size embedded RISC";
     case EM_ECOG1X:
       return "Cyan Technology eCOG1X";
     case EM_MAXQ30:
-      return "Dallas Semicondutor MAXQ30";
+      return "Dallas Semiconductor MAXQ30";
     case EM_XIMO16:
       return "New Japan Radio (NJR) 16-bit DSP";
     case EM_MANIK:

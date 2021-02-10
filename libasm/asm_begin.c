@@ -98,7 +98,7 @@ prepare_binary_output (AsmCtx_t *result, Ebl *ebl)
   /* Set the ELF version.  */
   ehdr->e_version = EV_CURRENT;
 
-  /* Use the machine, class, and endianess values from the Ebl descriptor.  */
+  /* Use the machine, class, and endianness values from the Ebl descriptor.  */
   ehdr->e_machine = ebl_get_elfmachine (ebl);
   ehdr->e_ident[EI_CLASS] = class;
   ehdr->e_ident[EI_DATA] = ebl_get_elfdata (ebl);

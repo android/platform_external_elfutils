@@ -210,7 +210,7 @@ arlib_add_symbols (Elf *elf, const char *arfname, const char *membername,
 {
   if (sizeof (off) > sizeof (uint32_t) && off > ~((uint32_t) 0))
     /* The archive is too big.  */
-    error (EXIT_FAILURE, 0, gettext ("the archive '%s' is too large"),
+    error (EXIT_FAILURE, 0, _("the archive '%s' is too large"),
 	   arfname);
 
   /* We only add symbol tables for ELF files.  It makes not much sense
@@ -223,7 +223,7 @@ arlib_add_symbols (Elf *elf, const char *arfname, const char *membername,
   GElf_Ehdr ehdr_mem;
   GElf_Ehdr *ehdr = gelf_getehdr (elf, &ehdr_mem);
   if (ehdr == NULL)
-    error (EXIT_FAILURE, 0, gettext ("cannot read ELF header of %s(%s): %s"),
+    error (EXIT_FAILURE, 0, _("cannot read ELF header of %s(%s): %s"),
 	   arfname, membername, elf_errmsg (-1));
 
   GElf_Word symtype;
