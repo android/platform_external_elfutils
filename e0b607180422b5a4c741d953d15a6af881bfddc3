@@ -16,6 +16,24 @@
       "message": "@bbadour This is the new format. The \"SPECIAL LICENSING\" at the top will be added for all BY_EXCEPTION_ONLY packages, even if it was not there before. Other than that all comments will be removed. I moved them to license_note field. Let me know whether this works for you.",
       "revId": "e0b607180422b5a4c741d953d15a6af881bfddc3",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "76bd585a_8558b562",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1359095
+      },
+      "writtenOn": "2021-02-10T19:31:42Z",
+      "side": 1,
+      "message": "I assume newlines go in the license_note as \\n ?",
+      "parentUuid": "e874493b_559f7317",
+      "revId": "e0b607180422b5a4c741d953d15a6af881bfddc3",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     }
   ]
 }
