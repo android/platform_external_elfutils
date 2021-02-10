@@ -25,7 +25,7 @@
 tempfiles a.out strip.out debug.out readelf.out
 
 echo Create debug a.out.
-echo "int main() { return 1; }" | gcc -g -xc -
+echo "int main() { return 1; }" | ${CC} -g -xc -
 
 echo strip -g to file with debug file
 testrun ${abs_top_builddir}/src/strip -g -o strip.out -f debug.out ||

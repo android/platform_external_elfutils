@@ -71,3 +71,11 @@ x86_64_section_type_name (int type,
 
   return NULL;
 }
+
+/* The SHT_X86_64_UNWIND section type is a valid target for relocation.  */
+bool
+x86_64_check_reloc_target_type (Ebl *ebl __attribute__ ((unused)),
+				Elf64_Word sh_type)
+{
+  return sh_type == SHT_X86_64_UNWIND;
+}

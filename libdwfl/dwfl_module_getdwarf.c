@@ -145,7 +145,7 @@ open_elf (Dwfl_Module *mod, struct dwfl_file *file)
 	}
     }
 
-  /* We only want to set the module e_type explictly once, derived from
+  /* We only want to set the module e_type explicitly once, derived from
      the main ELF file.  (It might be changed for the kernel, because
      that is special - see below.)  open_elf is always called first for
      the main ELF file, because both find_dw and find_symtab call
@@ -1141,7 +1141,7 @@ find_symtab (Dwfl_Module *mod)
 
   /* Cache the data; MOD->syments and MOD->first_global were set
      above.  If any of the sections is compressed, uncompress it
-     first.  Only the string data setion could theoretically be
+     first.  Only the string data section could theoretically be
      compressed GNU style (as .zdebug_str).  Everything else only ELF
      gabi style (SHF_COMPRESSED).  */
 
