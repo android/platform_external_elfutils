@@ -1,3 +1,34 @@
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: New file.
+
+2020-12-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* libdwP.h (_): Remove.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* dwarf.h: Fix spelling typo in comment.
+	* dwarf_begin_elf.c (dwarf_begin_elf): Likewise.
+	* dwarf_getlocation.c (attr_ok, __libdw_intern_expression): Likewise.
+	* dwarf_getsrclines.c (read_srclines): Likewise.
+	* libdw.h: Fix spelling typos in comments.
+	* libdwP.h: Likewise.
+
+2020-12-09  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (noinst_PROGRAMS): Rename to noinst_DATA.
+	(libdw_so_SOURCES): Remove.
+	(MOSTLYCLEANFILES): Add libdw.so.
+
+2020-11-30  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (libdw.so$(EXEEXT)): Drop $(EXEEXT) suffix.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* Makefile.am (libdw_so_LDLIBS): Add fts_LIBS.
+
 2020-10-28  Tom Tromey  <tom@tromey.com>
 
 	PR26773
@@ -166,7 +197,7 @@
 2019-02-02  Mark Wielaard  <mark@klomp.org>
 
 	* dwarf_nextcu.c (__libdw_next_unit): Define bytes_end.
-	Check there are enough bytes to read extended lenght, version
+	Check there are enough bytes to read extended length, version
 	and unit.
 
 2019-01-20  Mark Wielaard  <mark@klomp.org>

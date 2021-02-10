@@ -137,6 +137,21 @@ __libdwfl_seterrno (Dwfl_Error error)
 }
 
 
+static const char *
+errnomsg(int error)
+{
+  /* Won't be changed by strerror_r, but not const so compiler doesn't throw warning */
+  static char unknown[] = "unknown error";
+
+#ifdef STRERROR_R_CHAR_P
+  return strerror_r (error, unknown, 0);
+#else
+  /* To store the error message from strerror_r in a thread-safe manner */
+  static __thread char msg[128];
+  return strerror_r (error, msg, sizeof (msg)) ? unknown : msg;
+#endif
+}
+
 const char *
 dwfl_errmsg (int error)
 {
@@ -154,7 +169,7 @@ dwfl_errmsg (int error)
   switch (error &~ 0xffff)
     {
     case OTHER_ERROR (ERRNO):
-      return strerror_r (error & 0xffff, "bad", 0);
+      return errnomsg (error & 0xffff);
     case OTHER_ERROR (LIBELF):
       return elf_errmsg (error & 0xffff);
     case OTHER_ERROR (LIBDW):

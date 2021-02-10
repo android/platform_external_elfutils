@@ -1,3 +1,62 @@
+2021-02-05  Mark Wielaard  <mark@klomp.org>
+
+	* configure.ac (AC_INIT): Set version to 0.183.
+	(AC_COPYRIGHT): Update Copyright year.
+	* NEWS: Add 0.183 section.
+
+2021-02-01  Érico Nogueira  <ericonr@disroot.org>
+
+	* configure.ac: Check for GNU strerror_r.
+
+2021-01-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac [--enable-gcov]: Check for gcov, lcov, and genhtml.
+	* Makefile.am [GCOV] (coverage, coverage-clean): New targets.
+	* .gitignore: Update.
+
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: Move subdirectory patterns to separate .gitignore files.
+
+	* .gitignore: Update.
+
+2020-12-15  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (USE_NLS, AM_PO_SUBDIRS): Remove.
+	(AM_GNU_GETTEXT, AM_GNU_GETTEXT_VERSION,
+	AM_GNU_GETTEXT_REQUIRE_VERSION): Use these macros to setup the gettext
+	infrastructure.
+	* .gitignore: Update.
+
+	* Makefile.am (SUBDIRS): Remove m4.
+	* configure.ac (AC_CONFIG_FILES): Remove m4/Makefile.
+
+	* configure.ac (AC_CONFIG_MACRO_DIR): Remove.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac: Fix spelling typos in comments.
+	* NEWS: Fix spelling typos.
+	* NOTES: Likewise.
+	* TODO: Likewise.
+
+2020-12-11  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (AM_CONDITIONAL): Remove HAVE_LIBASM and STANDALONE.
+
+	* configure.ac: Rewrite argp check.
+
+	* configure.ac (AC_MSG_FAILURE): Fix typo.
+
+2020-11-30  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac (LIBDEBUGINFOD_SONAME): New AC_SUBST variable.
+	(AC_CONFIG_FILES): Add debuginfod/debuginfod.h.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* configure.ac: Check for fts and obstack from outside libc.
+
 2020-10-28  Mark Wielaard  <mark@klomp.org>
 
 	* configure.ac: Set version to 0.182.

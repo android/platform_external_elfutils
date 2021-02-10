@@ -204,10 +204,6 @@ print_module (Dwfl_Module *mod __attribute__ ((unused)),
 
 static bool show_functions;
 
-/* gettext helper macro.  */
-#undef	N_
-#define N_(Str) Str
-
 static const struct argp_option options[] =
   {
     { "functions", 'f', NULL, 0, N_("Additionally show function names"), 0 },

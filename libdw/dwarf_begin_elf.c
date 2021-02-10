@@ -457,7 +457,7 @@ dwarf_begin_elf (Elf *elf, Dwarf_Cmd cmd, Elf_Scn *scngrp)
 	}
 
       /* If the caller provides a section group we get the DWARF
-	 sections only from this setion group.  Otherwise we search
+	 sections only from this section group.  Otherwise we search
 	 for the first section with the required name.  Further
 	 sections with the name are ignored.  The DWARF specification
 	 does not really say this is allowed.  */

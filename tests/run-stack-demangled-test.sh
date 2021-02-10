@@ -24,7 +24,7 @@ fi
 
 # See run-stack-d-test.sh and run-stack-i-test.sh
 # Same tests, now with demangler support, no -r, and without -d.
-# Only change in output is an explit fu(int) instead of _Z2fui.
+# Only change in output is an explicit fu(int) instead of _Z2fui.
 
 testfiles testfiledwarfinlines testfiledwarfinlines.core
 
