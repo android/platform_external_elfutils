@@ -1,3 +1,25 @@
+2021-02-04  Frank Ch. Eigler <fche@redhat.com>
+
+	* debuginfod.8: Mention new --fdcache-mintmp option.
+
+2020-12-11  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* debuginfod.8: Fix spelling typos.
+	* debuginfod_find_debuginfo.3: Likewise.
+	* elfutils.sgml: Likewise.
+	* readelf.1: Likewise.
+
+2020-12-06  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* debuginfod_find_debuginfo.3: Document DEBUGINFOD_SONAME macro.
+
+2020-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod_find_debuginfo.3: Document debuginfod_set_verbose_fd
+	and DEBUGINFOD_VERBOSE.
+	* debuginfod_set_verbose_fd.3: New redirect to
+	debuginfod_find_debuginfo.3
+
 2020-10-29  Frank Ch. Eigler  <fche@redhat.com>
 
 	PR26775

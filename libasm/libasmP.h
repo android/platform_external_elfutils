@@ -36,9 +36,6 @@
 
 #include "libdwelf.h"
 
-/* gettext helper macros.  */
-#define _(Str) dgettext ("elfutils", Str)
-
 
 /* Known error codes.  */
 enum

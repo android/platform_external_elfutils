@@ -1,0 +1,15 @@
+/ar-lib
+/compile
+/config.guess
+/config.rpath
+/config.sub
+/depcomp
+/install-sh
+/libdebuginfod.pc
+/libdw.pc
+/libelf.pc
+/missing
+/profile.csh
+/profile.sh
+/test-driver
+/ylwrap

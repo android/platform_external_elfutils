@@ -20,7 +20,7 @@ echo Make sure the git repo is tagged, signed and pushed
 echo git tag -s -m \"elfutils $VERSION release\" elfutils-$VERSION
 echo git push --tags
 
-# Create a temporary directoy and make sure it is cleaned up.
+# Create a temporary directory and make sure it is cleaned up.
 tempdir=$(mktemp -d) || exit
 trap "rm -rf -- ${tempdir}" EXIT
 

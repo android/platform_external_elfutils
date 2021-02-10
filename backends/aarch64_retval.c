@@ -332,7 +332,7 @@ aarch64_return_value_location (Dwarf_Die *functypedie, const Dwarf_Op **locp)
 	      switch (size)
 		{
 		case 2: /* half */
-		case 4: /* sigle */
+		case 4: /* single */
 		case 8: /* double */
 		case 16: /* quad */
 		  return pass_in_simd (locp);

@@ -18,7 +18,7 @@
 . $srcdir/test-subr.sh
 
 if ! grep -q -F '#define _FILE_OFFSET_BITS' ${abs_top_builddir}/config.h; then
-  echo "LFS testing is irrelevent on this system"
+  echo "LFS testing is irrelevant on this system"
   exit 77
 fi
 

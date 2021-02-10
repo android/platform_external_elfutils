@@ -112,7 +112,7 @@ ebl_section_type_name (Ebl *ebl, int section, char *buf, size_t len)
 		     && (unsigned int) section <= SHT_HIUSER)
 	      snprintf (buf, len, "SHT_LOUSER+%x", section - SHT_LOUSER);
 	    else
-	      snprintf (buf, len, "%s: %d", gettext ("<unknown>"), section);
+	      snprintf (buf, len, "%s: %d", _("<unknown>"), section);
 
 	    res = buf;
 	    break;
