@@ -42,7 +42,7 @@ typedef struct Dwfl_Module Dwfl_Module;
 typedef struct Dwfl_Line Dwfl_Line;
 
 /* This holds information common for all the frames of one backtrace for
-   a partical thread/task/TID.  Several threads belong to one Dwfl.  */
+   a particular thread/task/TID.  Several threads belong to one Dwfl.  */
 typedef struct Dwfl_Thread Dwfl_Thread;
 
 /* This holds everything we know about the state of the frame at a particular
@@ -471,7 +471,7 @@ extern const char *dwfl_module_addrname (Dwfl_Module *mod, GElf_Addr address);
 
 /* Find the symbol associated with ADDRESS.  Return its name or NULL
    when nothing was found.  If the architecture uses function
-   descriptors, and symbol st_value points to one, ADDRESS wil be
+   descriptors, and symbol st_value points to one, ADDRESS will be
    matched against either the adjusted st_value or the associated
    function entry value as described in dwfl_module_getsym_info.  If
    OFFSET is not NULL it will be filled in with the difference from
@@ -556,7 +556,7 @@ extern Dwarf_Die *dwfl_module_nextcu (Dwfl_Module *mod,
 extern Dwfl_Module *dwfl_cumodule (Dwarf_Die *cudie);
 
 
-/* Cache the source line information fo the CU and return the
+/* Cache the source line information for the CU and return the
    number of Dwfl_Line entries it has.  */
 extern int dwfl_getsrclines (Dwarf_Die *cudie, size_t *nlines);
 
@@ -789,7 +789,7 @@ int dwfl_getthread_frames (Dwfl *dwfl, pid_t tid,
 
 /* Return *PC (program counter) for thread-specific frame STATE.
    Set *ISACTIVATION according to DWARF frame "activation" definition.
-   Typically you need to substract 1 from *PC if *ACTIVATION is false to safely
+   Typically you need to subtract 1 from *PC if *ACTIVATION is false to safely
    find function of the caller.  ACTIVATION may be NULL.  PC must not be NULL.
    Function returns false if it failed to find *PC.  */
 bool dwfl_frame_pc (Dwfl_Frame *state, Dwarf_Addr *pc, bool *isactivation)

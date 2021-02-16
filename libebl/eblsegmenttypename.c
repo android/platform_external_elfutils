@@ -78,7 +78,7 @@ ebl_segment_type_name (Ebl *ebl, int segment, char *buf, size_t len)
 	  else if (segment >= PT_LOPROC && segment <= PT_HIPROC)
 	    snprintf (buf, len, "LOPROC+%d", segment - PT_LOPROC);
 	  else
-	    snprintf (buf, len, "%s: %d", gettext ("<unknown>"), segment);
+	    snprintf (buf, len, "%s: %d", _("<unknown>"), segment);
 
 	  res = buf;
 	}

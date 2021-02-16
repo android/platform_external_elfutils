@@ -34,7 +34,7 @@ EXTRA_DIST = elfutils.spec.in known-dwarf.awk 10-default-yama-scope.conf \
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libelf.pc libdw.pc
-if DEBUGINFOD
+if LIBDEBUGINFOD
 pkgconfig_DATA += libdebuginfod.pc
 
 install-data-local:

@@ -57,25 +57,26 @@ parse_opt (int key, char *arg __attribute__ ((unused)),
 }
 
 static char *
+text_for_default (const char *text)
+{
+  char *new_text;
+  if (unlikely (asprintf (&new_text, _("%s (default)"), text) < 0))
+    return (char *) text;
+  return new_text;
+}
+
+static char *
 help_filter (int key, const char *text, void *input __attribute__ ((unused)))
 {
-  inline char *text_for_default (void)
-  {
-    char *new_text;
-    if (unlikely (asprintf (&new_text, gettext ("%s (default)"), text) < 0))
-      return (char *) text;
-    return new_text;
-  }
-
   switch (key)
     {
     case 'D':
       if (DEFAULT_AR_DETERMINISTIC)
-        return text_for_default ();
+        return text_for_default (text);
       break;
     case 'U':
       if (! DEFAULT_AR_DETERMINISTIC)
-        return text_for_default ();
+        return text_for_default (text);
       break;
     }
 

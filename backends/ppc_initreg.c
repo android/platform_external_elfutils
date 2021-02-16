@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #if defined(__powerpc__) && defined(__linux__)
 # include <sys/ptrace.h>
+# include <asm/ptrace.h>
 # include <sys/user.h>
 #endif
 

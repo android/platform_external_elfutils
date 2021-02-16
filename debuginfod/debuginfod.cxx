@@ -1,5 +1,5 @@
 /* Debuginfo-over-http server.
-   Copyright (C) 2019-2020 Red Hat, Inc.
+   Copyright (C) 2019-2021 Red Hat, Inc.
    This file is part of elfutils.
 
    This file is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ extern "C" {
 #include <unistd.h>
 #include <stdlib.h>
 #include <error.h>
-// #include <libintl.h> // not until it supports C++ << better
+#include <libintl.h>
 #include <locale.h>
 #include <pthread.h>
 #include <signal.h>
@@ -125,7 +125,7 @@ string_endswith(const string& haystack, const string& needle)
 }
 
 
-// Roll this identifier for every sqlite schema incompatiblity.
+// Roll this identifier for every sqlite schema incompatibility.
 #define BUILDIDS "buildids9"
 
 #if SQLITE_VERSION_NUMBER >= 3008000
@@ -365,6 +365,8 @@ static const struct argp_option options[] =
    { "fdcache-mbs", ARGP_KEY_FDCACHE_MBS, "MB", 0, "Maximum total size of archive file fdcache.", 0 },
 #define ARGP_KEY_FDCACHE_PREFETCH 0x1003
    { "fdcache-prefetch", ARGP_KEY_FDCACHE_PREFETCH, "NUM", 0, "Number of archive files to prefetch into fdcache.", 0 },
+#define ARGP_KEY_FDCACHE_MINTMP 0x1004
+   { "fdcache-mintmp", ARGP_KEY_FDCACHE_MINTMP, "NUM", 0, "Minimum free space% on tmpdir.", 0 },
    { NULL, 0, NULL, 0, NULL, 0 }
   };
 
@@ -385,7 +387,8 @@ static struct argp argp =
 
 
 static string db_path;
-static sqlite3 *db; // single connection, serialized across all our threads!
+static sqlite3 *db;  // single connection, serialized across all our threads!
+static sqlite3 *dbq; // webapi query-servicing readonly connection, serialized ditto!
 static unsigned verbose;
 static volatile sig_atomic_t interrupted = 0;
 static volatile sig_atomic_t forced_rescan_count = 0;
@@ -407,19 +410,56 @@ static bool traverse_logical;
 static long fdcache_fds;
 static long fdcache_mbs;
 static long fdcache_prefetch;
+static long fdcache_mintmp;
 static string tmpdir;
 
-static void set_metric(const string& key, int64_t value);
+static void set_metric(const string& key, double value);
 // static void inc_metric(const string& key);
 static void set_metric(const string& metric,
                        const string& lname, const string& lvalue,
-                       int64_t value);
+                       double value);
 static void inc_metric(const string& metric,
                        const string& lname, const string& lvalue);
 static void add_metric(const string& metric,
                        const string& lname, const string& lvalue,
-                       int64_t value);
-// static void add_metric(const string& metric, int64_t value);
+                       double value);
+// static void add_metric(const string& metric, double value);
+
+class tmp_inc_metric { // a RAII style wrapper for exception-safe scoped increment & decrement
+  string m, n, v;
+public:
+  tmp_inc_metric(const string& mname, const string& lname, const string& lvalue):
+    m(mname), n(lname), v(lvalue)
+  {
+    add_metric (m, n, v, 1);
+  }
+  ~tmp_inc_metric()
+  {
+    add_metric (m, n, v, -1);
+  }
+};
+
+class tmp_ms_metric { // a RAII style wrapper for exception-safe scoped timing
+  string m, n, v;
+  struct timespec ts_start;
+public:
+  tmp_ms_metric(const string& mname, const string& lname, const string& lvalue):
+    m(mname), n(lname), v(lvalue)
+  {
+    clock_gettime (CLOCK_MONOTONIC, & ts_start);
+  }
+  ~tmp_ms_metric()
+  {
+    struct timespec ts_end;
+    clock_gettime (CLOCK_MONOTONIC, & ts_end);
+    double deltas = (ts_end.tv_sec - ts_start.tv_sec)
+      + (ts_end.tv_nsec - ts_start.tv_nsec)/1.e9;
+
+    add_metric (m + "_milliseconds_sum", n, v, (deltas*1000.0));
+    inc_metric (m + "_milliseconds_count", n, v);
+  }
+};
+
 
 /* Handle program arguments.  */
 static error_t
@@ -485,13 +525,13 @@ parse_opt (int key, char *arg,
       regfree (&file_include_regex);
       rc = regcomp (&file_include_regex, arg, REG_EXTENDED|REG_NOSUB);
       if (rc != 0)
-        argp_failure(state, 1, EINVAL, "regular expession");
+        argp_failure(state, 1, EINVAL, "regular expression");
       break;
     case 'X':
       regfree (&file_exclude_regex);
       rc = regcomp (&file_exclude_regex, arg, REG_EXTENDED|REG_NOSUB);
       if (rc != 0)
-        argp_failure(state, 1, EINVAL, "regular expession");
+        argp_failure(state, 1, EINVAL, "regular expression");
       break;
     case ARGP_KEY_FDCACHE_FDS:
       fdcache_fds = atol (arg);
@@ -501,6 +541,9 @@ parse_opt (int key, char *arg,
       break;
     case ARGP_KEY_FDCACHE_PREFETCH:
       fdcache_prefetch = atol (arg);
+      break;
+    case ARGP_KEY_FDCACHE_MINTMP:
+      fdcache_mintmp = atol (arg);
       break;
     case ARGP_KEY_ARG:
       source_paths.insert(string(arg));
@@ -544,7 +587,9 @@ struct reportable_exception
 struct sqlite_exception: public reportable_exception
 {
   sqlite_exception(int rc, const string& msg):
-    reportable_exception(string("sqlite3 error: ") + msg + ": " + string(sqlite3_errstr(rc) ?: "?")) {}
+    reportable_exception(string("sqlite3 error: ") + msg + ": " + string(sqlite3_errstr(rc) ?: "?")) {
+    inc_metric("error_count","sqlite3",sqlite3_errstr(rc));
+  }
 };
 
 struct libc_exception: public reportable_exception
@@ -564,7 +609,7 @@ struct archive_exception: public reportable_exception
   }
   archive_exception(struct archive* a, const string& msg):
     reportable_exception(string("libarchive error: ") + msg + ": " + string(archive_error_string(a) ?: "?")) {
-    inc_metric("error_count","libarchive",msg);
+    inc_metric("error_count","libarchive",msg + ": " + string(archive_error_string(a) ?: "?"));
   }
 };
 
@@ -740,6 +785,7 @@ private:
 
 public:
   sqlite_ps (sqlite3* d, const string& n, const string& s): db(d), nickname(n), sql(s) {
+    // tmp_ms_metric tick("sqlite3","prep",nickname);
     if (verbose > 4)
       obatched(clog) << nickname << " prep " << sql << endl;
     int rc = sqlite3_prepare_v2 (db, sql.c_str(), -1 /* to \0 */, & this->pp, NULL);
@@ -749,6 +795,7 @@ public:
 
   sqlite_ps& reset()
   {
+    tmp_ms_metric tick("sqlite3","reset",nickname);
     sqlite3_reset(this->pp);
     return *this;
   }
@@ -785,6 +832,7 @@ public:
 
 
   void step_ok_done() {
+    tmp_ms_metric tick("sqlite3","step_done",nickname);
     int rc = sqlite3_step (this->pp);
     if (verbose > 4)
       obatched(clog) << nickname << " step-ok-done(" << sqlite3_errstr(rc) << ") " << sql << endl;
@@ -795,13 +843,12 @@ public:
 
 
   int step() {
+    tmp_ms_metric tick("sqlite3","step",nickname);
     int rc = sqlite3_step (this->pp);
     if (verbose > 4)
       obatched(clog) << nickname << " step(" << sqlite3_errstr(rc) << ") " << sql << endl;
     return rc;
   }
-
-
 
   ~sqlite_ps () { sqlite3_finalize (this->pp); }
   operator sqlite3_stmt* () { return this->pp; }
@@ -1051,6 +1098,23 @@ canon_pathname (const string& input)
 }
 
 
+// Estimate available free space for a given filesystem via statfs(2).
+// Return true if the free fraction is known to be smaller than the
+// given minimum percentage.  Also update a related metric.
+bool statfs_free_enough_p(const string& path, const string& label, long minfree = 0)
+{
+  struct statfs sfs;
+  int rc = statfs(path.c_str(), &sfs);
+  if (rc == 0)
+    {
+      double s = (double) sfs.f_bavail / (double) sfs.f_blocks;
+      set_metric("filesys_free_ratio","purpose",label, s);
+      return ((s * 100.0) < minfree);
+    }
+  return false;
+}
+
+
 
 // A map-like class that owns a cache of file descriptors (indexed by
 // file / content names).
@@ -1138,7 +1202,13 @@ public:
     set_metrics();
 
     // NB: we age the cache at lookup time too
-    if (front_p)
+    if (statfs_free_enough_p(tmpdir, "tmpdir", fdcache_mintmp))
+      {
+        inc_metric("fdcache_op_count","op","emerg-flush");
+        obatched(clog) << "fdcache emergency flush for filling tmpdir" << endl;
+        this->limit(0, 0); // emergency flush
+      }
+    else if (front_p)
       this->limit(max_fds, max_mbs); // age cache if required
   }
 
@@ -1161,7 +1231,13 @@ public:
         }
     }
 
-    if (fd >= 0)
+    if (statfs_free_enough_p(tmpdir, "tmpdir", fdcache_mintmp))
+      {
+        inc_metric("fdcache_op_count","op","emerg-flush");
+        obatched(clog) << "fdcache emergency flush for filling tmpdir";
+        this->limit(0, 0); // emergency flush
+      }
+    else if (fd >= 0)
       this->limit(max_fds, max_mbs); // age cache if required
 
     return fd;
@@ -1198,6 +1274,7 @@ public:
           }
       }
   }
+
 
   void limit(long maxfds, long maxmbs, bool metrics_p = true)
   {
@@ -1236,10 +1313,11 @@ public:
     if (metrics_p) set_metrics();
   }
 
+
   ~libarchive_fdcache()
   {
     // unlink any fdcache entries in $TMPDIR
-    // don't update metrics; those globals may be already destroyed 
+    // don't update metrics; those globals may be already destroyed
     limit(0, 0, false);
   }
 };
@@ -1406,7 +1484,7 @@ handle_buildid_r_match (bool internal_req_p,
       // NB: don't unlink (tmppath), as fdcache will take charge of it.
 
       // NB: this can take many uninterruptible seconds for a huge file
-      rc = archive_read_data_into_fd (a, fd); 
+      rc = archive_read_data_into_fd (a, fd);
       if (rc != ARCHIVE_OK) // e.g. ENOSPC!
         {
           close (fd);
@@ -1487,7 +1565,7 @@ handle_buildid_match (bool internal_req_p,
       // Report but swallow libc etc. errors here; let the caller
       // iterate to other matches of the content.
     }
-  
+
   return 0;
 }
 
@@ -1529,11 +1607,15 @@ handle_buildid (MHD_Connection* conn,
     obatched(clog) << "searching for buildid=" << buildid << " artifacttype=" << artifacttype
          << " suffix=" << suffix << endl;
 
+  // If invoked from the scanner threads, use the scanners' read-write
+  // connection.  Otherwise use the web query threads' read-only connection.
+  sqlite3 *thisdb = (conn == 0) ? db : dbq;
+
   sqlite_ps *pp = 0;
 
   if (atype_code == "D")
     {
-      pp = new sqlite_ps (db, "mhd-query-d",
+      pp = new sqlite_ps (thisdb, "mhd-query-d",
                           "select mtime, sourcetype, source0, source1 from " BUILDIDS "_query_d where buildid = ? "
                           "order by mtime desc");
       pp->reset();
@@ -1541,7 +1623,7 @@ handle_buildid (MHD_Connection* conn,
     }
   else if (atype_code == "E")
     {
-      pp = new sqlite_ps (db, "mhd-query-e",
+      pp = new sqlite_ps (thisdb, "mhd-query-e",
                           "select mtime, sourcetype, source0, source1 from " BUILDIDS "_query_e where buildid = ? "
                           "order by mtime desc");
       pp->reset();
@@ -1553,7 +1635,7 @@ handle_buildid (MHD_Connection* conn,
       // Incoming source queries may come in with either dwarf-level OR canonicalized paths.
       // We let the query pass with either one.
 
-      pp = new sqlite_ps (db, "mhd-query-s",
+      pp = new sqlite_ps (thisdb, "mhd-query-s",
                           "select mtime, sourcetype, source0, source1 from " BUILDIDS "_query_s where buildid = ? and artifactsrc in (?,?) "
                           "order by sharedprefix(source0,source0ref) desc, mtime desc");
       pp->reset();
@@ -1589,6 +1671,7 @@ handle_buildid (MHD_Connection* conn,
       if (r)
         return r;
     }
+  pp->reset();
 
   // We couldn't find it in the database.  Last ditch effort
   // is to defer to other debuginfo servers.
@@ -1683,7 +1766,7 @@ handle_buildid (MHD_Connection* conn,
 
 ////////////////////////////////////////////////////////////////////////
 
-static map<string,int64_t> metrics; // arbitrary data for /metrics query
+static map<string,double> metrics; // arbitrary data for /metrics query
 // NB: store int64_t since all our metrics are integers; prometheus accepts double
 static mutex metrics_lock;
 // NB: these objects get released during the process exit via global dtors
@@ -1712,7 +1795,7 @@ metric_label(const string& name, const string& value)
 // add prometheus-format metric name + label tuple (if any) + value
 
 static void
-set_metric(const string& metric, int64_t value)
+set_metric(const string& metric, double value)
 {
   unique_lock<mutex> lock(metrics_lock);
   metrics[metric] = value;
@@ -1728,7 +1811,7 @@ inc_metric(const string& metric)
 static void
 set_metric(const string& metric,
            const string& lname, const string& lvalue,
-           int64_t value)
+           double value)
 {
   string key = (metric + "{" + metric_label(lname, lvalue) + "}");
   unique_lock<mutex> lock(metrics_lock);
@@ -1746,7 +1829,7 @@ inc_metric(const string& metric,
 static void
 add_metric(const string& metric,
            const string& lname, const string& lvalue,
-           int64_t value)
+           double value)
 {
   string key = (metric + "{" + metric_label(lname, lvalue) + "}");
   unique_lock<mutex> lock(metrics_lock);
@@ -1755,7 +1838,7 @@ add_metric(const string& metric,
 #if 0
 static void
 add_metric(const string& metric,
-           int64_t value)
+           double value)
 {
   unique_lock<mutex> lock(metrics_lock);
   metrics[metric] += value;
@@ -1773,13 +1856,30 @@ handle_metrics (off_t* size)
   {
     unique_lock<mutex> lock(metrics_lock);
     for (auto&& i : metrics)
-      o << i.first << " " << i.second << endl;
+      o << i.first
+        << " "
+        << std::setprecision(std::numeric_limits<double>::digits10 + 1)
+        << i.second
+        << endl;
   }
   const string& os = o.str();
   MHD_Response* r = MHD_create_response_from_buffer (os.size(),
                                                      (void*) os.c_str(),
                                                      MHD_RESPMEM_MUST_COPY);
   *size = os.size();
+  MHD_add_response_header (r, "Content-Type", "text/plain");
+  return r;
+}
+
+static struct MHD_Response*
+handle_root (off_t* size)
+{
+  static string version = "debuginfod (" + string (PACKAGE_NAME) + ") "
+			  + string (PACKAGE_VERSION);
+  MHD_Response* r = MHD_create_response_from_buffer (version.size (),
+						     (void *) version.c_str (),
+						     MHD_RESPMEM_PERSISTENT);
+  *size = version.size ();
   MHD_add_response_header (r, "Content-Type", "text/plain");
   return r;
 }
@@ -1809,8 +1909,8 @@ handler_cb (void * /*cls*/,
 #endif
   int http_code = 500;
   off_t http_size = -1;
-  struct timeval tv_start, tv_end;
-  gettimeofday (&tv_start, NULL);
+  struct timespec ts_start, ts_end;
+  clock_gettime (CLOCK_MONOTONIC, &ts_start);
 
   try
     {
@@ -1823,6 +1923,7 @@ handler_cb (void * /*cls*/,
 
       if (slash1 != string::npos && url1 == "/buildid")
         {
+          tmp_inc_metric m ("thread_busy", "role", "http-buildid");
           size_t slash2 = url_copy.find('/', slash1+1);
           if (slash2 == string::npos)
             throw reportable_exception("/buildid/ webapi error, need buildid");
@@ -1856,11 +1957,17 @@ handler_cb (void * /*cls*/,
         }
       else if (url1 == "/metrics")
         {
+          tmp_inc_metric m ("thread_busy", "role", "http-metrics");
           inc_metric("http_requests_total", "type", "metrics");
           r = handle_metrics(& http_size);
         }
+      else if (url1 == "/")
+        {
+          inc_metric("http_requests_total", "type", "/");
+          r = handle_root(& http_size);
+        }
       else
-        throw reportable_exception("webapi error, unrecognized /operation");
+        throw reportable_exception("webapi error, unrecognized '" + url1 + "'");
 
       if (r == 0)
         throw reportable_exception("internal error, missing response");
@@ -1878,8 +1985,8 @@ handler_cb (void * /*cls*/,
       rc = e.mhd_send_response (connection);
     }
 
-  gettimeofday (&tv_end, NULL);
-  double deltas = (tv_end.tv_sec - tv_start.tv_sec) + (tv_end.tv_usec - tv_start.tv_usec)*0.000001;
+  clock_gettime (CLOCK_MONOTONIC, &ts_end);
+  double deltas = (ts_end.tv_sec - ts_start.tv_sec) + (ts_end.tv_nsec - ts_start.tv_nsec)/1.e9;
   obatched(clog) << conninfo(connection)
                  << ' ' << method << ' ' << url
                  << ' ' << http_code << ' ' << http_size
@@ -2759,10 +2866,16 @@ thread_main_scanner (void* arg)
           e.report(cerr);
         }
 
+      if (fts_cached || fts_executable || fts_debuginfo || fts_sourcefiles || fts_sref || fts_sdef)
+        {} // NB: not just if a successful scan - we might have encountered -ENOSPC & failed
+      (void) statfs_free_enough_p(db_path, "database"); // report sqlite filesystem size
+      (void) statfs_free_enough_p(tmpdir, "tmpdir"); // this too, in case of fdcache/tmpfile usage
+
       // finished a scanning step -- not a "loop", because we just
       // consume the traversal loop's work, whenever
       inc_metric("thread_work_total","role","scan");
     }
+
 
   add_metric("thread_busy", "role", "scan", -1);
   return 0;
@@ -2796,8 +2909,8 @@ scan_source_paths()
     throw libc_exception(errno, "cannot fts_open");
   defer_dtor<FTS*,int> fts_cleanup (fts, fts_close);
 
-  struct timeval tv_start, tv_end;
-  gettimeofday (&tv_start, NULL);
+  struct timespec ts_start, ts_end;
+  clock_gettime (CLOCK_MONOTONIC, &ts_start);
   unsigned fts_scanned = 0, fts_regex = 0;
 
   FTSENT *f;
@@ -2805,12 +2918,12 @@ scan_source_paths()
   {
     if (interrupted) break;
 
-    if (sigusr2 != forced_groom_count) // stop early if groom triggered 
+    if (sigusr2 != forced_groom_count) // stop early if groom triggered
       {
         scanq.clear(); // clear previously issued work for scanner threads
         break;
       }
-    
+
     fts_scanned ++;
 
     if (verbose > 2)
@@ -2829,7 +2942,7 @@ scan_source_paths()
             continue; // ignore dangling symlink or such
           string rps = string(rp);
           free (rp);
-          
+
           bool ri = !regexec (&file_include_regex, rps.c_str(), 0, 0, 0);
           bool rx = !regexec (&file_exclude_regex, rps.c_str(), 0, 0, 0);
           if (!ri || rx)
@@ -2868,14 +2981,14 @@ scan_source_paths()
       case FTS_D: // ignore
         inc_metric("traversed_total","type","directory");
         break;
-        
+
       default: // ignore
         inc_metric("traversed_total","type","other");
         break;
       }
   }
-  gettimeofday (&tv_end, NULL);
-  double deltas = (tv_end.tv_sec - tv_start.tv_sec) + (tv_end.tv_usec - tv_start.tv_usec)*0.000001;
+  clock_gettime (CLOCK_MONOTONIC, &ts_end);
+  double deltas = (ts_end.tv_sec - ts_start.tv_sec) + (ts_end.tv_nsec - ts_start.tv_nsec)/1.e9;
 
   obatched(clog) << "fts traversed source paths in " << deltas << "s, scanned=" << fts_scanned
                  << ", regex-skipped=" << fts_regex << endl;
@@ -2911,19 +3024,21 @@ thread_main_fts_source_paths (void* arg)
           rescan_now = true;
         }
       if (rescan_now)
-        try
-          {
-            set_metric("thread_busy", "role","traverse", 1);
-            scan_source_paths();
-            last_rescan = time(NULL); // NB: now was before scanning
-            // finished a traversal loop
-            inc_metric("thread_work_total", "role","traverse");
-            set_metric("thread_busy", "role","traverse", 0);
-          }
-        catch (const reportable_exception& e)
-          {
-            e.report(cerr);
-          }
+        {
+          set_metric("thread_busy", "role","traverse", 1);
+          try
+            {
+              scan_source_paths();
+            }
+          catch (const reportable_exception& e)
+            {
+              e.report(cerr);
+            }
+          last_rescan = time(NULL); // NB: now was before scanning
+          // finished a traversal loop
+          inc_metric("thread_work_total", "role","traverse");
+          set_metric("thread_busy", "role","traverse", 0);
+        }
     }
 
   return 0;
@@ -2942,7 +3057,11 @@ database_stats_report()
   obatched(clog) << "database record counts:" << endl;
   while (1)
     {
-      int rc = sqlite3_step (ps_query);
+      if (interrupted) break;
+      if (sigusr1 != forced_rescan_count) // stop early if scan triggered
+        break;
+
+      int rc = ps_query.step();
       if (rc == SQLITE_DONE) break;
       if (rc != SQLITE_ROW)
         throw sqlite_exception(rc, "step");
@@ -2965,11 +3084,11 @@ void groom()
 {
   obatched(clog) << "grooming database" << endl;
 
-  struct timeval tv_start, tv_end;
-  gettimeofday (&tv_start, NULL);
+  struct timespec ts_start, ts_end;
+  clock_gettime (CLOCK_MONOTONIC, &ts_start);
 
   database_stats_report();
-  
+
   // scan for files that have disappeared
   sqlite_ps files (db, "check old files", "select s.mtime, s.file, f.name from "
                        BUILDIDS "_file_mtime_scanned s, " BUILDIDS "_files f "
@@ -2981,6 +3100,8 @@ void groom()
   files.reset();
   while(1)
     {
+      if (interrupted) break;
+
       int rc = files.step();
       if (rc != SQLITE_ROW)
         break;
@@ -3015,6 +3136,8 @@ void groom()
                           "and not exists (select 1 from " BUILDIDS "_r_de d where " BUILDIDS "_buildids.id = d.buildid)");
   buildids_del.reset().step_ok_done();
 
+  if (interrupted) return;
+
   // NB: "vacuum" is too heavy for even daily runs: it rewrites the entire db, so is done as maxigroom -G
   sqlite_ps g1 (db, "incremental vacuum", "pragma incremental_vacuum");
   g1.reset().step_ok_done();
@@ -3025,13 +3148,16 @@ void groom()
 
   database_stats_report();
 
+  (void) statfs_free_enough_p(db_path, "database"); // report sqlite filesystem size
+
   sqlite3_db_release_memory(db); // shrink the process if possible
+  sqlite3_db_release_memory(dbq); // ... for both connections
 
   fdcache.limit(0,0); // release the fdcache contents
   fdcache.limit(fdcache_fds,fdcache_mbs); // restore status quo parameters
 
-  gettimeofday (&tv_end, NULL);
-  double deltas = (tv_end.tv_sec - tv_start.tv_sec) + (tv_end.tv_usec - tv_start.tv_usec)*0.000001;
+  clock_gettime (CLOCK_MONOTONIC, &ts_end);
+  double deltas = (ts_end.tv_sec - ts_start.tv_sec) + (ts_end.tv_nsec - ts_start.tv_nsec)/1.e9;
 
   obatched(clog) << "groomed database in " << deltas << "s" << endl;
 }
@@ -3063,19 +3189,21 @@ thread_main_groom (void* /*arg*/)
           groom_now = true;
         }
       if (groom_now)
-        try
-          {
-            set_metric("thread_busy", "role", "groom", 1);
-            groom ();
-            last_groom = time(NULL); // NB: now was before grooming
-            // finished a grooming loop
-            inc_metric("thread_work_total", "role", "groom");
-            set_metric("thread_busy", "role", "groom", 0);
-          }
-        catch (const sqlite_exception& e)
-          {
-            obatched(cerr) << e.message << endl;
-          }
+        {
+          set_metric("thread_busy", "role", "groom", 1);
+          try
+            {
+              groom ();
+            }
+          catch (const sqlite_exception& e)
+            {
+              obatched(cerr) << e.message << endl;
+            }
+          last_groom = time(NULL); // NB: now was before grooming
+          // finished a grooming loop
+          inc_metric("thread_work_total", "role", "groom");
+          set_metric("thread_busy", "role", "groom", 0);
+        }
 
       scanq.done_idle();
     }
@@ -3094,6 +3222,8 @@ signal_handler (int /* sig */)
 
   if (db)
     sqlite3_interrupt (db);
+  if (dbq)
+    sqlite3_interrupt (dbq);
 
   // NB: don't do anything else in here
 }
@@ -3171,6 +3301,7 @@ main (int argc, char *argv[])
     fdcache_mbs = 1024; // 1 gigabyte
   else
     fdcache_mbs = sfs.f_bavail * sfs.f_bsize / 1024 / 1024 / 4; // 25% of free space
+  fdcache_mintmp = 25; // emergency flush at 25% remaining (75% full)
   fdcache_prefetch = 64; // guesstimate storage is this much less costly than re-decompression
   fdcache_fds = (concurrency + fdcache_prefetch) * 2;
 
@@ -3196,6 +3327,8 @@ main (int argc, char *argv[])
 
   /* Get database ready. */
   rc = sqlite3_open_v2 (db_path.c_str(), &db, (SQLITE_OPEN_READWRITE
+                                               |SQLITE_OPEN_URI
+                                               |SQLITE_OPEN_PRIVATECACHE
                                                |SQLITE_OPEN_CREATE
                                                |SQLITE_OPEN_FULLMUTEX), /* thread-safe */
                         NULL);
@@ -3211,15 +3344,30 @@ main (int argc, char *argv[])
              "cannot open %s, consider deleting database: %s", db_path.c_str(), sqlite3_errmsg(db));
     }
 
+  // open the readonly query variant
+  // NB: PRIVATECACHE allows web queries to operate in parallel with
+  // much other grooming/scanning operation.
+  rc = sqlite3_open_v2 (db_path.c_str(), &dbq, (SQLITE_OPEN_READONLY
+                                                |SQLITE_OPEN_URI
+                                                |SQLITE_OPEN_PRIVATECACHE
+                                                |SQLITE_OPEN_FULLMUTEX), /* thread-safe */
+                        NULL);
+  if (rc)
+    {
+      error (EXIT_FAILURE, 0,
+             "cannot open %s, consider deleting database: %s", db_path.c_str(), sqlite3_errmsg(dbq));
+    }
+
+
   obatched(clog) << "opened database " << db_path << endl;
   obatched(clog) << "sqlite version " << sqlite3_version << endl;
 
   // add special string-prefix-similarity function used in rpm sref/sdef resolution
-  rc = sqlite3_create_function(db, "sharedprefix", 2, SQLITE_UTF8, NULL,
+  rc = sqlite3_create_function(dbq, "sharedprefix", 2, SQLITE_UTF8, NULL,
                                & sqlite3_sharedprefix_fn, NULL, NULL);
   if (rc != SQLITE_OK)
     error (EXIT_FAILURE, 0,
-           "cannot create sharedprefix( function: %s", sqlite3_errmsg(db));
+           "cannot create sharedprefix function: %s", sqlite3_errmsg(dbq));
 
   if (verbose > 3)
     obatched(clog) << "ddl: " << DEBUGINFOD_SQLITE_DDL << endl;
@@ -3259,7 +3407,9 @@ main (int argc, char *argv[])
   if (d4 == NULL && d6 == NULL) // neither ipv4 nor ipv6? boo
     {
       sqlite3 *database = db;
-      db = 0; // for signal_handler not to freak
+      sqlite3 *databaseq = dbq;
+      db = dbq = 0; // for signal_handler not to freak
+      sqlite3_close (databaseq);
       sqlite3_close (database);
       error (EXIT_FAILURE, 0, "cannot start http server at port %d", http_port);
     }
@@ -3308,6 +3458,7 @@ main (int argc, char *argv[])
   obatched(clog) << "fdcache mbs " << fdcache_mbs << endl;
   obatched(clog) << "fdcache prefetch " << fdcache_prefetch << endl;
   obatched(clog) << "fdcache tmpdir " << tmpdir << endl;
+  obatched(clog) << "fdcache tmpdir min% " << fdcache_mintmp << endl;
   obatched(clog) << "groom time " << groom_s << endl;
   if (scan_archives.size()>0)
     {
@@ -3325,22 +3476,22 @@ main (int argc, char *argv[])
 
   pthread_t pt;
   rc = pthread_create (& pt, NULL, thread_main_groom, NULL);
-  if (rc < 0)
-    error (0, 0, "warning: cannot spawn thread (%d) to groom database\n", rc);
+  if (rc)
+    error (EXIT_FAILURE, rc, "cannot spawn thread to groom database\n");
   else
     all_threads.push_back(pt);
 
   if (scan_files || scan_archives.size() > 0)
     {
-      pthread_create (& pt, NULL, thread_main_fts_source_paths, NULL);
-      if (rc < 0)
-        error (0, 0, "warning: cannot spawn thread (%d) to traverse source paths\n", rc);
+      rc = pthread_create (& pt, NULL, thread_main_fts_source_paths, NULL);
+      if (rc)
+        error (EXIT_FAILURE, rc, "cannot spawn thread to traverse source paths\n");
       all_threads.push_back(pt);
       for (unsigned i=0; i<concurrency; i++)
         {
-          pthread_create (& pt, NULL, thread_main_scanner, NULL);
-          if (rc < 0)
-            error (0, 0, "warning: cannot spawn thread (%d) to scan source files / archives\n", rc);
+          rc = pthread_create (& pt, NULL, thread_main_scanner, NULL);
+          if (rc)
+            error (EXIT_FAILURE, rc, "cannot spawn thread to scan source files / archives\n");
           all_threads.push_back(pt);
         }
     }
@@ -3376,7 +3527,9 @@ main (int argc, char *argv[])
   (void) regfree (& file_exclude_regex);
 
   sqlite3 *database = db;
-  db = 0; // for signal_handler not to freak
+  sqlite3 *databaseq = dbq;
+  db = dbq = 0; // for signal_handler not to freak
+  (void) sqlite3_close (databaseq);
   (void) sqlite3_close (database);
 
   return 0;
