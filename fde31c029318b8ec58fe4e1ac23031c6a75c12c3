@@ -1,0 +1,9 @@
+Presubmit-Verified+2: Treehugger Robot <treehugger-gerrit@google.com>
+Lint+1: Lint 🤖 <ayeaye-gerrit@google.com>
+Autosubmit+1: Matthias Maennich <maennich@google.com>
+Code-Review+2: Giuliano Procida <gprocida@google.com>
+Submitted-by: Treehugger Robot <treehugger-gerrit@google.com>
+Submitted-at: Thu, 18 Feb 2021 09:16:59 +0000
+Reviewed-on: https://android-review.googlesource.com/c/platform/external/elfutils/+/1580234
+Project: platform/external/elfutils
+Branch: refs/heads/master
