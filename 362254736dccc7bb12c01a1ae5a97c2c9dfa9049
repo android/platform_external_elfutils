@@ -54,6 +54,24 @@
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0337380f_049266e6",
+        "filename": "METADATA",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1625880
+      },
+      "writtenOn": "2021-02-18T08:59:28Z",
+      "side": 0,
+      "message": "Argh, just saw the other comment.",
+      "parentUuid": "9fc76314_e5411e89",
+      "revId": "362254736dccc7bb12c01a1ae5a97c2c9dfa9049",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "9ae24186_d2c9b2ba",
