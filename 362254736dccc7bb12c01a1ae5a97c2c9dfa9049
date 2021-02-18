@@ -38,6 +38,24 @@
     {
       "unresolved": true,
       "key": {
+        "uuid": "9fc76314_e5411e89",
+        "filename": "METADATA",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1625880
+      },
+      "writtenOn": "2021-02-18T08:57:08Z",
+      "side": 0,
+      "message": "Please move the rest of the warning comments into the actual metadata. Thank you.",
+      "parentUuid": "f1e1846a_89fd21d4",
+      "revId": "362254736dccc7bb12c01a1ae5a97c2c9dfa9049",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
         "uuid": "9ae24186_d2c9b2ba",
         "filename": "METADATA",
         "patchSetId": 1
