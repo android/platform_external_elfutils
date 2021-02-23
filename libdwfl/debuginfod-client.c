@@ -101,10 +101,7 @@ __libdwfl_debuginfod_end (debuginfod_client *c)
 void __attribute__ ((constructor))
 __libdwfl_debuginfod_init (void)
 {
-  void *debuginfod_so = dlopen("libdebuginfod-" VERSION ".so", RTLD_LAZY);
-
-  if (debuginfod_so == NULL)
-    debuginfod_so = dlopen("libdebuginfod.so", RTLD_LAZY);
+  void *debuginfod_so = dlopen(DEBUGINFOD_SONAME, RTLD_LAZY);
 
   if (debuginfod_so != NULL)
     {

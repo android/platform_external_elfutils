@@ -516,7 +516,7 @@ adjust_to_section (const char *name, uintmax_t *addr, Dwfl *dwfl)
   Dwfl_Module *mod = NULL;
   if (dwfl_getmodules (dwfl, &see_one_module, &mod, 0) != 0
       || mod == NULL)
-    error (EXIT_FAILURE, 0, gettext ("Section syntax requires"
+    error (EXIT_FAILURE, 0, _("Section syntax requires"
 				     " exactly one module"));
 
   int nscn = dwfl_module_relocations (mod);
@@ -539,7 +539,7 @@ adjust_to_section (const char *name, uintmax_t *addr, Dwfl *dwfl)
 
 	  if (*addr >= shdr->sh_size)
 	    error (0, 0,
-		   gettext ("offset %#" PRIxMAX " lies outside"
+		   _("offset %#" PRIxMAX " lies outside"
 			    " section '%s'"),
 		   *addr, scn);
 
@@ -598,6 +598,26 @@ get_addr_width (Dwfl_Module *mod)
   return width;
 }
 
+static inline void
+show_note (int (*get) (Dwarf_Line *, bool *),
+	   Dwarf_Line *info,
+	   const char *note)
+{
+  bool flag;
+  if ((*get) (info, &flag) == 0 && flag)
+    fputs (note, stdout);
+}
+
+static inline void
+show_int (int (*get) (Dwarf_Line *, unsigned int *),
+	  Dwarf_Line *info,
+	  const char *name)
+{
+  unsigned int val;
+  if ((*get) (info, &val) == 0 && val != 0)
+    printf (" (%s %u)", name, val);
+}
+
 static int
 handle_address (const char *string, Dwfl *dwfl)
 {
@@ -629,12 +649,12 @@ handle_address (const char *string, Dwfl *dwfl)
 	  void *arg[3] = { name, &sym, &value };
 	  (void) dwfl_getmodules (dwfl, &find_symbol, arg, 0);
 	  if (arg[0] != NULL)
-	    error (0, 0, gettext ("cannot find symbol '%s'"), name);
+	    error (0, 0, _("cannot find symbol '%s'"), name);
 	  else
 	    {
 	      if (sym.st_size != 0 && addr >= sym.st_size)
 		error (0, 0,
-		       gettext ("offset %#" PRIxMAX " lies outside"
+		       _("offset %#" PRIxMAX " lies outside"
 				" contents of '%s'"),
 		       addr, name);
 	      addr += value;
@@ -692,27 +712,12 @@ handle_address (const char *string, Dwfl *dwfl)
 	  Dwarf_Line *info = dwfl_dwarf_line (line, &bias);
 	  assert (info != NULL);
 
-	  inline void show (int (*get) (Dwarf_Line *, bool *),
-			    const char *note)
-	  {
-	    bool flag;
-	    if ((*get) (info, &flag) == 0 && flag)
-	      fputs (note, stdout);
-	  }
-	  inline void show_int (int (*get) (Dwarf_Line *, unsigned int *),
-				const char *name)
-	  {
-	    unsigned int val;
-	    if ((*get) (info, &val) == 0 && val != 0)
-	      printf (" (%s %u)", name, val);
-	  }
-
-	  show (&dwarf_linebeginstatement, " (is_stmt)");
-	  show (&dwarf_lineblock, " (basic_block)");
-	  show (&dwarf_lineprologueend, " (prologue_end)");
-	  show (&dwarf_lineepiloguebegin, " (epilogue_begin)");
-	  show_int (&dwarf_lineisa, "isa");
-	  show_int (&dwarf_linediscriminator, "discriminator");
+	  show_note (&dwarf_linebeginstatement, info, " (is_stmt)");
+	  show_note (&dwarf_lineblock, info, " (basic_block)");
+	  show_note (&dwarf_lineprologueend, info, " (prologue_end)");
+	  show_note (&dwarf_lineepiloguebegin, info, " (epilogue_begin)");
+	  show_int (&dwarf_lineisa, info, "isa");
+	  show_int (&dwarf_linediscriminator, info, "discriminator");
 	}
       putchar ('\n');
     }

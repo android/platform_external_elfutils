@@ -100,7 +100,7 @@ static int handle_elf (Elf *elf, const char *prefix, const char *fname,
 
 
 #define INTERNAL_ERROR(fname) \
-  error (EXIT_FAILURE, 0, gettext ("%s: INTERNAL ERROR %d (%s): %s"),      \
+  error (EXIT_FAILURE, 0, _("%s: INTERNAL ERROR %d (%s): %s"),      \
 	 fname, __LINE__, PACKAGE_VERSION, elf_errmsg (-1))
 
 
@@ -215,7 +215,7 @@ parse_opt (int key, char *arg,
     case ARGP_KEY_FINI:
       if (! any_control_option)
 	{
-	  fputs (gettext ("No operation specified.\n"), stderr);
+	  fputs (_("No operation specified.\n"), stderr);
 	  argp_help (&argp, stderr, ARGP_HELP_SEE,
 		     program_invocation_short_name);
 	  exit (EXIT_FAILURE);
@@ -238,7 +238,7 @@ process_file (const char *fname, bool more_than_one)
   int fd = open (fname, O_RDONLY);
   if (fd == -1)
     {
-      error (0, errno, gettext ("cannot open %s"), fname);
+      error (0, errno, _("cannot open %s"), fname);
       return 1;
     }
 
@@ -255,7 +255,7 @@ process_file (const char *fname, bool more_than_one)
 	    INTERNAL_ERROR (fname);
 
 	  if (close (fd) != 0)
-	    error (EXIT_FAILURE, errno, gettext ("while close `%s'"), fname);
+	    error (EXIT_FAILURE, errno, _("while close `%s'"), fname);
 
 	  return result;
 	}
@@ -267,7 +267,7 @@ process_file (const char *fname, bool more_than_one)
 	    INTERNAL_ERROR (fname);
 
 	  if (close (fd) != 0)
-	    error (EXIT_FAILURE, errno, gettext ("while close `%s'"), fname);
+	    error (EXIT_FAILURE, errno, _("while close `%s'"), fname);
 
 	  return result;
 	}
@@ -277,7 +277,7 @@ process_file (const char *fname, bool more_than_one)
 	INTERNAL_ERROR (fname);
     }
 
-  error (0, 0, gettext ("%s: File format not recognized"), fname);
+  error (0, 0, _("%s: File format not recognized"), fname);
 
   return 1;
 }
@@ -325,7 +325,7 @@ handle_ar (int fd, Elf *elf, const char *prefix, const char *fname,
 				 new_suffix);
 	  else
 	    {
-	      error (0, 0, gettext ("%s%s%s: file format not recognized"),
+	      error (0, 0, _("%s%s%s: file format not recognized"),
 		     new_prefix, arhdr->ar_name, new_suffix);
 	      result = 1;
 	    }
@@ -360,7 +360,7 @@ show_relocs_x (Ebl *ebl, GElf_Shdr *shdr, Elf_Data *symdata,
 
   if (sym == NULL)
     printf ("<%s %ld>",
-	    gettext ("INVALID SYMBOL"), (long int) GELF_R_SYM (r_info));
+	    _("INVALID SYMBOL"), (long int) GELF_R_SYM (r_info));
   else if (GELF_ST_TYPE (sym->st_info) != STT_SECTION)
     printf ("%s",
 	    elf_strptr (ebl->elf, symstrndx, sym->st_name));
@@ -375,7 +375,7 @@ show_relocs_x (Ebl *ebl, GElf_Shdr *shdr, Elf_Data *symdata,
 
       if (shdr == NULL || destshdr == NULL)
 	printf ("<%s %ld>",
-		gettext ("INVALID SECTION"),
+		_("INVALID SECTION"),
 		(long int) (sym->st_shndx == SHN_XINDEX
 			    ? xndx : sym->st_shndx));
       else
@@ -495,10 +495,10 @@ show_relocs (Ebl *ebl, const char *fname, uint32_t shstrndx)
 	  if (unlikely (destshdr == NULL))
 	    continue;
 
-	  printf (gettext ("\nRELOCATION RECORDS FOR [%s]:\n"
+	  printf (_("\nRELOCATION RECORDS FOR [%s]:\n"
 			   "%-*s TYPE                 VALUE\n"),
 		  elf_strptr (ebl->elf, shstrndx, destshdr->sh_name),
-		  elfclass == ELFCLASS32 ? 8 : 16, gettext ("OFFSET"));
+		  elfclass == ELFCLASS32 ? 8 : 16, _("OFFSET"));
 
 	  /* Get the data of the section.  */
 	  Elf_Data *data = elf_getdata (scn, NULL);
@@ -563,7 +563,7 @@ show_full_content (Ebl *ebl, const char *fname, uint32_t shstrndx)
 	  if  (! section_match (ebl->elf, elf_ndxscn (scn), shdr, shstrndx))
 	    continue;
 
-	  printf (gettext ("Contents of section %s:\n"),
+	  printf (_("Contents of section %s:\n"),
 		  elf_strptr (ebl->elf, shstrndx, shdr->sh_name));
 
 	  /* Get the data of the section.  */
@@ -684,7 +684,7 @@ show_disasm (Ebl *ebl, const char *fname, uint32_t shstrndx)
 {
   DisasmCtx_t *ctx = disasm_begin (ebl, ebl->elf, NULL /* XXX TODO */);
   if (ctx == NULL)
-    error (EXIT_FAILURE, 0, gettext ("cannot disassemble"));
+    error (EXIT_FAILURE, 0, _("cannot disassemble"));
 
   Elf_Scn *scn = NULL;
   while ((scn = elf_nextscn (ebl->elf, scn)) != NULL)
@@ -757,7 +757,7 @@ handle_elf (Elf *elf, const char *prefix, const char *fname,
   Ebl *ebl = ebl_openbackend (elf);
   if (ebl == NULL)
     error (EXIT_FAILURE, 0,
-	   gettext ("cannot create backend for elf file"));
+	   _("cannot create backend for elf file"));
 
   printf ("%s: elf%d-%s\n\n",
 	  fname, gelf_getclass (elf) == ELFCLASS32 ? 32 : 64,
@@ -779,7 +779,7 @@ handle_elf (Elf *elf, const char *prefix, const char *fname,
   size_t shstrndx;
   if (elf_getshdrstrndx (ebl->elf, &shstrndx) < 0)
     error (EXIT_FAILURE, 0,
-	   gettext ("cannot get section header string table index"));
+	   _("cannot get section header string table index"));
 
   int result = 0;
   if (print_disasm)
