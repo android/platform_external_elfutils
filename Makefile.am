@@ -26,7 +26,7 @@ AM_MAKEFLAGS = --no-print-directory
 
 pkginclude_HEADERS = version.h
 
-SUBDIRS = config m4 lib libelf libcpu backends libebl libdwelf libdwfl libdw \
+SUBDIRS = config lib libelf libcpu backends libebl libdwelf libdwfl libdw \
 	  libasm debuginfod src po doc tests
 
 EXTRA_DIST = elfutils.spec GPG-KEY NOTES CONTRIBUTING \
@@ -46,6 +46,57 @@ distcheck-hook:
 
 rpm: dist
 	rpmbuild -ts --sign elfutils-@PACKAGE_VERSION@.tar.bz2
+
+if GCOV
+
+COVERAGE_OUTPUT_FILE = $(PACKAGE_NAME).lcov
+COVERAGE_OUTPUT_DIRECTORY = coverage
+COVERAGE_OUTPUT_INDEX_HTML = $(COVERAGE_OUTPUT_DIRECTORY)/index.html
+COVERAGE_TITLE = $(PACKAGE_NAME)-$(PACKAGE_VERSION)
+
+COVERAGE_DIRS = $(filter-out tests,$(SUBDIRS))
+src_COVERAGE_DIRS = $(patsubst %,$(srcdir)/%,$(COVERAGE_DIRS))
+build_COVERAGE_DIRS = $(patsubst %,$(builddir)/%,$(COVERAGE_DIRS))
+all_COVERAGE_DIRS = $(sort $(src_COVERAGE_DIRS) $(build_COVERAGE_DIRS))
+LCOV_DIRS_ARGS = $(patsubst %,--directory=%,$(all_COVERAGE_DIRS))
+
+CLEANFILES = $(COVERAGE_OUTPUT_FILE)
+
+.PHONY: coverage coverage-clean
+
+clean-local: coverage-clean
+distclean-local: coverage-clean
+
+coverage-clean:
+	-rm -rf $(COVERAGE_OUTPUT_DIRECTORY)
+
+coverage: $(COVERAGE_OUTPUT_INDEX_HTML)
+	@echo 'file://$(abs_builddir)/$(COVERAGE_OUTPUT_INDEX_HTML)'
+
+$(COVERAGE_OUTPUT_INDEX_HTML): $(COVERAGE_OUTPUT_FILE)
+	LC_ALL=C $(GENHTML) \
+		--legend \
+		--show-details \
+		--rc=genhtml_branch_coverage=1 \
+		--title='$(COVERAGE_TITLE)' \
+		--prefix='$(abspath $(abs_srcdir))' \
+		--prefix='$(realpath $(abs_srcdir))' \
+		--prefix='$(abspath $(abs_builddir)/..)' \
+		--prefix='$(realpath $(abs_builddir)/..)' \
+		--output-directory='$(COVERAGE_OUTPUT_DIRECTORY)' \
+		$<
+
+$(COVERAGE_OUTPUT_FILE):
+	$(LCOV) \
+		--capture \
+		--no-external \
+		--no-checksum \
+		--rc=lcov_branch_coverage=1 \
+		--gcov-tool='$(GCOV)' \
+		--output-file='$@' \
+		$(LCOV_DIRS_ARGS)
+
+endif
 
 # Tell version 3.79 and up of GNU make to not build goals in this
 # directory in parallel.

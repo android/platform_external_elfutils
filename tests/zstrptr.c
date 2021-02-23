@@ -30,6 +30,26 @@
 #include ELFUTILS_HEADER(elf)
 #include <gelf.h>
 
+static void
+print_strings (Elf_Scn *scn, Elf *elf, size_t ndx)
+{
+  GElf_Shdr shdr_mem;
+  GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
+
+  printf ("Strings in section %zd (%s):\n", ndx,
+	  ((shdr->sh_flags & SHF_COMPRESSED) != 0
+	   ? "compressed" : "uncompressed"));
+
+  size_t off = 0;
+  const char *str = elf_strptr (elf, ndx, off);
+  while (str != NULL)
+    {
+      printf ("[%zx] '%s'\n", off, str);
+      off += strlen (str) + 1;
+      str = elf_strptr (elf, ndx, off);
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -79,38 +99,19 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  void print_strings (void)
-  {
-    GElf_Shdr shdr_mem;
-    GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
-
-    printf ("Strings in section %zd (%s):\n", ndx,
-	    ((shdr->sh_flags & SHF_COMPRESSED) != 0
-	     ? "compressed" : "uncompressed"));
-
-    size_t off = 0;
-    const char *str = elf_strptr (elf, ndx, off);
-    while (str != NULL)
-      {
-	printf ("[%zx] '%s'\n", off, str);
-	off += strlen (str) + 1;
-	str = elf_strptr (elf, ndx, off);
-      }
-  }
-
   if (elf_compress (scn, ELFCOMPRESS_ZLIB, 0) < 0)
     {
       printf ("Couldn't compress section %zd: %s\n", ndx, elf_errmsg (-1));
       exit (1);
     }
-  print_strings ();
+  print_strings (scn, elf, ndx);
 
   if (elf_compress (scn, 0, 0) < 0)
     {
       printf ("Couldn't decompress section %zd: %s\n", ndx, elf_errmsg (-1));
       exit (1);
     }
-  print_strings ();
+  print_strings (scn, elf, ndx);
 
   if (elf_end (elf) != 0)
     {

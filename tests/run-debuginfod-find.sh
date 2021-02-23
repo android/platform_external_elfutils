@@ -95,11 +95,12 @@ wait_ready()
   fi
 }
 
-# create a 000 empty .rpm file to evoke a metric-visible error
-touch R/nothing.rpm
-chmod 000 R/nothing.rpm
+# create a bogus .rpm file to evoke a metric-visible error
+# Use a cyclic symlink instead of chmod 000 to make sure even root
+# would see an error (running the testsuite under root is NOT encouraged).
+ln -s R/nothing.rpm R/nothing.rpm
 
-env LD_LIBRARY_PATH=$ldpath DEBUGINFOD_URLS= ${abs_builddir}/../debuginfod/debuginfod $VERBOSE -F -R -d $DB -p $PORT1 -t0 -g0 --fdcache-fds 1 --fdcache-mbs 2 -Z .tar.xz -Z .tar.bz2=bzcat -v R F Z L > vlog4 2>&1 &
+env LD_LIBRARY_PATH=$ldpath DEBUGINFOD_URLS= ${abs_builddir}/../debuginfod/debuginfod $VERBOSE -F -R -d $DB -p $PORT1 -t0 -g0 --fdcache-fds 1 --fdcache-mbs 2 --fdcache-mintmp 0 -Z .tar.xz -Z .tar.bz2=bzcat -v R F Z L > vlog4 2>&1 &
 PID1=$!
 tempfiles vlog4
 # Server must become ready
@@ -410,6 +411,9 @@ wait_ready $PORT2 'thread_work_total{role="traverse"}' 1
 wait_ready $PORT2 'thread_work_pending{role="scan"}' 0
 wait_ready $PORT2 'thread_busy{role="scan"}' 0
 
+wait_ready $PORT2 'thread_busy{role="http-buildid"}' 0
+wait_ready $PORT2 'thread_busy{role="http-metrics"}' 1
+
 # have clients contact the new server
 export DEBUGINFOD_URLS=http://127.0.0.1:$PORT2
 
@@ -485,6 +489,22 @@ curl -s http://127.0.0.1:$PORT1/metrics | grep 'scanned_bytes_total'
 curl -s http://127.0.0.1:$PORT2/badapi > /dev/null || true
 curl -s http://127.0.0.1:$PORT2/buildid/deadbeef/debuginfo > /dev/null || true
 
+
+########################################################################
+# Corrupt the sqlite database and get debuginfod to trip across its errors
+curl -s http://127.0.0.1:$PORT1/metrics | grep 'sqlite3.*reset'
+ls -al $DB
+dd if=/dev/zero of=$DB bs=1 count=1
+ls -al $DB
+# trigger some random activity that's Sure to get sqlite3 upset
+kill -USR1 $PID1
+wait_ready $PORT1 'thread_work_total{role="traverse"}' 9
+wait_ready $PORT1 'thread_work_pending{role="scan"}' 0
+wait_ready $PORT1 'thread_busy{role="scan"}' 0
+kill -USR2 $PID1
+wait_ready $PORT1 'thread_work_total{role="groom"}' 4
+curl -s http://127.0.0.1:$PORT1/buildid/beefbeefbeefd00dd00d/debuginfo > /dev/null || true
+curl -s http://127.0.0.1:$PORT1/metrics | grep 'error_count.*sqlite'
 
 ########################################################################
 
