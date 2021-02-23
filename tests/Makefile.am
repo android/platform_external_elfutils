@@ -19,15 +19,11 @@
 include $(top_srcdir)/config/eu.am
 BUILD_RPATH = \$$ORIGIN/../libasm:\$$ORIGIN/../libdw:\$$ORIGIN/../backends:\$$ORIGIN/../libelf
 
-AM_LDFLAGS =
-
-if !STANDALONE
 AM_CPPFLAGS += -I$(top_srcdir)/libasm -I$(top_srcdir)/libdw \
 	    -I$(top_srcdir)/libdwfl -I$(top_srcdir)/libdwelf \
 	    -I$(top_srcdir)/libebl -I$(top_srcdir)/libelf \
 	    -I$(top_srcdir)/lib -I..
-AM_LDFLAGS += -Wl,-rpath-link,../libasm:../libdw:../libelf
-endif
+AM_LDFLAGS = -Wl,-rpath-link,../libasm:../libdw:../libelf
 
 if TESTS_RPATH
 AM_LDFLAGS += -Wl,-rpath,$(BUILD_RPATH)
@@ -63,7 +59,9 @@ check_PROGRAMS = arextract arsymtest newfile saridx scnnames sectiondump \
 		  all-dwarf-ranges unit-info next_cfi \
 		  elfcopy addsections xlate_notes elfrdwrnop \
 		  dwelf_elf_e_machine_string \
-		  getphdrnum leb128 read_unaligned
+		  getphdrnum leb128 read_unaligned \
+		  msg_tst system-elf-libelf-test \
+		  $(asm_TESTS)
 
 asm_TESTS = asm-tst1 asm-tst2 asm-tst3 asm-tst4 asm-tst5 \
 	    asm-tst6 asm-tst7 asm-tst8 asm-tst9
@@ -127,6 +125,7 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-readelf-aranges.sh run-readelf-line.sh run-readelf-z.sh \
 	run-readelf-frames.sh \
 	run-readelf-n.sh \
+	run-retain.sh \
 	run-native-test.sh run-bug1-test.sh \
 	run-debuglink.sh run-debugaltlink.sh run-buildid.sh \
 	dwfl-bug-addr-overflow run-addrname-test.sh \
@@ -186,7 +185,9 @@ TESTS = run-arextract.sh run-arsymtest.sh run-ar.sh newfile test-nlist \
 	run-disasm-riscv64.sh \
 	run-pt_gnu_prop-tests.sh \
 	run-getphdrnum.sh run-test-includes.sh \
-	leb128 read_unaligned
+	leb128 read_unaligned \
+	msg_tst system-elf-libelf-test \
+	$(asm_TESTS) run-disasm-bpf.sh
 
 if !BIARCH
 export ELFUTILS_DISABLE_BIARCH = 1
@@ -196,22 +197,12 @@ if !DEMANGLE
 export ELFUTILS_DISABLE_DEMANGLE = 1
 endif
 
-if !STANDALONE
-check_PROGRAMS += msg_tst system-elf-libelf-test
-TESTS += msg_tst system-elf-libelf-test
-endif
-
 if LZMA
 TESTS += run-readelf-s.sh run-dwflsyms.sh
 endif
 
 if HAVE_ZSTD
 TESTS += run-readelf-compressed-zstd.sh
-endif
-
-if HAVE_LIBASM
-check_PROGRAMS += $(asm_TESTS)
-TESTS += $(asm_TESTS) run-disasm-bpf.sh
 endif
 
 if DEBUGINFOD
@@ -328,6 +319,7 @@ EXTRA_DIST = run-arextract.sh run-arsymtest.sh run-ar.sh \
 	     testfile_gnu_props.32be.o.bz2 \
 	     testfile_gnu_props.64be.o.bz2 \
 	     testfile-gnu-property-note-aarch64.bz2 \
+	     run-retain.sh testfile-retain.o.bz2 \
 	     run-allfcts-multi.sh \
 	     test-offset-loop.bz2 test-offset-loop.alt.bz2 \
 	     run-prelink-addr-test.sh \
@@ -535,14 +527,11 @@ installed_TESTS_ENVIRONMENT = libdir=$(DESTDIR)$(libdir); \
 			      export libdir; export bindir; \
 			      export LC_ALL; export LANG; export VALGRIND_CMD; \
 			      unset DEBUGINFOD_URLS; \
-			      NM=$(NM); export NM;
+			      NM=$(NM); export NM; \
+			      CC=$(CC); export CC;
 installed_LOG_COMPILER = $(abs_srcdir)/test-wrapper.sh \
 			 installed $(tests_rpath) \
 			 '$(program_transform_name)'
-if STANDALONE
-TESTS_ENVIRONMENT = $(installed_TESTS_ENVIRONMENT)
-LOG_COMPILER = $(installed_LOG_COMPILER)
-else !STANDALONE
 TESTS_ENVIRONMENT = LC_ALL=C; LANG=C; VALGRIND_CMD=$(valgrind_cmd); \
 		    abs_srcdir=$(abs_srcdir);  abs_builddir=$(abs_builddir); \
 		    abs_top_builddir=$(abs_top_builddir); \
@@ -550,7 +539,8 @@ TESTS_ENVIRONMENT = LC_ALL=C; LANG=C; VALGRIND_CMD=$(valgrind_cmd); \
 		    export abs_top_builddir; \
 		    export LC_ALL; export LANG; export VALGRIND_CMD; \
 		    unset DEBUGINFOD_URLS; \
-		    NM=$(NM); export NM;
+		    NM=$(NM); export NM; \
+		    CC=$(CC); export CC;
 LOG_COMPILER = $(abs_srcdir)/test-wrapper.sh \
 	       $(abs_top_builddir)/libdw:$(abs_top_builddir)/backends:$(abs_top_builddir)/libelf:$(abs_top_builddir)/libasm:$(abs_top_builddir)/debuginfod
 
@@ -558,14 +548,7 @@ installcheck-local:
 	$(MAKE) $(AM_MAKEFLAGS) \
 		TESTS_ENVIRONMENT="$(installed_TESTS_ENVIRONMENT)" \
 		LOG_COMPILER="$(installed_LOG_COMPILER)" check-TESTS
-endif !STANDALONE
 
-if STANDALONE
-libdw = -ldw
-libelf = -lelf
-libasm = -lasm
-libebl = -lebl
-else !STANDALONE
 if BUILD_STATIC
 libdw = ../libdw/libdw.a -lz $(zip_LIBS) $(libelf) $(libebl) -ldl -lpthread
 libelf = ../libelf/libelf.a -lz
@@ -577,7 +560,6 @@ libasm = ../libasm/libasm.so
 endif
 libebl = ../libebl/libebl.a ../backends/libebl_backends.a ../libcpu/libcpu.a
 libeu = ../lib/libeu.a
-endif !STANDALONE
 
 arextract_LDADD = $(libelf)
 arsymtest_LDADD = $(libelf)

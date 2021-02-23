@@ -137,7 +137,7 @@ static int handle_elf (int fd, Elf *elf, const char *prefix, const char *fname,
 
 
 #define INTERNAL_ERROR(fname) \
-  error (EXIT_FAILURE, 0, gettext ("%s: INTERNAL ERROR %d (%s): %s"),      \
+  error (EXIT_FAILURE, 0, _("%s: INTERNAL ERROR %d (%s): %s"),      \
 	 fname, __LINE__, PACKAGE_VERSION, elf_errmsg (-1))
 
 
@@ -361,7 +361,7 @@ process_file (const char *fname, bool more_than_one)
   int fd = open (fname, O_RDONLY);
   if (fd == -1)
     {
-      error (0, errno, gettext ("cannot open '%s'"), fname);
+      error (0, errno, _("cannot open '%s'"), fname);
       return 1;
     }
 
@@ -378,7 +378,7 @@ process_file (const char *fname, bool more_than_one)
 	    INTERNAL_ERROR (fname);
 
 	  if (close (fd) != 0)
-	    error (EXIT_FAILURE, errno, gettext ("while closing '%s'"), fname);
+	    error (EXIT_FAILURE, errno, _("while closing '%s'"), fname);
 
 	  return result;
 	}
@@ -390,7 +390,7 @@ process_file (const char *fname, bool more_than_one)
 	    INTERNAL_ERROR (fname);
 
 	  if (close (fd) != 0)
-	    error (EXIT_FAILURE, errno, gettext ("while closing '%s'"), fname);
+	    error (EXIT_FAILURE, errno, _("while closing '%s'"), fname);
 
 	  return result;
 	}
@@ -400,7 +400,7 @@ process_file (const char *fname, bool more_than_one)
 	INTERNAL_ERROR (fname);
     }
 
-  error (0, 0, gettext ("%s: File format not recognized"), fname);
+  error (0, 0, _("%s: File format not recognized"), fname);
 
   return 1;
 }
@@ -440,7 +440,7 @@ handle_ar (int fd, Elf *elf, const char *prefix, const char *fname,
 	  Elf_Arhdr *arhdr = NULL;
 	  size_t arhdr_off = 0;	/* Note: 0 is no valid offset.  */
 
-	  fputs_unlocked (gettext("\nArchive index:\n"), stdout);
+	  fputs_unlocked (_("\nArchive index:\n"), stdout);
 
 	  while (arsym->as_off != 0)
 	    {
@@ -449,12 +449,12 @@ handle_ar (int fd, Elf *elf, const char *prefix, const char *fname,
 		      || (subelf = elf_begin (fd, cmd, elf)) == NULL
 		      || (arhdr = elf_getarhdr (subelf)) == NULL))
 		{
-		  error (0, 0, gettext ("invalid offset %zu for symbol %s"),
+		  error (0, 0, _("invalid offset %zu for symbol %s"),
 			 arsym->as_off, arsym->as_name);
 		  break;
 		}
 
-	      printf (gettext ("%s in %s\n"), arsym->as_name, arhdr->ar_name);
+	      printf (_("%s in %s\n"), arsym->as_name, arhdr->ar_name);
 
 	      ++arsym;
 	    }
@@ -462,7 +462,7 @@ handle_ar (int fd, Elf *elf, const char *prefix, const char *fname,
 	  if (elf_rand (elf, SARMAG) != SARMAG)
 	    {
 	      error (0, 0,
-		     gettext ("cannot reset archive offset to beginning"));
+		     _("cannot reset archive offset to beginning"));
 	      return 1;
 	    }
 	}
@@ -487,7 +487,7 @@ handle_ar (int fd, Elf *elf, const char *prefix, const char *fname,
 				 new_suffix);
 	  else
 	    {
-	      error (0, 0, gettext ("%s%s%s: file format not recognized"),
+	      error (0, 0, _("%s%s%s: file format not recognized"),
 		     new_prefix, arhdr->ar_name, new_suffix);
 	      result = 1;
 	    }
@@ -702,7 +702,7 @@ get_local_names (Dwarf *dbg)
 						local_compare);
 	    if (tres == NULL)
               error (EXIT_FAILURE, errno,
-                     gettext ("cannot create search tree"));
+                     _("cannot create search tree"));
 	    else if (*tres != newp)
 	      free (newp);
 	  }
@@ -743,7 +743,7 @@ show_symbols_sysv (Ebl *ebl, GElf_Word strndx, const char *fullname,
   size_t shstrndx;
   if (elf_getshdrstrndx (ebl->elf, &shstrndx) < 0)
     error (EXIT_FAILURE, 0,
-	   gettext ("cannot get section header string table index"));
+	   _("cannot get section header string table index"));
 
   /* Cache the section names.  */
   Elf_Scn *scn = NULL;
@@ -768,10 +768,10 @@ show_symbols_sysv (Ebl *ebl, GElf_Word strndx, const char *fullname,
   int digits = length_map[gelf_getclass (ebl->elf) - 1][radix];
 
   /* We always print this prolog.  */
-  printf (gettext ("\n\nSymbols from %s:\n\n"), fullname);
+  printf (_("\n\nSymbols from %s:\n\n"), fullname);
 
   /* The header line.  */
-  printf (gettext ("%*s%-*s %-*s Class  Type     %-*s %*s Section\n\n"),
+  printf (_("%*s%-*s %-*s Class  Type     %-*s %*s Section\n\n"),
 	  print_file_name ? (int) strlen (fullname) + 1: 0, "",
 	  longest_name, sgettext ("sysv|Name"),
 	  /* TRANS: the "sysv|" parts makes the string unique.  */
@@ -1236,7 +1236,7 @@ show_symbols (int fd, Ebl *ebl, GElf_Ehdr *ehdr,
   size_t shstrndx;
   if (elf_getshdrstrndx (ebl->elf, &shstrndx) < 0)
     error (EXIT_FAILURE, 0,
-	   gettext ("cannot get section header string table index"));
+	   _("cannot get section header string table index"));
 
   /* The section is that large.  */
   size_t size = shdr->sh_size;
@@ -1247,12 +1247,12 @@ show_symbols (int fd, Ebl *ebl, GElf_Ehdr *ehdr,
   if (entsize == 0
       || entsize != gelf_fsize (ebl->elf, ELF_T_SYM, 1, EV_CURRENT))
     error (0, 0,
-	   gettext ("%s: entry size in section %zd `%s' is not what we expect"),
+	   _("%s: entry size in section %zd `%s' is not what we expect"),
 	   fullname, elf_ndxscn (scn),
 	   elf_strptr (ebl->elf, shstrndx, shdr->sh_name));
   else if (size % entsize != 0)
     error (0, 0,
-	   gettext ("%s: size of section %zd `%s' is not multiple of entry size"),
+	   _("%s: size of section %zd `%s' is not multiple of entry size"),
 	   fullname, elf_ndxscn (scn),
 	   elf_strptr (ebl->elf, shstrndx, shdr->sh_name));
 
@@ -1331,7 +1331,7 @@ show_symbols (int fd, Ebl *ebl, GElf_Ehdr *ehdr,
      is a 64 bit file.  */
   if (nentries > SIZE_MAX / sizeof (GElf_SymX))
     error (EXIT_FAILURE, 0,
-          gettext ("%s: entries (%zd) in section %zd `%s' is too large"),
+          _("%s: entries (%zd) in section %zd `%s' is too large"),
           fullname, nentries, elf_ndxscn (scn),
           elf_strptr (ebl->elf, shstrndx, shdr->sh_name));
   GElf_SymX *sym_mem;
@@ -1567,7 +1567,7 @@ handle_elf (int fd, Elf *elf, const char *prefix, const char *fname,
       && ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN)
     {
       /* XXX Add machine specific object file types.  */
-      error (0, 0, gettext ("%s%s%s%s: Invalid operation"),
+      error (0, 0, _("%s%s%s%s: Invalid operation"),
 	     prefix ?: "", prefix ? "(" : "", fname, prefix ? ")" : "");
       result = 1;
       goto out;
@@ -1617,7 +1617,7 @@ handle_elf (int fd, Elf *elf, const char *prefix, const char *fname,
 
   if (! any)
     {
-      error (0, 0, gettext ("%s%s%s: no symbols"),
+      error (0, 0, _("%s%s%s: no symbols"),
 	     prefix ?: "", prefix ? ":" : "", fname);
       result = 1;
     }

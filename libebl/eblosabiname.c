@@ -67,10 +67,10 @@ ebl_osabi_name (Ebl *ebl, int osabi, char *buf, size_t len)
       else if (osabi == ELFOSABI_ARM)
 	res = "Arm";
       else if (osabi == ELFOSABI_STANDALONE)
-	res = gettext ("Stand alone");
+	res = _("Stand alone");
       else
 	{
-	  snprintf (buf, len, "%s: %d", gettext ("<unknown>"), osabi);
+	  snprintf (buf, len, "%s: %d", _("<unknown>"), osabi);
 
 	  res = buf;
 	}

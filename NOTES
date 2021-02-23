@@ -55,7 +55,7 @@ Some notes:
 
 
 - the old linker supported extern "C++", extern "java" in version scripts.
-  I believe this implementation is severly broken and needs a redesign
+  I believe this implementation is severely broken and needs a redesign
   (how do wildcards work with these languages*?).  Therefore it is left
   out for now.
 
@@ -91,5 +91,5 @@ Some notes:
   Sections created in output files follow the naming of special section
   from the gABI.
 
-  In no place is a section solely indentified by its name.  Internal
+  In no place is a section solely identified by its name.  Internal
   references always use the section index.

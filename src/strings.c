@@ -67,7 +67,7 @@ static const struct argp_option options[] =
   { "bytes", 'n', "MIN-LEN", 0,
     N_("Only NUL-terminated sequences of MIN-LEN characters or more are printed"), 0 },
   { "encoding", 'e', "SELECTOR", 0, N_("\
-Select character size and endianess: s = 7-bit, S = 8-bit, {b,l} = 16-bit, {B,L} = 32-bit"),
+Select character size and endianness: s = 7-bit, S = 8-bit, {b,l} = 16-bit, {B,L} = 32-bit"),
     0},
   { "print-file-name", 'f', NULL, 0,
     N_("Print name of the file before each string."), 0 },
@@ -182,7 +182,7 @@ main (int argc, char *argv[])
 		  ? STDIN_FILENO : open (argv[remaining], O_RDONLY));
 	if (unlikely (fd == -1))
 	  {
-	    error (0, errno, gettext ("cannot open '%s'"), argv[remaining]);
+	    error (0, errno, _("cannot open '%s'"), argv[remaining]);
 	    result = 1;
 	  }
 	else
@@ -253,7 +253,7 @@ parse_opt (int key, char *arg,
 	  break;
 
 	default:
-	  error (0, 0, gettext ("invalid value '%s' for %s parameter"),
+	  error (0, 0, _("invalid value '%s' for %s parameter"),
 		 arg, "-e");
 	  argp_help (&argp, stderr, ARGP_HELP_SEE, "strings");
 	  return ARGP_ERR_UNKNOWN;
@@ -288,7 +288,7 @@ parse_opt (int key, char *arg,
 	  break;
 
 	default:
-	  error (0, 0, gettext ("invalid value '%s' for %s parameter"),
+	  error (0, 0, _("invalid value '%s' for %s parameter"),
 		 arg, "-t");
 	  argp_help (&argp, stderr, ARGP_HELP_SEE, "strings");
 	  return ARGP_ERR_UNKNOWN;
@@ -299,7 +299,7 @@ parse_opt (int key, char *arg,
       /* Compute the length in bytes of any match.  */
       if (min_len <= 0 || min_len > INT_MAX / bytes_per_char)
 	error (EXIT_FAILURE, 0,
-	       gettext ("invalid minimum length of matched string size"));
+	       _("invalid minimum length of matched string size"));
       min_len_bytes = min_len * bytes_per_char;
       break;
 
@@ -582,7 +582,7 @@ read_block (int fd, const char *fname, off_t fdlen, off_t from, off_t to)
       // XXX Eventually add flag which avoids this if the position
       // XXX is known to match.
       if (from != 0 && lseek (fd, from, SEEK_SET) != from)
-	error (EXIT_FAILURE, errno, gettext ("lseek failed"));
+	error (EXIT_FAILURE, errno, _("lseek failed"));
 
       return read_block_no_mmap (fd, fname, from, to - from);
     }
@@ -599,7 +599,7 @@ read_block (int fd, const char *fname, off_t fdlen, off_t from, off_t to)
       if (mmap (elfmap, elfmap_size, PROT_READ,
 		MAP_PRIVATE | MAP_POPULATE | MAP_FIXED, fd, from)
 	  == MAP_FAILED)
-	error (EXIT_FAILURE, errno, gettext ("re-mmap failed"));
+	error (EXIT_FAILURE, errno, _("re-mmap failed"));
       elfmap_base = elfmap;
     }
 
@@ -636,7 +636,7 @@ read_block (int fd, const char *fname, off_t fdlen, off_t from, off_t to)
 	     and for this we have to make the data writable.  */
 	  if (unlikely (mprotect (elfmap, keep_area, PROT_READ | PROT_WRITE)
 			!= 0))
-	    error (EXIT_FAILURE, errno, gettext ("mprotect failed"));
+	    error (EXIT_FAILURE, errno, _("mprotect failed"));
 
 	  elfmap_base = elfmap + keep_area;
 	}
@@ -663,7 +663,7 @@ read_block (int fd, const char *fname, off_t fdlen, off_t from, off_t to)
 	  if (mmap (remap_base, read_now, PROT_READ,
 		    MAP_PRIVATE | MAP_POPULATE | MAP_FIXED, fd, handled_to)
 	      == MAP_FAILED)
-	    error (EXIT_FAILURE, errno, gettext ("re-mmap failed"));
+	    error (EXIT_FAILURE, errno, _("re-mmap failed"));
 	  elfmap_off = handled_to;
 
 	  process_chunk (fname, remap_base - to_keep,
@@ -698,7 +698,7 @@ read_elf (Elf *elf, int fd, const char *fname, off_t fdlen)
 
   /* We will look at each section separately.  The ELF file is not
      mmapped.  The libelf implementation will load the needed parts on
-     demand.  Since we only interate over the section header table the
+     demand.  Since we only iterate over the section header table the
      memory consumption at this stage is kept minimal.  */
   Elf_Scn *scn = elf_nextscn (elf, NULL);
   if (scn == NULL)
@@ -725,7 +725,7 @@ read_elf (Elf *elf, int fd, const char *fname, off_t fdlen)
 	      else
 		sname = elf_strptr (elf, strndx, shdr->sh_name) ?: "<unknown>";
 	      error (0, 0,
-		     gettext ("Skipping section %zd '%s' data outside file"),
+		     _("Skipping section %zd '%s' data outside file"),
 		     elf_ndxscn (scn), sname);
 	      result = 1;
 	    }

@@ -63,6 +63,7 @@ x86_64_init (Elf *elf __attribute__ ((unused)),
   eh->frame_nregs = 17;
   HOOK (eh, set_initial_registers_tid);
   HOOK (eh, unwind);
+  HOOK (eh, check_reloc_target_type);
 
   return eh;
 }

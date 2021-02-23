@@ -119,8 +119,8 @@ static void
 invalid_char (int ch)
 {
   error (0, 0, (isascii (ch)
-		? gettext ("invalid character '%c' at line %d; ignored")
-		: gettext ("invalid character '\\%o' at line %d; ignored")),
+		? _("invalid character '%c' at line %d; ignored")
+		: _("invalid character '\\%o' at line %d; ignored")),
 	 ch, yylineno);
 }
 
