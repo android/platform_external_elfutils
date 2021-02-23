@@ -1011,7 +1011,7 @@ handle_die (Dwarf_Die *die, int depth, bool outer_has_frame_base,
   arg.entrypc = die_entrypc;
 
   /* Whether this or the any outer DIE has a frame base. Used as
-     sanity check when printing experssions that use DW_OP_fbreg.  */
+     sanity check when printing expressions that use DW_OP_fbreg.  */
   bool die_has_frame_base = dwarf_hasattr (die, DW_AT_frame_base);
   die_has_frame_base |= outer_has_frame_base;
   has_frame_base = die_has_frame_base;

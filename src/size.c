@@ -102,7 +102,7 @@ static void handle_elf (Elf *elf, const char *fullname, const char *fname);
 static void show_bsd_totals (void);
 
 #define INTERNAL_ERROR(fname) \
-  error (EXIT_FAILURE, 0, gettext ("%s: INTERNAL ERROR %d (%s): %s"),      \
+  error (EXIT_FAILURE, 0, _("%s: INTERNAL ERROR %d (%s): %s"),      \
 	 fname, __LINE__, PACKAGE_VERSION, elf_errmsg (-1))
 
 
@@ -145,7 +145,7 @@ static const int length_map[2][3] =
 
 /* True if total sizes should be printed.  */
 static bool totals;
-/* To print the total sizes in a reasonable format remember the higest
+/* To print the total sizes in a reasonable format remember the highest
    "class" of ELF binaries processed.  */
 static int totals_class;
 
@@ -237,7 +237,7 @@ parse_opt (int key, char *arg,
       else if (likely (strcmp (arg, "sysv") == 0))
 	format = format_sysv;
       else
-	error (EXIT_FAILURE, 0, gettext ("Invalid format: %s"), arg);
+	error (EXIT_FAILURE, 0, _("Invalid format: %s"), arg);
       break;
 
     case OPT_RADIX:
@@ -248,7 +248,7 @@ parse_opt (int key, char *arg,
       else if (strcmp (arg, "o") == 0 || strcmp (arg, "8") == 0)
 	radix = radix_octal;
       else
-	error (EXIT_FAILURE, 0, gettext ("Invalid radix: %s"), arg);
+	error (EXIT_FAILURE, 0, _("Invalid radix: %s"), arg);
       break;
 
     case 't':
@@ -269,7 +269,7 @@ process_file (const char *fname)
   int fd = open (fname, O_RDONLY);
   if (unlikely (fd == -1))
     {
-      error (0, errno, gettext ("cannot open '%s'"), fname);
+      error (0, errno, _("cannot open '%s'"), fname);
       return 1;
     }
 
@@ -285,7 +285,7 @@ process_file (const char *fname)
 	    INTERNAL_ERROR (fname);
 
 	  if (unlikely (close (fd) != 0))
-	    error (EXIT_FAILURE, errno, gettext ("while closing '%s'"), fname);
+	    error (EXIT_FAILURE, errno, _("while closing '%s'"), fname);
 
 	  return 0;
 	}
@@ -294,7 +294,7 @@ process_file (const char *fname)
 	  int result = handle_ar (fd, elf, NULL, fname);
 
 	  if (unlikely  (close (fd) != 0))
-	    error (EXIT_FAILURE, errno, gettext ("while closing '%s'"), fname);
+	    error (EXIT_FAILURE, errno, _("while closing '%s'"), fname);
 
 	  return result;
 	}
@@ -305,9 +305,9 @@ process_file (const char *fname)
     }
 
   if (unlikely (close (fd) != 0))
-    error (EXIT_FAILURE, errno, gettext ("while closing '%s'"), fname);
+    error (EXIT_FAILURE, errno, _("while closing '%s'"), fname);
 
-  error (0, 0, gettext ("%s: file format not recognized"), fname);
+  error (0, 0, _("%s: file format not recognized"), fname);
 
   return 1;
 }
@@ -395,7 +395,7 @@ show_sysv (Elf *elf, const char *prefix, const char *fname,
   size_t shstrndx;
   if (unlikely (elf_getshdrstrndx (elf, &shstrndx) < 0))
     error (EXIT_FAILURE, 0,
-	   gettext ("cannot get section header string table index"));
+	   _("cannot get section header string table index"));
 
   /* First round over the sections: determine the longest section name.  */
   Elf_Scn *scn = NULL;
@@ -415,7 +415,7 @@ show_sysv (Elf *elf, const char *prefix, const char *fname,
 
   fputs_unlocked (fname, stdout);
   if (prefix != NULL)
-    printf (gettext (" (ex %s)"), prefix);
+    printf (_(" (ex %s)"), prefix);
   printf (":\n%-*s %*s %*s\n",
 	  maxlen, sgettext ("sysv|section"),
 	  digits - 2, sgettext ("sysv|size"),
@@ -467,7 +467,7 @@ show_sysv_one_line (Elf *elf)
   size_t shstrndx;
   if (unlikely (elf_getshdrstrndx (elf, &shstrndx) < 0))
     error (EXIT_FAILURE, 0,
-	   gettext ("cannot get section header string table index"));
+	   _("cannot get section header string table index"));
 
   /* Iterate over all sections.  */
   GElf_Off total = 0;
@@ -479,7 +479,7 @@ show_sysv_one_line (Elf *elf)
       GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
 
       if (unlikely (shdr == NULL))
-	error (EXIT_FAILURE, 0, gettext ("cannot get section header"));
+	error (EXIT_FAILURE, 0, _("cannot get section header"));
 
       /* Ignore all sections which are not used at runtime.  */
       if ((shdr->sh_flags & SHF_ALLOC) == 0)
@@ -557,7 +557,7 @@ show_bsd (Elf *elf, const char *prefix, const char *fname,
 	  xdigits - 2, textsize + datasize + bsssize,
 	  fname);
   if (prefix != NULL)
-    printf (gettext (" (ex %s)"), prefix);
+    printf (_(" (ex %s)"), prefix);
   fputs_unlocked ("\n", stdout);
 
   total_textsize += textsize;
@@ -582,7 +582,7 @@ show_bsd_totals (void)
 	  ddigits - 2, total_bsssize,
 	  ddigits - 2, total_textsize + total_datasize + total_bsssize,
 	  xdigits - 2, total_textsize + total_datasize + total_bsssize,
-	  gettext ("(TOTALS)\n"));
+	  _("(TOTALS)\n"));
 }
 
 

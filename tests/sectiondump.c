@@ -49,7 +49,7 @@ main (int argc, char *argv[])
   if (fd == -1)
     error (EXIT_FAILURE, errno, "cannot open input file `%s'", argv[1]);
 
-  /* Set the library versio we expect.  */
+  /* Set the library version we expect.  */
   elf_version (EV_CURRENT);
 
   /* Create the ELF descriptor.  */
@@ -58,7 +58,7 @@ main (int argc, char *argv[])
     error (EXIT_FAILURE, 0, "cannot create ELF descriptor: %s",
 	   elf_errmsg (0));
 
-  /* Now proces all the sections mentioned in the rest of the command line.  */
+  /* Now process all the sections mentioned in the rest of the command line.  */
   for (cnt = 2; cnt < argc; ++cnt)
     if (handle_section (elf, elf_getscn (elf, atoi (argv[cnt]))) != 0)
       /* When we encounter an error stop immediately.  */
@@ -116,7 +116,7 @@ handle_section (Elf *elf, Elf_Scn *scn)
   if (data == NULL)
     return 1;
 
-  /* Now proces the different section types accordingly.  */
+  /* Now process the different section types accordingly.  */
   switch (shdr->sh_type)
     {
     case SHT_SYMTAB:

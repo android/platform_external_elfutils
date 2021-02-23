@@ -44,7 +44,7 @@ extern "C" {
 /* Returns the name and the CRC32 of the separate debug file from the
    .gnu_debuglink section if found in the ELF.  Return NULL if the ELF
    file didn't have a .gnu_debuglink section, had malformed data in the
-   section or some other error occured.  */
+   section or some other error occurred.  */
 extern const char *dwelf_elf_gnu_debuglink (Elf *elf, GElf_Word *crc);
 
 /* Returns the name and build ID from the .gnu_debugaltlink section if
@@ -69,7 +69,7 @@ extern ssize_t dwelf_elf_gnu_build_id (Elf *elf, const void **build_idp);
    section.  The section name should start with .zdebug (but this
    isn't checked by this function).  If the section isn't compressed
    (the section data doesn't start with ZLIB) -1 is returned. If an
-   error occured -1 is returned and elf_errno is set.  */
+   error occurred -1 is returned and elf_errno is set.  */
 extern ssize_t dwelf_scn_gnu_compressed_size (Elf_Scn *scn);
 
 /* ELF/DWARF string table handling.  */

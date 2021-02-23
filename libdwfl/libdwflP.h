@@ -47,9 +47,6 @@
 
 typedef struct Dwfl_Process Dwfl_Process;
 
-/* gettext helper macros.  */
-#define _(Str) dgettext ("elfutils", Str)
-
 #define DWFL_ERRORS							      \
   DWFL_ERROR (NOERROR, N_("no error"))					      \
   DWFL_ERROR (UNKNOWN_ERROR, N_("unknown error"))			      \

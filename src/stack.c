@@ -688,7 +688,7 @@ Program exits with return code 0 if all frames were shown without \
 any errors.  If some frames were shown, but there were some non-fatal \
 errors, possibly causing an incomplete backtrace, the program exits \
 with return code 1.  If no frames could be shown, or a fatal error \
-occured the program exits with return code 2.  If the program was \
+occurred the program exits with return code 2.  If the program was \
 invoked with bad or missing arguments it will exit with return code 64.")
     };
 

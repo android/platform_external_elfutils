@@ -22,7 +22,7 @@ case "`uname -m`" in
   x86_64)
     tempfiles testfile45.o
     testfiles testfile45.S testfile45.expect
-    gcc -m64 -c -o testfile45.o testfile45.S
+    ${CC} -m64 -c -o testfile45.o testfile45.S
     testrun_compare ${abs_top_builddir}/src/objdump -d testfile45.o < testfile45.expect
     ;;
 esac

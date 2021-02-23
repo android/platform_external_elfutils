@@ -65,7 +65,7 @@ ebl_symbol_binding_name (Ebl *ebl, int binding, char *buf, size_t len)
 	  else if (binding >= STB_LOOS && binding <= STB_HIOS)
 	    snprintf (buf, len, "LOOS+%d", binding - STB_LOOS);
 	  else
-	    snprintf (buf, len, gettext ("<unknown>: %d"), binding);
+	    snprintf (buf, len, _("<unknown>: %d"), binding);
 
 	  res = buf;
 	}

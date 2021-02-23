@@ -38,5 +38,5 @@
 const char *
 ebl_backend_name (Ebl *ebl)
 {
-  return ebl != NULL ? ebl->emulation : gettext ("No backend");
+  return ebl != NULL ? ebl->emulation : _("No backend");
 }
