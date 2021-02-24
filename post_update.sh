@@ -11,7 +11,7 @@ if [ "$1" != "" ]; then
     cd $1
 fi
 
-autoreconf -i && ./configure --enable-maintainer-mode --disable-debuginfod --without-lzma --without-bzlib
+autoreconf -i && ./configure --enable-maintainer-mode --disable-debuginfod --disable-libdebuginfod --without-lzma --without-bzlib --without-zstd
 
 # if called from the external_updater, do not apply any patches as it will do
 # that for us

@@ -1,3 +1,86 @@
+2021-02-04  Frank Ch. Eigler <fche@redhat.com>
+
+	* run-debuginfod-find.sh: Smoke test --fdcache-mintmp option handling.
+
+2021-01-31  Sergei Trofimovich  <slyfox@gentoo.org>
+
+	* Makefile.am (TESTS_ENVIRONMENT): export CC variable
+	to tests for use instead of 'gcc'.
+	* run-disasm-x86-64.sh: use ${CC} instead of 'gcc'.
+	* run-disasm-x86.sh: Likewise.
+	* run-strip-g.sh: Likewise.
+	* run-strip-nothing.sh: Likewise.
+	* run-test-includes.sh: Likewise.
+
+2021-01-06  Timm Bäder  <tbaeder@redhat.com>
+
+	* zstrptr.c (main): Lift print_strings function up to ...
+	(print_strings): ... here. New file scope function taking
+	Elf_Scn*, Elf* and ndx as arguments.
+
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: New file.
+
+2020-12-12  Mark Wielaard  <mark@klomp.org>
+
+	* testfile-retain.o.bz2: New test file.
+	* run-retain.sh: New test.
+	* Makefile.am (TESTS): Add run-retain.sh.
+	(EXTRA_DIST): Add run-retain.sh and testfile-retain.o.bz2
+
+2020-12-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* dwflmodtest.c (N_): Remove.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* dwarf-die-addr-die.c (main): Fix spelling typo in error diagnostics.
+	* run-lfs-symbols.sh: Likewise.
+	* elfstrmerge.c (main): Fix spelling typos in comments.
+	* dwfl-bug-fd-leak.c: Likewise.
+	* run-readelf-line.sh: Likewise.
+	* run-stack-demangled-test.sh: Likewise.
+	* sectiondump.c (main): Likewise.
+	* varlocs.c (handle_die): Likewise.
+
+2020-12-11  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* configure.ac: Remove.
+	* Makefile.am [STANDALONE]: Remove.
+	(check_PROGRAMS): Add msg_tst, system-elf-libelf-test, and $(asm_TESTS)
+	unconditionally.
+	(TESTS): Add msg_tst, system-elf-libelf-test, $(asm_TESTS), and
+	run-disasm-bpf.sh unconditionally.
+
+2020-11-23  Frank Ch. Eigler  <fche@redhat.com>
+
+	* run-debuginfod-find.sh: Add sqlite error injection & stats.
+
+2020-11-02  Mark Wielaard  <mark@klomp.org>
+
+	* run-debuginfod-find.sh: Create bogus R/nothing.rpm with cyclic
+	symlink instead of chmod 000.
+
+2020-11-19  Frank Ch. Eigler  <fche@redhat.com>
+
+	* run-debuginfod-find.sh: Look for http-* metrics.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+	    Mark Wielaard  <mark@klomp.org>
+
+	* alldts.c (main): Use DEFFILEMODE for open with O_CREAT.
+	* arextract.c (main): Likewise.
+	* ecp.c (main): Likewise for creat.
+	* elfstrtab.c (check_elf): Use DEFFILEMODE for open with O_CREAT,
+	remove mode from open calls without O_CREAT.
+	* emptyfile.c (check_elf): Likewise.
+	* fillfile.c (check_elf): Likewise.
+	* vendorelf.c (check_elf): Likewise.
+	* newdata.c (checkelf): Use DEFFILEMODE for open with O_CREAT.
+	* update{1,2,3,4}.c (main): Likewise.
+	*
+
 2020-10-31  Mark Wielaard  <mark@klomp.org>
 
 	* dwfl-proc-attach.c (dlopen): New external function override.

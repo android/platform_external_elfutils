@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "system.h"
 
 
 int
@@ -38,7 +39,7 @@ main (int argc, char *argv[] __attribute__ ((unused)))
   Elf32_Ehdr *ehdr;
   int i;
 
-  fd = open (fname, O_RDWR | O_CREAT | O_TRUNC, 0666);
+  fd = open (fname, O_RDWR | O_CREAT | O_TRUNC, DEFFILEMODE);
   if (fd == -1)
     {
       printf ("cannot open `%s': %s\n", fname, strerror (errno));

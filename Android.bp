@@ -12,6 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// *** THIS PACKAGE HAS SPECIAL LICENSING CONDITIONS.  PLEASE
+//     CONSULT THE OWNERS AND opensource-licensing@google.com BEFORE
+//     DEPENDING ON IT IN YOUR PROJECT. ***
+package {
+    default_applicable_licenses: ["external_elfutils_license"],
+}
+
+// http://go/android-license-faq
+license {
+    name: "external_elfutils_license",
+    visibility: [":__subpackages__"],
+    license_kinds: [
+        "SPDX-license-identifier-Apache-2.0",
+        "SPDX-license-identifier-BSD",
+        "SPDX-license-identifier-GFDL", // by exception only
+        "SPDX-license-identifier-GPL-2.0-or-later",
+        "SPDX-license-identifier-GPL-3.0-or-later",
+        "SPDX-license-identifier-LGPL-3.0-or-later",
+    ],
+    license_text: [
+        "COPYING",
+        "COPYING-GPLV2",
+        "COPYING-LGPLV3",
+        "NOTICE",
+    ],
+}
+
 cc_defaults {
     name: "elfutils_defaults",
     cflags: [
@@ -119,6 +146,7 @@ cc_library_host_static {
         // Those headers are incompatible with clang due to nested function
         // definitions.
         "libdwfl/dwfl_segment_report_module.c",
+        "libdwfl/debuginfod-client.c",
         "libdwfl/elf-from-memory.c",
         "libdwfl/link_map.c",
         // Those are common source files actually used as headers and not
@@ -142,4 +170,3 @@ cc_library_host_static {
     ],
     compile_multilib: "64",
 }
-

@@ -332,6 +332,18 @@ exit 0
 %systemd_postun_with_restart debuginfod.service
 
 %changelog
+* Fri Feb  5 2021 Mark Wielaard <mark@klomp.org> 0.183-1
+- debuginfod: New thread-busy metric and more detailed error metrics.
+  New --fdcache-mintmp and tracking of filesystem freespace.
+- debigonfod-client: DEBUGINFOD_SONAME macro added to debuginfod.h can
+  be used to dlopen the libdebuginfod.so library.
+  New function debuginfod_set_verbose_fd and DEBUGINFOD_VERBOSE
+  environment variable.
+- config: profile.sh and profile.csh won't export DEBUGINFOD_URLS
+  unless configured --enable-debuginfod-urls[=URLS]
+- elflint, readelf: Recognize SHF_GNU_RETAIN.
+  Handle SHT_X86_64_UNWIND as valid relocation target type.
+
 * Sat Oct 31 2020 Mark Wielaard <mark@klomp.org> 0.182-1
 - backends: Support for tilegx has been removed.
 - config: New /etc/profile.d files to provide default $DEBUGINFOD_URLS.
@@ -421,7 +433,7 @@ exit 0
         CVE-2019-7664, CVE-2019-7665.
 
 * Wed Nov 14 2018 Mark Wielaard <mark@klomp.org> 0.175-1
-- readelf: Handle mutliple .debug_macro sections.
+- readelf: Handle multiple .debug_macro sections.
   Recognize and parse GNU Property notes, NT_VERSION notes and
   GNU Build Attribute ELF Notes.
 - strip: Handle SHT_GROUP correctly.
@@ -780,7 +792,7 @@ exit 0
 
 * Mon Feb 16 2009 Ulrich Drepper <drepper@redhat.com> 0.140-1
 - libelf: Fix regression in creation of section header
-- libdwfl: Less strict behavior if DWARF reader ist just used to
+- libdwfl: Less strict behavior if DWARF reader is just used to
   display data
 
 * Thu Jan 22 2009 Ulrich Drepper <drepper@redhat.com> 0.139-1
@@ -839,8 +851,8 @@ ET_REL
 * Mon Oct 15 2007 Ulrich Drepper <drepper@redhat.com> 0.130-1
 - readelf: -p option can take an argument like -x for one section,
 	 or no argument (as before) for all SHF_STRINGS sections;
-	 new option --archive-index (or -c);	 improved -n output fo
-r core files, on many machines
+	 new option --archive-index (or -c);	 improved -n output for
+core files, on many machines
 - libelf: new function elf_getdata_rawchunk, replaces gelf_rawchunk;
 	new functions gelf_getnote, gelf_getauxv, gelf_update_auxv
 - readelf, elflint: handle SHT_NOTE sections without requiring phdrs
@@ -1006,7 +1018,7 @@ symbols.
 - readelf: improve DWARF output format
 
 * Mon Apr  4 2005 Ulrich Drepper <drepper@redhat.com> 0.106-1
-- libdw: Updated dwarf.h from DWARF3 speclibdw: add new funtions dwarf_f
+- libdw: Updated dwarf.h from DWARF3 speclibdw: add new functions dwarf_f
 unc_entrypc, dwarf_func_file, dwarf_func_line,dwarf_func_col, dwarf_ge
 tsrc_file
 
@@ -1104,7 +1116,7 @@ tsrc_file
 * Wed Jan 22 2003 Jakub Jelinek <jakub@redhat.com> 0.72-4
 - fix arguments to gelf_getsymshndx and elf_getshstrndx
 - fix other warnings
-- reenable checks on s390x
+- re-enable checks on s390x
 
 * Sat Jan 11 2003 Karsten Hopp <karsten@redhat.de> 0.72-3
 - temporarily disable checks on s390x, until someone has

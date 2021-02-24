@@ -85,7 +85,7 @@ __libdwfl_elf_address_range (Elf *elf, GElf_Addr base, bool add_p_vaddr,
 	      const GElf_Addr next = (end + align - 1) & -align;
 	      if (shdr->sh_addr == 0
 		  /* Once we've started doing layout we have to do it all,
-		     unless we just layed out the first section at 0 when
+		     unless we just laid out the first section at 0 when
 		     it already was at 0.  */
 		  || (bias == 0 && end > start && end != next))
 		{

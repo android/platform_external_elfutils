@@ -50,6 +50,8 @@ OPTIONAL FUNCTIONS
 .BI "                                       long a, long b);"
 .BI "void debuginfod_set_progressfn(debuginfod_client *" client ","
 .BI "                               debuginfod_progressfn_t " progressfn ");"
+.BI "void debuginfod_set_verbose_fd(debuginfod_client *" client ","
+.BI "                               int " fd ");"
 .BI "void debuginfod_set_user_data(debuginfod_client *" client ","
 .BI "                              void *" data ");"
 .BI "void* debuginfod_get_user_data(debuginfod_client *" client ");"
@@ -80,7 +82,7 @@ be 0. Otherwise \fIbuild_id_len\fP should be the number of bytes in
 the binary blob.
 
 .BR debuginfod_find_source ()
-also requries a \fIfilename\fP in order to specify a particular
+also requires a \fIfilename\fP in order to specify a particular
 source file. \fIfilename\fP should be an absolute path that includes
 the compilation directory of the CU associated with the source file.
 Relative path names commonly appear in the DWARF file's source directory,
@@ -143,6 +145,15 @@ continue the work, or any other value to stop work as soon as
 possible.  Consequently, the \fBdebuginfod_find_*\fP() function will
 likely return with an error, but might still succeed.
 
+.SS "VERBOSE OUTPUT"
+
+The \fBdebuginfod_find_*\fP() functions may use several techniques
+to retrieve the requested files, through the cache or through one
+or multiple servers or file URLs. To show how a query is handled the
+.BR debuginfod_set_verbose_fd ()
+can be used to set a particular file descriptor on which verbose
+output is given about the query steps and eventual errors encountered.
+
 .SS "USER DATA POINTER"
 
 A single \fIvoid *\fP pointer associated with the connection handle
@@ -198,6 +209,21 @@ removed from the cache during cleaning. These files should contain only an
 ASCII decimal integer representing the interval or max unused age in seconds.
 The default is one day and one week, respectively.  Values of zero mean "immediately".
 
+.SH "MACROS"
+
+.SS "DEBUGINFOD_SONAME"
+
+Defined to the string that could be passed to
+.BR dlopen (3)
+if the library is loaded at runtime, for example
+
+.PP
+.in +4n
+.EX
+void *debuginfod_so = dlopen(DEBUGINFOD_SONAME, RTLD_LAZY);
+.EE
+.in
+
 .SH "SECURITY"
 .BR debuginfod_find_debuginfo (),
 .BR debuginfod_find_executable (),
@@ -236,6 +262,12 @@ progress message periodically to stderr.  The default is no progress
 function output.
 
 .TP 21
+.B DEBUGINFOD_VERBOSE
+This environment variable governs the default file descriptor for
+verbose output.  If set, and if a verbose fd is not explicitly set,
+then the verbose output will be produced on STDERR_FILENO.
+
+.TP 21
 .B DEBUGINFOD_CACHE_PATH
 This environment variable governs the location of the cache where
 downloaded files are kept.  It is cleaned periodically as this
@@ -259,7 +291,7 @@ couldn't be verified (bad certificate).
 
 .TP
 .BR ECONNRESET
-Unable to either send or recieve network data.
+Unable to either send or receive network data.
 
 .TP
 .BR EHOSTUNREACH
