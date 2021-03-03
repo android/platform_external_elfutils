@@ -34,7 +34,6 @@ AM_CPPFLAGS += -I$(srcdir) -I$(srcdir)/../libelf -I$(srcdir)/../libebl \
 	   -I$(srcdir)/../libdw -I$(srcdir)/../libdwelf \
 	   $(libmicrohttpd_CFLAGS) $(libcurl_CFLAGS) $(sqlite3_CFLAGS) \
 	   $(libarchive_CFLAGS)
-VERSION = 1
 
 # Disable eu- prefixing for artifacts (binaries & man pages) in this
 # directory, since they do not conflict with binutils tools.
@@ -71,10 +70,10 @@ bin_PROGRAMS += debuginfod-find
 endif
 
 debuginfod_SOURCES = debuginfod.cxx
-debuginfod_LDADD = $(libdw) $(libelf) $(libeu) $(libdebuginfod) $(libmicrohttpd_LIBS) $(sqlite3_LIBS) $(libarchive_LIBS) -lpthread -ldl
+debuginfod_LDADD = $(libdw) $(libelf) $(libeu) $(libdebuginfod) $(argp_LDADD) $(fts_LIBS) $(libmicrohttpd_LIBS) $(sqlite3_LIBS) $(libarchive_LIBS) -lpthread -ldl
 
 debuginfod_find_SOURCES = debuginfod-find.c
-debuginfod_find_LDADD = $(libdw) $(libelf) $(libeu) $(libdebuginfod)
+debuginfod_find_LDADD = $(libdw) $(libelf) $(libeu) $(libdebuginfod) $(argp_LDADD) $(fts_LIBS)
 
 if LIBDEBUGINFOD
 noinst_LIBRARIES = libdebuginfod.a
@@ -98,34 +97,35 @@ libdebuginfod_so_LIBS = libdebuginfod_pic.a
 if DUMMY_LIBDEBUGINFOD
 libdebuginfod_so_LDLIBS =
 else
-libdebuginfod_so_LDLIBS = $(libcurl_LIBS)
+libdebuginfod_so_LDLIBS = $(libcurl_LIBS) $(fts_LIBS)
 endif
-libdebuginfod.so$(EXEEXT): $(srcdir)/libdebuginfod.map $(libdebuginfod_so_LIBS)
+$(LIBDEBUGINFOD_SONAME): $(srcdir)/libdebuginfod.map $(libdebuginfod_so_LIBS)
 	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $@ \
-		-Wl,--soname,$@.$(VERSION) \
+		-Wl,--soname,$(LIBDEBUGINFOD_SONAME) \
 		-Wl,--version-script,$<,--no-undefined \
 		-Wl,--whole-archive $(libdebuginfod_so_LIBS) -Wl,--no-whole-archive \
 		$(libdebuginfod_so_LDLIBS)
 	@$(textrel_check)
-	$(AM_V_at)ln -fs $@ $@.$(VERSION)
-endif
 
-if LIBDEBUGINFOD
+libdebuginfod.so: $(LIBDEBUGINFOD_SONAME)
+	ln -fs $< $@
+
 install: install-am libdebuginfod.so
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	$(INSTALL_PROGRAM) libdebuginfod.so $(DESTDIR)$(libdir)/libdebuginfod-$(PACKAGE_VERSION).so
-	ln -fs libdebuginfod-$(PACKAGE_VERSION).so $(DESTDIR)$(libdir)/libdebuginfod.so.$(VERSION)
-	ln -fs libdebuginfod.so.$(VERSION) $(DESTDIR)$(libdir)/libdebuginfod.so
+	$(INSTALL_PROGRAM) $(LIBDEBUGINFOD_SONAME) \
+		$(DESTDIR)$(libdir)/libdebuginfod-$(PACKAGE_VERSION).so
+	ln -fs libdebuginfod-$(PACKAGE_VERSION).so $(DESTDIR)$(libdir)/$(LIBDEBUGINFOD_SONAME)
+	ln -fs libdebuginfod-$(PACKAGE_VERSION).so $(DESTDIR)$(libdir)/libdebuginfod.so
 
 uninstall: uninstall-am
 	rm -f $(DESTDIR)$(libdir)/libdebuginfod-$(PACKAGE_VERSION).so
-	rm -f $(DESTDIR)$(libdir)/libdebuginfod.so.$(VERSION)
+	rm -f $(DESTDIR)$(libdir)/$(LIBDEBUGINFOD_SONAME)
 	rm -f $(DESTDIR)$(libdir)/libdebuginfod.so
 	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(includedir)/elfutils
 endif
 
 EXTRA_DIST = libdebuginfod.map
-MOSTLYCLEANFILES = $(am_libdebuginfod_pic_a_OBJECTS) libdebuginfod.so.$(VERSION)
+MOSTLYCLEANFILES = $(am_libdebuginfod_pic_a_OBJECTS) $(LIBDEBUGINFOD_SONAME)
 CLEANFILES += $(am_libdebuginfod_pic_a_OBJECTS) libdebuginfod.so
 
 # automake std-options override: arrange to pass LD_LIBRARY_PATH

@@ -429,7 +429,7 @@
     <title><filename>libelf</filename> Internals</title>
 
     <simpara>Since the binary format handling tools need constant
-    attention since there are always new machines and varients
+    attention since there are always new machines and variants
     therefore coming out it is important to have the implementation
     well documented.  Only this way extensions can be made in the
     right places and the mistakes of the past avoided.</simpara>

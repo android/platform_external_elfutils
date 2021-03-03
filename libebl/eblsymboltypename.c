@@ -71,7 +71,7 @@ ebl_symbol_type_name (Ebl *ebl, int symbol, char *buf, size_t len)
 	  else if (symbol >= STT_LOOS && symbol <= STT_HIOS)
 	    snprintf (buf, len, "LOOS+%d", symbol - STT_LOOS);
 	  else
-	    snprintf (buf, len, gettext ("<unknown>: %d"), symbol);
+	    snprintf (buf, len, _("<unknown>: %d"), symbol);
 
 	  res = buf;
 	}

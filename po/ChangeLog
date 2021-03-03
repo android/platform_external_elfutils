@@ -1,3 +1,22 @@
+2021-02-05  Mark Wielaard  <mark@klomp.org>
+
+	* *.po: Update for 0.183.
+
+2020-12-15  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makevars: Sync with Makevars.template.
+	* .gitignore: New file.
+
+	* fr.po: Remove empty translation file.
+	* it.po: Likewise.
+	* nl.po: Likewise.
+	* ru.po: Likewise.
+	* zh_CN.po: Likewise.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* *.po (msgid): Fix spelling typos.
+
 2020-10-31  Mark Wielaard  <mark@klomp.org>
 
 	* *.po: Update for 0.182.

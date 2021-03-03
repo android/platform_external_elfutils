@@ -225,6 +225,75 @@ addrsize (uint_fast8_t elfclass)
   return elfclass * 4;
 }
 
+struct memory_closure
+{
+  Dwfl *dwfl;
+  Dwfl_Memory_Callback *callback;
+  void *arg;
+};
+
+static inline int
+release_buffer (struct memory_closure *closure,
+                void **buffer, size_t *buffer_available, int result)
+{
+  if (*buffer != NULL)
+    (*closure->callback) (closure->dwfl, -1, buffer, buffer_available, 0, 0,
+                          closure->arg);
+
+  return result;
+}
+
+static inline bool
+read_addrs (struct memory_closure *closure,
+	    uint_fast8_t elfclass, uint_fast8_t elfdata,
+	    void **buffer, size_t *buffer_available,
+	    GElf_Addr vaddr, GElf_Addr *read_vaddr,
+	    size_t n, GElf_Addr *addrs /* [4] */)
+{
+  size_t nb = n * addrsize (elfclass); /* Address words -> bytes to read.  */
+  Dwfl *dwfl = closure->dwfl;
+
+  /* Read a new buffer if the old one doesn't cover these words.  */
+  if (buffer == NULL
+      || vaddr < *read_vaddr
+      || vaddr - (*read_vaddr) + nb > *buffer_available)
+    {
+      release_buffer (closure, buffer, buffer_available, 0);
+
+      *read_vaddr = vaddr;
+      int segndx = INTUSE(dwfl_addrsegment) (dwfl, vaddr, NULL);
+      if (unlikely (segndx < 0)
+	  || unlikely (! (*closure->callback) (dwfl, segndx,
+					       buffer, buffer_available,
+					       vaddr, nb, closure->arg)))
+	return true;
+    }
+
+  Elf32_Addr (*a32)[n] = vaddr - (*read_vaddr) + (*buffer);
+  Elf64_Addr (*a64)[n] = (void *) a32;
+
+  if (elfclass == ELFCLASS32)
+    {
+      if (elfdata == ELFDATA2MSB)
+	for (size_t i = 0; i < n; ++i)
+	  addrs[i] = BE32 (read_4ubyte_unaligned_noncvt (&(*a32)[i]));
+      else
+	for (size_t i = 0; i < n; ++i)
+	  addrs[i] = LE32 (read_4ubyte_unaligned_noncvt (&(*a32)[i]));
+    }
+  else
+    {
+      if (elfdata == ELFDATA2MSB)
+	for (size_t i = 0; i < n; ++i)
+	  addrs[i] = BE64 (read_8ubyte_unaligned_noncvt (&(*a64)[i]));
+      else
+	for (size_t i = 0; i < n; ++i)
+	  addrs[i] = LE64 (read_8ubyte_unaligned_noncvt (&(*a64)[i]));
+    }
+
+  return false;
+}
+
 /* Report a module for each struct link_map in the linked list at r_map
    in the struct r_debug at R_DEBUG_VADDR.  For r_debug_info description
    see dwfl_link_map_report in libdwflP.h.  If R_DEBUG_INFO is not NULL then no
@@ -249,62 +318,13 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
 
   void *buffer = NULL;
   size_t buffer_available = 0;
-  inline int release_buffer (int result)
-  {
-    if (buffer != NULL)
-      (void) (*memory_callback) (dwfl, -1, &buffer, &buffer_available, 0, 0,
-				 memory_callback_arg);
-    return result;
-  }
-
   GElf_Addr addrs[4];
-  inline bool read_addrs (GElf_Addr vaddr, size_t n)
-  {
-    size_t nb = n * addrsize (elfclass); /* Address words -> bytes to read.  */
-
-    /* Read a new buffer if the old one doesn't cover these words.  */
-    if (buffer == NULL
-	|| vaddr < read_vaddr
-	|| vaddr - read_vaddr + nb > buffer_available)
-      {
-	release_buffer (0);
-
-	read_vaddr = vaddr;
-	int segndx = INTUSE(dwfl_addrsegment) (dwfl, vaddr, NULL);
-	if (unlikely (segndx < 0)
-	    || unlikely (! (*memory_callback) (dwfl, segndx,
-					       &buffer, &buffer_available,
-					       vaddr, nb, memory_callback_arg)))
-	  return true;
-      }
-
-    Elf32_Addr (*a32)[n] = vaddr - read_vaddr + buffer;
-    Elf64_Addr (*a64)[n] = (void *) a32;
-
-    if (elfclass == ELFCLASS32)
-      {
-	if (elfdata == ELFDATA2MSB)
-	  for (size_t i = 0; i < n; ++i)
-	    addrs[i] = BE32 (read_4ubyte_unaligned_noncvt (&(*a32)[i]));
-	else
-	  for (size_t i = 0; i < n; ++i)
-	    addrs[i] = LE32 (read_4ubyte_unaligned_noncvt (&(*a32)[i]));
-      }
-    else
-      {
-	if (elfdata == ELFDATA2MSB)
-	  for (size_t i = 0; i < n; ++i)
-	    addrs[i] = BE64 (read_8ubyte_unaligned_noncvt (&(*a64)[i]));
-	else
-	  for (size_t i = 0; i < n; ++i)
-	    addrs[i] = LE64 (read_8ubyte_unaligned_noncvt (&(*a64)[i]));
-      }
-
-    return false;
-  }
-
-  if (unlikely (read_addrs (read_vaddr, 1)))
-    return release_buffer (-1);
+  struct memory_closure memory_closure = { dwfl, memory_callback,
+                                           memory_callback_arg };
+  if (unlikely (read_addrs (&memory_closure, elfclass, elfdata,
+			    &buffer, &buffer_available, read_vaddr, &read_vaddr,
+			    1, addrs)))
+    return release_buffer (&memory_closure, &buffer, &buffer_available, -1);
 
   GElf_Addr next = addrs[0];
 
@@ -318,8 +338,10 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
   size_t iterations = 0;
   while (next != 0 && ++iterations < dwfl->lookup_elts)
     {
-      if (read_addrs (next, 4))
-	return release_buffer (-1);
+      if (read_addrs (&memory_closure, elfclass, elfdata,
+		      &buffer, &buffer_available, next, &read_vaddr,
+		      4, addrs))
+	return release_buffer (&memory_closure, &buffer, &buffer_available, -1);
 
       /* Unused: l_addr is the difference between the address in memory
          and the ELF file when the core was created. We need to
@@ -345,7 +367,7 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
 	name = l_name - read_vaddr + buffer;
       else
 	{
-	  release_buffer (0);
+	  release_buffer (&memory_closure, &buffer, &buffer_available, 0);
 	  read_vaddr = l_name;
 	  int segndx = INTUSE(dwfl_addrsegment) (dwfl, l_name, NULL);
 	  if (likely (segndx >= 0)
@@ -372,7 +394,8 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
 	  r_debug_info_module = malloc (sizeof (*r_debug_info_module)
 					+ strlen (name1) + 1);
 	  if (unlikely (r_debug_info_module == NULL))
-	    return release_buffer (result);
+	    release_buffer (&memory_closure, &buffer,
+                            &buffer_available, result);
 	  r_debug_info_module->fd = -1;
 	  r_debug_info_module->elf = NULL;
 	  r_debug_info_module->l_ld = l_ld;
@@ -413,7 +436,8 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
 		      GElf_Addr build_id_vaddr = (build_id_elfaddr
 						  - elf_dynamic_vaddr + l_ld);
 
-		      release_buffer (0);
+		      release_buffer (&memory_closure, &buffer,
+				      &buffer_available, 0);
 		      int segndx = INTUSE(dwfl_addrsegment) (dwfl,
 							     build_id_vaddr,
 							     NULL);
@@ -432,7 +456,9 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
 			    /* File has valid build-id which does not match
 			       the one in memory.  */
 			    valid = false;
-			  release_buffer (0);
+			  release_buffer (&memory_closure, &buffer,
+					  &buffer_available, 0);
+
 			}
 		    }
 
@@ -498,7 +524,7 @@ report_r_debug (uint_fast8_t elfclass, uint_fast8_t elfdata,
 	}
     }
 
-  return release_buffer (result);
+  return release_buffer (&memory_closure, &buffer, &buffer_available, result);
 }
 
 static GElf_Addr
@@ -758,31 +784,6 @@ dwfl_link_map_report (Dwfl *dwfl, const void *auxv, size_t auxv_size,
       GElf_Xword dyn_filesz = 0;
       GElf_Addr dyn_bias = (GElf_Addr) -1;
 
-      inline bool consider_phdr (GElf_Word type,
-				 GElf_Addr vaddr, GElf_Xword filesz)
-      {
-	switch (type)
-	  {
-	  case PT_PHDR:
-	    if (dyn_bias == (GElf_Addr) -1
-		/* Do a sanity check on the putative address.  */
-		&& ((vaddr & (dwfl->segment_align - 1))
-		    == (phdr & (dwfl->segment_align - 1))))
-	      {
-		dyn_bias = phdr - vaddr;
-		return dyn_vaddr != 0;
-	      }
-	    break;
-
-	  case PT_DYNAMIC:
-	    dyn_vaddr = vaddr;
-	    dyn_filesz = filesz;
-	    return dyn_bias != (GElf_Addr) -1;
-	  }
-
-	return false;
-      }
-
       if (phdr != 0 && phnum != 0)
 	{
 	  Dwfl_Module *phdr_mod;
@@ -895,22 +896,39 @@ dwfl_link_map_report (Dwfl *dwfl, const void *auxv, size_t auxv_size,
 			   ? elf32_xlatetom : elf64_xlatetom)
 			  (&out, &in, elfdata) != NULL))
 		{
-		  /* We are looking for PT_DYNAMIC.  */
-		  if (elfclass == ELFCLASS32)
+		  bool is32 = (elfclass == ELFCLASS32);
+		  for (size_t i = 0; i < phnum; ++i)
 		    {
-		      for (size_t i = 0; i < phnum; ++i)
-			if (consider_phdr ((*p32)[i].p_type,
-					   (*p32)[i].p_vaddr,
-					   (*p32)[i].p_filesz))
-			  break;
-		    }
-		  else
-		    {
-		      for (size_t i = 0; i < phnum; ++i)
-			if (consider_phdr ((*p64)[i].p_type,
-					   (*p64)[i].p_vaddr,
-					   (*p64)[i].p_filesz))
-			  break;
+		      GElf_Word type = (is32
+					? (*p32)[i].p_type
+					: (*p64)[i].p_type);
+		      GElf_Addr vaddr = (is32
+					 ? (*p32)[i].p_vaddr
+					 : (*p64)[i].p_vaddr);
+		      GElf_Xword filesz = (is32
+					   ? (*p32)[i].p_filesz
+					   : (*p64)[i].p_filesz);
+
+		      if (type == PT_PHDR)
+			{
+			  if (dyn_bias == (GElf_Addr) -1
+			      /* Do a sanity check on the putative address.  */
+			      && ((vaddr & (dwfl->segment_align - 1))
+				  == (phdr & (dwfl->segment_align - 1))))
+			    {
+			      dyn_bias = phdr - vaddr;
+			      if (dyn_vaddr != 0)
+				break;
+			    }
+
+			}
+		      else if (type == PT_DYNAMIC)
+			{
+			  dyn_vaddr = vaddr;
+			  dyn_filesz = filesz;
+			  if (dyn_bias != (GElf_Addr) -1)
+			    break;
+			}
 		    }
 		}
 
