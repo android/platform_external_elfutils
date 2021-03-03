@@ -34,6 +34,10 @@
 #define DEBUGINFOD_CACHE_PATH_ENV_VAR "DEBUGINFOD_CACHE_PATH"
 #define DEBUGINFOD_TIMEOUT_ENV_VAR "DEBUGINFOD_TIMEOUT"
 #define DEBUGINFOD_PROGRESS_ENV_VAR "DEBUGINFOD_PROGRESS"
+#define DEBUGINFOD_VERBOSE_ENV_VAR "DEBUGINFOD_VERBOSE"
+
+/* The libdebuginfod soname.  */
+#define DEBUGINFOD_SONAME "@LIBDEBUGINFOD_SONAME@"
 
 /* Handle for debuginfod-client connection.  */
 typedef struct debuginfod_client debuginfod_client;
@@ -74,6 +78,8 @@ int debuginfod_find_source (debuginfod_client *client,
 typedef int (*debuginfod_progressfn_t)(debuginfod_client *c, long a, long b);
 void debuginfod_set_progressfn(debuginfod_client *c,
 			       debuginfod_progressfn_t fn);
+
+void debuginfod_set_verbose_fd(debuginfod_client *c, int fd);
 
 /* Set the user parameter.  */
 void debuginfod_set_user_data (debuginfod_client *client, void *value);

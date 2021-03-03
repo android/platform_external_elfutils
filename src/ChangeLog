@@ -1,3 +1,148 @@
+2021-02-03 Timm Bäder <tbaeder@redhat.com>
+
+	* ar.c (do_oper_extract): Extract should_truncate_fname function
+	to...
+	(should_truncate_fname): ...here. New file scope function taking
+	size_t pointer to be read and/or set.
+
+2021-02-02 Timm Bäder <tbaeder@redhat.com>
+
+	* readelf.c (print_debug_line_section): Remove unnecessary
+	show_op_index variable, replace with (op_index > 0).
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* readelf.c (print_cfa_program): Lift regname function to...
+	(regname): ...here. New file scope function add ebl and regnamebuf
+	as arguments.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* readelf.c (print_attributes): Lift left function to...
+	(left): ...here. New file scope function taking Elf_Data and char
+	pointers.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* readelf.c (handle_core_registers): Lift same_set function to...
+	(same_set): ...here. New file scope function adding regs and
+	maxnreg arguments.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* readelf.c (parse_opt): Lift add_dump_section function to...
+	(add_dump_section): ...here. New top level function. Added key
+	argument.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* arlib-argp.c (help_filter): Lift text_for_default function to...
+	(text_for_default): ... here. New file scope function taking text
+	as argument.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* addr2line.c (handle_address): Move show_note and show_int up to
+	file scope.
+	(show_note: New static inline function.
+	(show_int): Likewise.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* strip.c (handle_elf): Remove no_symtab_updates function and
+	calls inside the switch statement. Add checks and (possibly)
+	continue, before switch statement is called.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* strip.c (handle_elf): Move inlined update_section_size function
+	to...
+	(update_section_size): ...here. New static function that takes as
+	extra arguments the Elf_Scn, debug_elf, section cnt and fname.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* strip.c (remove_debug_relocations): Rewrite inlined relocate
+	function to file static. Do R_*_NONE, reloc_simple_type and
+	ebl_debug_scn_p checks before calling new relocate function.
+	(relocate): New file static function from
+	remove_debug_relocate. Remove R_*_NONE, reloc_simple_type and
+	ebl_debugscn_p checks.
+
+2021-01-08  Timm Bäder  <tbaeder@redhat.com>
+
+	* strip.c (handle_elf): Expand inlined function check_preserved.
+
+2021-01-12  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (EXTRA_SHFLAGS): New define.
+	(check_sections): Use EXTRA_SHFLAGS. Add SHF_GNU_RETAIN to
+	ALL_SH_FLAGS.
+
+2020-12-31  Sergei Trofimovich  <slyfox@gentoo.org>
+
+	* elflint.c (section_flags_string): Add NEWFLAG for GNU_RETAIN,
+	ORDERED and EXCLUDE.
+
+2020-12-31  Sergei Trofimovich  <slyfox@gentoo.org>
+
+	* elflint.c (section_flags_string): Update cp pointer after
+	snprintf for unknown flags.
+
+2020-12-16  Érico Nogueira  <ericonr@disroot.org>
+
+	* readelf.c (qsort_r): Use qsort for improved portability.
+
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: New file.
+
+2020-12-12  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_sections): Handle SHF_GNU_RETAIN.
+	* readelf.c (print_shdr): Likewise.
+
+2020-12-16  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* *.c: Replace gettext(...) with _(...).
+
+	* unstrip.c (_): Remove.
+
+2020-12-15  Mark Wielaard  <mark@klomp.org>
+
+	* elflint.c (check_symtab): Always print symbol name (if known)
+	in error messages.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* ar.c (write_member, do_oper_insert): Fix spelling typo in comment.
+	* elfclassify.c (issue, elf_issue, is_unstripped): Likewise.
+	* elfcompress.c (process_file): Likewise.
+	* elflint.c (be_quiet, check_gnu_hash): Likewise.
+	* readelf.c (print_phdr, handle_gnu_hash,
+	dwarf_locexpr_opcode_string): Likewise.
+	* size.c (totals_class): Likewise.
+	* strings.c (read_elf): Likewise.
+	* strip.c (handle_elf): Likewise.
+
+	* readelf.c (print_debug_addr_section): Fix spelling typo in error
+	diagnostics.
+	* strip.c (options): Fix spelling typos in argp help text.
+	* strings.c (options): Likewise.
+	* stack.c (options): Likewise.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* unstrip.c (make_directories): Use ACCESSPERMS for mkdir.
+	(handle_file): Use DEFFILEMODE for open with O_CREAT for ET_REL
+	files, ACCESSPERMS otherwise.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* Makefile.am (nm_LDADD): Add obstack_LIBS.
+	(ranlib_LDADD): Likewise.
+	(ar_LDADD): Likewise.
+
 2020-10-27  Érico N. Rolim  <erico.erc@gmail.com>
 
 	* unstrip.c (make_directories): Use strndup, not strndupa.
@@ -2778,7 +2923,7 @@
 	(show_symbols_posix): Likewise.
 	(show_symbols): Adjust calls to show_symbols_bsd and
 	show_symbols_posix.
-	(show_symbols_sysv): Avoid printing adress and size for undefined
+	(show_symbols_sysv): Avoid printing address and size for undefined
 	symbols.  Don't print initial special entry and section entries.
 
 2011-10-02  Ulrich Drepper  <drepper@gmail.com>
@@ -3614,7 +3759,7 @@
 
 	* elflint.c (check_group): Check that signature symbol for section
 	group is not an empty string.
-	* ldgeneric.c: Remove magic assignment of indeces in the dynsym
+	* ldgeneric.c: Remove magic assignment of indices in the dynsym
 	section.  Start implementation of --hash-style.
 	* i386_ld.c: Likewise.
 	* ld.c: Recognize --hash-style.

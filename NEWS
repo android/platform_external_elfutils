@@ -1,3 +1,20 @@
+Version 0.183
+
+debuginfod: New thread-busy metric and more detailed error metrics.
+            New --fdcache-mintmp and tracking of filesystem freespace.
+            New increased webapi concurrency while grooming.
+
+debuginfod-client: DEBUGINFOD_SONAME macro added to debuginfod.h which
+                   can be used to dlopen the libdebuginfod.so library.
+                   New function debuginfod_set_verbose_fd and
+                   DEBUGINFOD_VERBOSE environment variable.
+
+config: profile.sh and profile.csh won't export DEBUGINFOD_URLS unless
+        configured --enable-debuginfod-urls[=URLS]
+
+elflint, readelf: Recognize SHF_GNU_RETAIN.
+                  Handle SHT_X86_64_UNWIND as valid relocation target.
+
 Version 0.182
 
 backends: Support for tilegx has been removed.
@@ -128,7 +145,7 @@ Fixes CVE-2019-7146, CVE-2019-7148, CVE-2019-7149, CVE-2019-7150,
 
 Version 0.175
 
-readelf: Handle mutliple .debug_macro sections.
+readelf: Handle multiple .debug_macro sections.
          Recognize and parse GNU Property notes, NT_VERSION notes
          and GNU Build Attribute ELF Notes.
 
@@ -629,7 +646,7 @@ Version 0.140:
 
 libelf: Fix regression in creation of section header
 
-libdwfl: Less strict behavior if DWARF reader ist just used to display data
+libdwfl: Less strict behavior if DWARF reader is just used to display data
 
 Version 0.139:
 
@@ -939,7 +956,7 @@ strip: support Linux kernel modules
 Version 0.106:
 
 libdw: Updated dwarf.h from DWARF3 spec
-libdw: add new funtions dwarf_func_entrypc, dwarf_func_file, dwarf_func_line,
+libdw: add new functions dwarf_func_entrypc, dwarf_func_file, dwarf_func_line,
 dwarf_func_col, dwarf_getsrc_file
 
 Version 0.105:
@@ -1049,7 +1066,7 @@ libelf: change to GPL from OSL1 for now.
 Version 0.90:
 
 libebl: Recognize a few more section types and dynamic tags and return
-approriate strings.
+appropriate strings.
 
 Version 0.89:
 
@@ -1151,11 +1168,11 @@ Version 0.73:
 
 Version 0.72:
 
-libelf: and yet more fun with endian tranformation at output time.
+libelf: and yet more fun with endian transformation at output time.
 
 Version 0.71:
 
-libelf: more fun with endian tranformation at output time.  Add test for it.
+libelf: more fun with endian transformation at output time.  Add test for it.
 
 Version 0.70:
 
@@ -1166,7 +1183,7 @@ libelf: add unlikely in some more places.
 
 Version 0.69:
 
-libelf: fix output routines to handle case where section indeces and
+libelf: fix output routines to handle case where section indices and
 ordre in the output file don't match correctly.  Patch by Jakub.
 
 elflint: fix test of note section content for 64-bit platforms and files
@@ -1341,7 +1358,7 @@ General: fix a few problem gcc 3.1 had with the code.
 
 libelf: implement {gelf,elf32,elf64}_checksum
 
-libelf: optimze DSO: fewer relocations, fewer PLTs
+libelf: optimize DSO: fewer relocations, fewer PLTs
 
 add msg_tst test
 
@@ -1586,7 +1603,7 @@ Version 0.16:
 
 more work on assigning input sections to output sections.
 
-Add gelf_xlatetof and gelf_xlatetom which were accidently left out.
+Add gelf_xlatetof and gelf_xlatetom which were accidentally left out.
 
 Fix memory handling of section headers.
 

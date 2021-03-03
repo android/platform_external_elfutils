@@ -38,9 +38,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-/* gettext helper macros.  */
-#define _(Str) dgettext ("elfutils", Str)
-
 
 #define OPT_DEBUGINFO	0x100
 #define OPT_COREFILE	0x101
