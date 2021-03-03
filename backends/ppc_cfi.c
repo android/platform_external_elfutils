@@ -42,7 +42,7 @@ ppc_abi_cfi (Ebl *ebl __attribute__ ((unused)), Dwarf_CIE *abi_info)
     {
       /* This instruction is provided in every CIE.  It is not repeated here:
 	 DW_CFA_def_cfa, ULEB128_7 (1), ULEB128_7 (0)  */
-      /* r1 is assumed to be restored from cfa adress,
+      /* r1 is assumed to be restored from cfa address,
 	 r1 acts as a stack frame pointer.  */
       DW_CFA_val_offset, ULEB128_7 (1), ULEB128_7 (0),
       /* lr is not callee-saved but it needs to be preserved as it is pre-set

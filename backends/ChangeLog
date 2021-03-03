@@ -1,3 +1,18 @@
+2021-02-01  Érico Nogueira  <ericonr@disroot.org>
+
+	* ppc_initreg.c: Also include <asm/ptrace.h>.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* aarch64_retval.c (aarch64_return_value_location): Fix spelling typo
+	in comment.
+	* ppc_cfi.c (ppc_abi_cfi): Likewise.
+
+2020-11-17  Mark Wielard  <mark@klomp.org>
+
+	* x86_64_symbol.c (x86_64_check_reloc_target_type): New function.
+	* x86_64_init.c (x86_64_init): Hook check_reloc_target_type.
+
 2020-10-19  Mark Wielard  <mark@klomp.org>
 
 	* Makefile.am (modules): Remove tilegx.

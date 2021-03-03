@@ -588,7 +588,7 @@ i386_disasm (Ebl *ebl __attribute__((unused)),
 	    }
 
 	  /* We have a match.  First determine how many bytes are
-	     needed for the adressing mode.  */
+	     needed for the addressing mode.  */
 	  param_start = codep;
 	  if (instrtab[cnt].modrm)
 	    {

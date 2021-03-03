@@ -55,7 +55,7 @@ ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name, uint32_t type,
 	{
 	  if (type != 3)
 	    {
-	      printf (gettext ("unknown SDT version %u\n"), type);
+	      printf (_("unknown SDT version %u\n"), type);
 	      return;
 	    }
 
@@ -73,7 +73,7 @@ ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name, uint32_t type,
 	  if (descsz < addrs_size + 3)
 	    {
 	    invalid_sdt:
-	      printf (gettext ("invalid SDT probe descriptor\n"));
+	      printf (_("invalid SDT probe descriptor\n"));
 	      return;
 	    }
 
@@ -123,17 +123,17 @@ ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name, uint32_t type,
 	      sem = addrs.a64[2];
 	    }
 
-	  printf (gettext ("    PC: "));
+	  printf (_("    PC: "));
 	  printf ("%#" PRIx64 ",", pc);
-	  printf (gettext (" Base: "));
+	  printf (_(" Base: "));
 	  printf ("%#" PRIx64 ",", base);
-	  printf (gettext (" Semaphore: "));
+	  printf (_(" Semaphore: "));
 	  printf ("%#" PRIx64 "\n", sem);
-	  printf (gettext ("    Provider: "));
+	  printf (_("    Provider: "));
 	  printf ("%s,", provider);
-	  printf (gettext (" Name: "));
+	  printf (_(" Name: "));
 	  printf ("%s,", pname);
-	  printf (gettext (" Args: "));
+	  printf (_(" Args: "));
 	  printf ("'%s'\n", args);
 	  return;
 	}
@@ -297,7 +297,7 @@ ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name, uint32_t type,
 	case NT_GNU_BUILD_ID:
 	  if (strcmp (name, "GNU") == 0 && descsz > 0)
 	    {
-	      printf (gettext ("    Build ID: "));
+	      printf (_("    Build ID: "));
 	      uint_fast32_t i;
 	      for (i = 0; i < descsz - 1; ++i)
 		printf ("%02" PRIx8, (uint8_t) desc[i]);
@@ -308,7 +308,7 @@ ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name, uint32_t type,
 	case NT_GNU_GOLD_VERSION:
 	  if (strcmp (name, "GNU") == 0 && descsz > 0)
 	    /* A non-null terminated version string.  */
-	    printf (gettext ("    Linker version: %.*s\n"),
+	    printf (_("    Linker version: %.*s\n"),
 		    (int) descsz, desc);
 	  break;
 
@@ -635,7 +635,7 @@ ebl_object_note (Ebl *ebl, uint32_t namesz, const char *name, uint32_t type,
 		      break;
 		    }
 
-		  printf (gettext ("    OS: %s, ABI: "), os);
+		  printf (_("    OS: %s, ABI: "), os);
 		  for (size_t cnt = 1; cnt < descsz / 4; ++cnt)
 		    {
 		      if (cnt > 1)

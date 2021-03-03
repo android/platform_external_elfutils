@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "system.h"
 
 #include ELFUTILS_HEADER(dwelf)
 
@@ -50,7 +51,7 @@ main (int argc, char *argv[] __attribute__ ((unused)))
   Dwelf_Strent *shstrtabse;
   int i;
 
-  fd = open (fname, O_RDWR | O_CREAT | O_TRUNC, 0666);
+  fd = open (fname, O_RDWR | O_CREAT | O_TRUNC, DEFFILEMODE);
   if (fd == -1)
     {
       printf ("cannot open `%s': %s\n", fname, strerror (errno));

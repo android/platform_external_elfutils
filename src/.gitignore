@@ -1,0 +1,17 @@
+/addr2line
+/ar
+/elfclassify
+/elfcmp
+/elfcompress
+/elflint
+/findtextrel
+/make-debug-archive
+/nm
+/objdump
+/ranlib
+/readelf
+/size
+/stack
+/strings
+/strip
+/unstrip
