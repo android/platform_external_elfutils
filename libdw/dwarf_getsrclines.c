@@ -757,7 +757,7 @@ read_srclines (Dwarf *dbg,
 
 	    case DW_LNE_set_address:
 	      /* The value is an address.  The size is defined as
-		 apporiate for the target machine.  We use the
+		 appropriate for the target machine.  We use the
 		 address size field from the CU header.  */
 	      state.op_index = 0;
 	      if (unlikely (lineendp - linep < (uint8_t) address_size))

@@ -332,7 +332,7 @@ main (int argc, char **argv)
     if (unlikely (secndx == 0 || secndx == shdrstrndx || secndx >= shdrnum))
       {
 	/* Don't use fail... too specialized messages.  Call release
-	   outselves and then error.  Ignores midx if widx is
+	   ourselves and then error.  Ignores midx if widx is
 	   zero.  */
 	release ();
 	if (widx == 0)
@@ -543,7 +543,7 @@ main (int argc, char **argv)
 	      {
 		new_data_buf (newdata);
 		/* A section group contains Elf32_Words. The first
-		   word is a falg value, the rest of the words are
+		   word is a flag value, the rest of the words are
 		   indexes of the sections belonging to the group.  */
 		Elf32_Word *group = (Elf32_Word *) data->d_buf;
 		Elf32_Word *newgroup = (Elf32_Word *) newdata->d_buf;

@@ -51,7 +51,7 @@ static int file_fd = -1;
 /* Set by issue or elf_issue.  */
 static bool issue_found;
 
-/* Non-fatal issue occured while processing the current_path.  */
+/* Non-fatal issue occurred while processing the current_path.  */
 static void
 issue (int e, const char *msg)
 {
@@ -65,7 +65,7 @@ issue (int e, const char *msg)
   issue_found = true;
 }
 
-/* Non-fatal issue occured while processing the current ELF.  */
+/* Non-fatal issue occurred while processing the current ELF.  */
 static void
 elf_issue (const char *msg)
 {
@@ -464,7 +464,7 @@ is_loadable (void)
 }
 
 /* Return true if the file is an ELF file which has a symbol table or
-   .debug_* sections (and thus can be stripped futher).  */
+   .debug_* sections (and thus can be stripped further).  */
 static bool
 is_unstripped (void)
 {

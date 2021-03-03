@@ -135,7 +135,7 @@ Time-stamp: <2009-02-05 22:08:01 drepper>
 
    check whether any relocation is for a merge-able section
 
-   check TLS relocation depencies
+   check TLS relocation dependencies
 
    Check content of .eh_frame_hdr, .eh_frame, .gcc_except_table
 
