@@ -17,13 +17,16 @@ dnl  GNU General Public License for more details.
 dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-AC_INIT([elfutils],[0.182],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
+AC_INIT([elfutils],[0.183],[https://sourceware.org/bugzilla],[elfutils],[http://elfutils.org/])
 
 dnl Workaround for older autoconf < 2.64
 m4_ifndef([AC_PACKAGE_URL],
          [AC_DEFINE([PACKAGE_URL], ["http://elfutils.org/"],
                     [Define to home page for this package])
           AC_SUBST([PACKAGE_URL], ["http://elfutils.org/"])])
+
+LIBDEBUGINFOD_SONAME=libdebuginfod.so.1
+AC_SUBST([LIBDEBUGINFOD_SONAME])
 
 # We want eu- as default program prefix if none was given by the user.
 # But if the user explicitly provided --program-prefix="" then pretend
@@ -41,7 +44,7 @@ fi
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_FILES([config/Makefile])
 
-AC_COPYRIGHT([Copyright (C) 1996-2020 The elfutils developers.])
+AC_COPYRIGHT([Copyright (C) 1996-2021 The elfutils developers.])
 AC_PREREQ(2.63)			dnl Minimum Autoconf version required.
 
 dnl We use GNU make extensions; automake 1.10 defaults to -Wportability.
@@ -54,14 +57,11 @@ AC_CONFIG_SRCDIR([libelf/libelf.h])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_HEADERS([config.h])
 
-AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_FILES([m4/Makefile])
-
 dnl The RPM spec file.  We substitute a few values in the file.
 AC_CONFIG_FILES([elfutils.spec:config/elfutils.spec.in])
 
 dnl debuginfo-server client & server parts.
-AC_CONFIG_FILES([debuginfod/Makefile])
+AC_CONFIG_FILES([debuginfod/Makefile debuginfod/debuginfod.h])
 
 AC_CANONICAL_HOST
 
@@ -237,7 +237,7 @@ LDFLAGS="$save_LDFLAGS"])
 AS_IF([test "x$ac_cv_tls" != xyes],
       AC_MSG_ERROR([__thread support required]))
 
-dnl Before 4.9 gcc doesn't ship stdatomic.h, but the nessesary atomics are
+dnl Before 4.9 gcc doesn't ship stdatomic.h, but the necessary atomics are
 dnl available by (at least) 4.7. So if the system doesn't have a stdatomic.h we
 dnl fall back on one copied from FreeBSD that handles the difference.
 AC_CACHE_CHECK([whether gcc provides stdatomic.h], ac_cv_has_stdatomic,
@@ -295,7 +295,7 @@ case $use_debugpred in
 esac
 AC_SUBST([DEBUGPRED], $use_debugpred_val)
 
-dnl Enable gprof suport.
+dnl Enable gprof support.
 AC_ARG_ENABLE([gprof],
 AS_HELP_STRING([--enable-gprof],[build binaries with gprof support]), [use_gprof=$enableval], [use_gprof=no])
 if test "$use_gprof" = yes; then
@@ -304,13 +304,16 @@ if test "$use_gprof" = yes; then
 fi
 AM_CONDITIONAL(GPROF, test "$use_gprof" = yes)
 
-# Enable gcov suport.
+# Enable gcov support.
 AC_ARG_ENABLE([gcov],
 AS_HELP_STRING([--enable-gcov],[build binaries with gcov support]), [use_gcov=$enableval], [use_gcov=no])
 if test "$use_gcov" = yes; then
   CFLAGS="$CFLAGS -fprofile-arcs -ftest-coverage"
   CXXFLAGS="$CXXFLAGS -fprofile-arcs -ftest-coverage"
   LDFLAGS="$LDFLAGS -fprofile-arcs"
+  AC_CHECK_PROG([GCOV], [gcov], [gcov])
+  AC_CHECK_PROG([LCOV], [lcov], [lcov])
+  AC_CHECK_PROG([GENHTML], [genhtml], [genhtml])
 fi
 AM_CONDITIONAL(GCOV, test "$use_gcov" = yes)
 
@@ -425,6 +428,11 @@ AC_CHECK_DECLS([mempcpy],[],[],
 
 AC_CHECK_FUNCS([process_vm_readv])
 
+old_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -D_GNU_SOURCE"
+AC_FUNC_STRERROR_R()
+CFLAGS="$old_CFLAGS"
+
 AC_CHECK_LIB([stdc++], [__cxa_demangle], [dnl
 AC_DEFINE([USE_DEMANGLE], [1], [Defined if demangling is enabled])])
 AM_CONDITIONAL(DEMANGLE, test "x$ac_cv_lib_stdcpp___cxa_demangle" = "xyes")
@@ -517,30 +525,35 @@ if test "$ac_cv_implicit_fallthrough" = "yes"; then
 		  [Defined if __attribute__((fallthrough)) is supported])
 fi
 
-dnl Check if we have argp available from our libc
-AC_LINK_IFELSE(
-	[AC_LANG_PROGRAM(
-		[#include <argp.h>],
-		[int argc=1; char *argv[]={"test"}; argp_parse(0,argc,&argv,0,0,0); return 0;]
-		)],
-	[libc_has_argp="true"],
-	[libc_has_argp="false"]
-)
-
-dnl If our libc doesn't provide argp, then test for libargp
-if test "$libc_has_argp" = "false" ; then
-	AC_MSG_WARN("libc does not have argp")
-	AC_CHECK_LIB([argp], [argp_parse], [have_argp="true"], [have_argp="false"])
-
-	if test "$have_argp" = "false"; then
-		AC_MSG_ERROR("no libargp found")
-	else
-		argp_LDADD="-largp"
-	fi
-else
-	argp_LDADD=""
-fi
+saved_LIBS="$LIBS"
+AC_SEARCH_LIBS([argp_parse], [argp])
+LIBS="$saved_LIBS"
+case "$ac_cv_search_argp_parse" in
+        no) AC_MSG_FAILURE([failed to find argp_parse]) ;;
+        -l*) argp_LDADD="$ac_cv_search_argp_parse" ;;
+        *) argp_LDADD= ;;
+esac
 AC_SUBST([argp_LDADD])
+
+saved_LIBS="$LIBS"
+AC_SEARCH_LIBS([fts_close], [fts])
+LIBS="$saved_LIBS"
+case "$ac_cv_search_fts_close" in
+        no) AC_MSG_FAILURE([failed to find fts_close]) ;;
+        -l*) fts_LIBS="$ac_cv_search_fts_close" ;;
+        *) fts_LIBS= ;;
+esac
+AC_SUBST([fts_LIBS])
+
+saved_LIBS="$LIBS"
+AC_SEARCH_LIBS([_obstack_free], [obstack])
+LIBS="$saved_LIBS"
+case "$ac_cv_search__obstack_free" in
+        no) AC_MSG_FAILURE([failed to find _obstack_free]) ;;
+        -l*) obstack_LIBS="$ac_cv_search__obstack_free" ;;
+        *) obstack_LIBS= ;;
+esac
+AC_SUBST([obstack_LIBS])
 
 dnl The directories with content.
 
@@ -569,7 +582,6 @@ dnl CPU handling library.
 AC_CONFIG_FILES([libcpu/Makefile])
 
 dnl Assembler library.
-AM_CONDITIONAL(HAVE_LIBASM, true)dnl Used in tests/Makefile.am, which see.
 AC_CONFIG_FILES([libasm/Makefile])
 
 dnl CPU-specific backend libraries.
@@ -579,16 +591,21 @@ dnl Tools.
 AC_CONFIG_FILES([src/Makefile po/Makefile.in])
 
 dnl Test suite.
-AM_CONDITIONAL(STANDALONE, false)dnl Used in tests/Makefile.am, which see.
 AC_CONFIG_FILES([tests/Makefile])
 
 dnl pkgconfig files
 AC_CONFIG_FILES([config/libelf.pc config/libdw.pc config/libdebuginfod.pc])
 
-# Get the definitions necessary to create the Makefiles in the po
-# subdirectories.  This is a small subset of the gettext rules.
-AC_SUBST(USE_NLS, yes)
-AM_PO_SUBDIRS
+dnl As long as "git grep 'PRI[diouxX]' po" reports matches in
+dnl translatable strings, we must use need-formatstring-macros here.
+AM_GNU_GETTEXT([external], [need-formatstring-macros])
+
+dnl AM_GNU_GETTEXT_VERSION is still needed for old versions
+dnl of autoreconf that do not recognize AM_GNU_GETTEXT_REQUIRE_VERSION.
+dnl 0.19.6 is the first version of gettext that provides
+dnl AM_GNU_GETTEXT_REQUIRE_VERSION support.
+AM_GNU_GETTEXT_VERSION([0.19.6])
+AM_GNU_GETTEXT_REQUIRE_VERSION([0.19.6])
 
 dnl Appended to the config.h file.
 dnl We hide all kinds of configuration magic in lib/eu-config.h.

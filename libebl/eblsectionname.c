@@ -80,7 +80,7 @@ ebl_section_name (Ebl *ebl, int section, int xsection, char *buf, size_t len,
 	  else if (section >= SHN_LORESERVE && section <= SHN_HIRESERVE)
 	    snprintf (buf, len, "LORESERVE+%x", section - SHN_LORESERVE);
 	  else
-	    snprintf (buf, len, "%s: %d", gettext ("<unknown>"), section);
+	    snprintf (buf, len, "%s: %d", _("<unknown>"), section);
 
 	  res = buf;
 	}

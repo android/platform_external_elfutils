@@ -124,7 +124,7 @@ read_cached_memory (struct __libdwfl_pid_arg *pid_arg,
 		    Dwarf_Addr addr, Dwarf_Word *result)
 {
   /* Let the ptrace fallback deal with the corner case of the address
-     possibly crossing a page boundery.  */
+     possibly crossing a page boundary.  */
   if ((addr & ((Dwarf_Addr)__LIBDWFL_REMOTE_MEM_CACHE_SIZE - 1))
       > (Dwarf_Addr)__LIBDWFL_REMOTE_MEM_CACHE_SIZE - sizeof (unsigned long))
     return false;
@@ -193,14 +193,22 @@ pid_memory_read (Dwfl *dwfl, Dwarf_Addr addr, Dwarf_Word *result, void *arg)
 {
   struct __libdwfl_pid_arg *pid_arg = arg;
   pid_t tid = pid_arg->tid_attached;
+  Dwfl_Process *process = dwfl->process;
   assert (tid > 0);
 
 #ifdef HAVE_PROCESS_VM_READV
   if (read_cached_memory (pid_arg, addr, result))
+    {
+#if SIZEOF_LONG == 8
+# if BYTE_ORDER == BIG_ENDIAN
+      if (ebl_get_elfclass (process->ebl) == ELFCLASS32)
+	*result >>= 32;
+# endif
+#endif
     return true;
+    }
 #endif
 
-  Dwfl_Process *process = dwfl->process;
   if (ebl_get_elfclass (process->ebl) == ELFCLASS64)
     {
 #if SIZEOF_LONG == 8

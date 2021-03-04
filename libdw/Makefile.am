@@ -36,7 +36,7 @@ VERSION = 1
 
 lib_LIBRARIES = libdw.a
 noinst_LIBRARIES = libdw_pic.a
-noinst_PROGRAMS = $(noinst_LIBRARIES:_pic.a=.so)
+noinst_DATA = $(noinst_LIBRARIES:_pic.a=.so)
 
 include_HEADERS = dwarf.h
 pkginclude_HEADERS = libdw.h known-dwarf.h
@@ -109,9 +109,8 @@ libdw_so_LIBS = ../libebl/libebl_pic.a ../backends/libebl_backends_pic.a \
 		../libcpu/libcpu_pic.a libdw_pic.a ../libdwelf/libdwelf_pic.a \
 		../libdwfl/libdwfl_pic.a
 libdw_so_DEPS = ../lib/libeu.a ../libelf/libelf.so
-libdw_so_LDLIBS = $(libdw_so_DEPS) -ldl -lz $(argp_LDADD) $(zip_LIBS) -pthread
-libdw_so_SOURCES =
-libdw.so$(EXEEXT): $(srcdir)/libdw.map $(libdw_so_LIBS) $(libdw_so_DEPS)
+libdw_so_LDLIBS = $(libdw_so_DEPS) -ldl -lz $(argp_LDADD) $(fts_LIBS) $(obstack_LIBS) $(zip_LIBS) -pthread
+libdw.so: $(srcdir)/libdw.map $(libdw_so_LIBS) $(libdw_so_DEPS)
 	$(AM_V_CCLD)$(LINK) $(dso_LDFLAGS) -o $@ \
 		-Wl,--soname,$@.$(VERSION),--enable-new-dtags \
 		-Wl,--version-script,$<,--no-undefined \
@@ -152,4 +151,4 @@ noinst_HEADERS = libdwP.h memory-access.h dwarf_abbrev_hash.h \
 
 EXTRA_DIST = libdw.map
 
-MOSTLYCLEANFILES = $(am_libdw_pic_a_OBJECTS) libdw.so.$(VERSION)
+MOSTLYCLEANFILES = $(am_libdw_pic_a_OBJECTS) libdw.so libdw.so.$(VERSION)

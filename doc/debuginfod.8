@@ -117,7 +117,7 @@ Set the path of the sqlite database used to store the index.  This
 file is disposable in the sense that a later rescan will repopulate
 data.  It will contain absolute file path names, so it may not be
 portable across machines.  It may be frequently read/written, so it
-should be on a fast filesytem.  It should not be shared across
+should be on a fast filesystem.  It should not be shared across
 machines or users, to maximize sqlite locking performance.  The
 default database file is \%$HOME/.debuginfod.sqlite.
 
@@ -211,6 +211,17 @@ concurrency of the system, and on the available disk space on the
 $TMPDIR or \fB/tmp\fP filesystem.  This is because that is where the
 most recently used extracted files are kept.  Grooming cleans this
 cache.
+
+.TP
+.B "\-\-fdcache\-mintmp=NUM"
+Configure a disk space threshold for emergency flushing of the cache.
+The filesystem holding the cache is checked periodically.  If the
+available space falls below the given percentage, the cache is
+flushed, and the fdcache will stay disabled until the next groom
+cycle.  This mechanism, along a few associated /metrics on the webapi,
+are intended to give an operator notice about storage scarcity - which
+can translate to RAM scarcity if the disk happens to be on a RAM
+virtual disk.  The default threshold is 25%.
 
 .TP
 .B "\-v"

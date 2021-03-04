@@ -1,3 +1,129 @@
+2021-02-04  Frank Ch. Eigler <fche@redhat.com>
+
+	PR27092 low-memory handling
+	* debuginfod.cxx (fdcache_mintmp): New parameter, with cmd-line option.
+	(parse_opt): Parse it.
+	(main): Default it.
+	(statfs_free_enough_p): New function.
+	(libarchive_fdcache::*): Call it to trigger emergency fdcache flush.
+	(thread_main_scanner): Call it to report filesystem fullness metrics.
+	(groom): Ditto.
+	(set/add_metric): Take double rather than int64_t values.
+	(archive_exception): Propagate suberror to metric label.
+	(main): Detect pthread creation fatal errors properly.
+
+2021-02-02  Frank Ch. Eigler <fche@redhat.com>
+
+	PR27323
+	* debuginfod.cxx (dbq): New read-only database connection for queries
+	only.
+	(signal_handler): Interrupt it.
+	(main): Open / close it.
+	(handle_buildid): Use it for webapi queries only.
+	(database_stats_report): Make more interruptible.  Report sqlite3
+	operation times to the prometheus metrics.
+	(groom): Make more interruptible.
+	(thread_main_fts_source_paths, thread_main_groom): Ensure
+	state/progress metrics are fresh even in case of exceptions.
+
+2020-12-20  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* .gitignore: New file.
+
+2020-12-12  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* debuginfod-client.c (debuginfod_query_server): Fix spelling typos in
+	comments.
+	* debuginfod.cxx: Likewise.
+	(parse_opt): Fix spelling typos in error diagnostics.
+
+2020-12-08  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am [LIBDEBUGINFOD]: Create libdebuginfod.so.1 first, turn
+	libdebuginfod.so into symlink.
+
+2020-11-30  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (libdebuginfod.so): Replace $@.$(VERSION) with
+	$(LIBDEBUGINFOD_SONAME).
+	(install, uninstall, MOSTLYCLEANFILES): Replace
+	libdebuginfod.so.$(VERSION) with $(LIBDEBUGINFOD_SONAME).
+	(VERSION): Remove.
+	* debuginfod.h: Rename to ...
+	* debuginfod.h.in ... this.
+	(DEBUGINFOD_SONAME): New macro.
+
+2020-11-30  Dmitry V. Levin  <ldv@altlinux.org>
+
+	* Makefile.am (libdebuginfod.so$(EXEEXT)): Drop $(EXEEXT) suffix.
+
+2020-11-25  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.cxx (step_ok_done): Correct typo in prom metric label.
+
+2020-11-25  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.cxx (tmp_ms_metric): Switch from gettimeofday to
+	clock_gettime(CLOCK_MONOTONIC) for time-interval measurements.
+	(handler_cb, scan_source_paths, groom): Ditto.
+
+2020-11-23  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.cxx (tmp_ms_metric): New class for RAII timing metrics.
+	(sqlite_ps::reset, step*): Call it to track sqlite3 performance.
+	(sqlite_exception ctor): Increment sqlite3 error_count.
+
+2020-11-23  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-client.c (debuginfod_query_server): Initialize
+	struct handle_data errbuf to the empty string.
+
+2020-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-client.c (debuginfod_set_verbose_fd): New function.
+	(struct debuginfod_client): Add verbose_fd.
+	(struct handle_data): Add errbuf.
+	(debuginfod_query_server): Produce verbose output when
+	debuginfod_client verbose_fd is set. Only clear old data and set
+	default_headers when any work is done. Always goto out when setting
+	rc to an error value. Use CURLOPT_ERRORBUFFER to get more error
+	output when verbose output is requested.
+	* debuginfod.h (DEBUGINFOD_VERBOSE_ENV_VAR): New.
+	(debuginfod_set_verbose_fd): Added.
+	* debuginfod-find.c (parse_opt): Set debuginfod_set_verbose_fd on -v.
+	* bdebuginfod.map (ELFUTILS_0.183): New section, add
+	debuginfod_set_verbose_fd.
+
+2020-11-21  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod.cxx (handle_root): New function.
+	(handler_cb): Handle "/" and report url1 in webapi error.
+
+2020-11-11  Mark Wielaard  <mark@klomp.org>
+
+	* debuginfod-find.c (progressfn): Use clock_gettime to print Progress
+	at most 5 times a second.
+
+2020-11-19  Frank Ch. Eigler  <fche@redhat.com>
+
+	* debuginfod.cxx (tmp_inc_metric): New class.
+	(handler_cb): Use it to track webapi operations.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* debuginfod-client.c (debuginfod_init_cache): Use ACCESSPERMS for
+	mkdir, DEFFILEMODE for open with O_CREAT.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* debuginfod.cxx: include libintl.h.
+
+2020-11-01  Érico N. Rolim  <erico.erc@gmail.com>
+
+	* Makefile.am (debuginfod_LDADD): Add argp_LDADD and fts_LIBS.
+	(debuginfod_find_LDADD): Likewise.
+	(libdebuginfod_so_LDLIBS): Add fts_LIBS.
+
 2020-10-31  Frank Ch. Eigler  <fche@redhat.com>
 
 	* debuginfod.cxx (scan_source_file, scan_archive_file): Add new scanned_bytes_total,

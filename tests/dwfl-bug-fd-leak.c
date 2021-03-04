@@ -1,4 +1,4 @@
-/* Test program for libdwfl file decriptors leakage.
+/* Test program for libdwfl file descriptors leakage.
    Copyright (C) 2007, 2008 Red Hat, Inc.
    This file is part of elfutils.
 
