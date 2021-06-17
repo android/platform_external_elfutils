@@ -22,6 +22,30 @@
       },
       "revId": "f6187bbeb66a02c99e6f85852169794c39d1efba",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7f1db3f2_3dd362da",
+        "filename": "libcpu/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1074628
+      },
+      "writtenOn": "2021-06-17T22:09:49Z",
+      "side": 1,
+      "message": "$(genDir) is your local sandbox dir specific to this action:\n\nhttps://ci.android.com/builds/submitted/7468804/linux/latest/raw/genrule.html#genrule",
+      "parentUuid": "aa0f43cf_54ba28b7",
+      "range": {
+        "startLine": 60,
+        "startChar": 98,
+        "endLine": 60,
+        "endChar": 101
+      },
+      "revId": "f6187bbeb66a02c99e6f85852169794c39d1efba",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     }
   ]
 }
