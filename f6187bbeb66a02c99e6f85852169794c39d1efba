@@ -94,6 +94,30 @@
       },
       "revId": "f6187bbeb66a02c99e6f85852169794c39d1efba",
       "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d65df0f2_2e43aa02",
+        "filename": "libcpu/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1074628
+      },
+      "writtenOn": "2021-06-17T22:34:57Z",
+      "side": 1,
+      "message": "For future reference, another common way of doing this is appending something to the output filename: `$(out).\u003csomething\u003e`, though either way works (and I think genDir makes more sense in this case)",
+      "parentUuid": "9f1bf5c8_758e2a53",
+      "range": {
+        "startLine": 60,
+        "startChar": 98,
+        "endLine": 60,
+        "endChar": 101
+      },
+      "revId": "f6187bbeb66a02c99e6f85852169794c39d1efba",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
     }
   ]
 }
