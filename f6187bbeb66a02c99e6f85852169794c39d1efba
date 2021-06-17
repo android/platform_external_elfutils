@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "aa0f43cf_54ba28b7",
+        "filename": "libcpu/Android.bp",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1402878
+      },
+      "writtenOn": "2021-06-17T22:03:59Z",
+      "side": 1,
+      "message": "this makes an assumption about /tmp being there and writable. furthermore this creates a race between concurrent builds. there must be a better way of finding a tmp directory owned by this build ...",
+      "range": {
+        "startLine": 60,
+        "startChar": 98,
+        "endLine": 60,
+        "endChar": 101
+      },
+      "revId": "f6187bbeb66a02c99e6f85852169794c39d1efba",
+      "serverId": "85c56323-6fa9-3386-8a01-6480fb634889"
+    }
+  ]
+}
